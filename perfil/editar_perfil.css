@@ -1,0 +1,124 @@
+:root {
+    --primary-orange: #f2a93b;
+    --light-orange: #fbd6a1;
+    --dark-brown: #5d3a1a;
+    --text-main: #000;
+    --bg-input: #efefef;
+    --border-color: #ccc;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Segoe UI', sans-serif; background-color: #fff; min-height: 100vh; }
+
+/* Navbar e Layout Base permanecem iguais... */
+.navbar { display: flex; justify-content: space-between; align-items: center; padding: 10px 5%; border-bottom: 1px solid #eee; }
+.nav-left { display: flex; align-items: center; gap: 20px; }
+.logo-box { background-color: var(--primary-orange); color: #fff; padding: 6px 12px; font-weight: bold; border-radius: 4px; }
+.search-container { position: relative; }
+.search-container i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #aaa; }
+.search-container input { padding: 8px 15px 8px 38px; border: 1px solid var(--border-color); border-radius: 20px; width: 300px; background: #fcfcfc; }
+.nav-right { display: flex; align-items: center; gap: 20px; }
+.nav-link { text-decoration: none; color: var(--dark-brown); font-weight: 600; }
+.icon-btn { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--dark-brown); }
+.user-circle { width: 35px; height: 35px; background: #ccc; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; }
+
+.edit-container { padding: 40px 10%; }
+.page-title { font-size: 28px; margin-bottom: 15px; }
+.divider { border: 0; border-top: 1px solid #ddd; margin-bottom: 30px; }
+.edit-content { display: flex; align-items: flex-start; gap: 60px; }
+
+/* Foto e Lápis (Corrigido conforme solicitado anteriormente) */
+.photo-column { flex: 0 0 150px; }
+.profile-avatar-large {
+    width: 150px; height: 150px; background: #ccc; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; position: relative;
+}
+.profile-avatar-large i.fa-user { font-size: 100px; color: #fff; }
+.edit-photo-badge {
+    position: absolute; bottom: 5px; right: 5px; background: #000; color: #fff;
+    border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+}
+.edit-photo-badge i { font-size: 14px; }
+
+/* Formulário e Inputs... */
+.form-column { flex: 1; }
+.form-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+.role-badge { padding: 5px 45px; border: 1px solid #888; border-radius: 12px; }
+.logout-link { text-decoration: none; color: #000; font-weight: bold; font-size: 18px; }
+.form-group { display: flex; align-items: center; margin-bottom: 15px; gap: 20px; }
+.form-group label { width: 80px; font-weight: bold; font-size: 20px; }
+.form-group input { flex: 1; padding: 12px 15px; border: none; border-radius: 8px; background: var(--bg-input); font-size: 16px; }
+.input-with-button { display: flex; flex: 1; }
+.input-with-button input { border-radius: 8px 0 0 8px; }
+.redefine-btn { background: #ddd; border: none; padding: 0 20px; border-radius: 0 8px 8px 0; cursor: pointer; font-size: 15px; }
+.readonly-input { color: #555; }
+.form-buttons { display: flex; gap: 40px; margin-top: 40px; justify-content: center; }
+.btn-save { padding: 12px 0; width: 320px; border: none; border-radius: 10px; font-weight: bold; font-size: 16px; cursor: pointer; background: var(--primary-orange); }
+.btn-cancel { padding: 12px 0; width: 320px; border: none; border-radius: 10px; font-weight: bold; font-size: 16px; cursor: pointer; background: var(--light-orange); }
+.form-footer-note { text-align: center; margin-top: 25px; font-size: 13px; }
+
+/* --- CONTROLE DO EFEITO DE ESCURECIMENTO TOTAL --- */
+
+/* Quando o modal está ativo, criamos a película fixa sobre toda a tela */
+.modal-active::after {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.45); /* Escurecimento uniforme em tudo */
+    z-index: 900;
+    pointer-events: none;
+}
+
+/* Garante que o conteúdo não possa ser clicado por baixo */
+.modal-active {
+    pointer-events: none;
+    user-select: none;
+}
+
+/* Estilo do Modal Overlay */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000; /* Acima da película */
+}
+
+.modal-card {
+    background: #fff;
+    width: 450px;
+    padding: 35px;
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+    pointer-events: auto; /* Permite interagir com o modal */
+}
+
+/* Cabeçalho do Modal e Botão de fechar (X) */
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+.modal-header h2 { font-size: 26px; font-weight: bold; }
+.close-modal { background: none; border: none; font-size: 45px; color: var(--primary-orange); cursor: pointer; line-height: 0.5; }
+
+/* Inputs do Modal */
+.modal-form { display: flex; flex-direction: column; gap: 15px; }
+.modal-input-group { display: flex; flex-direction: column; gap: 8px; }
+.modal-input-group input { padding: 14px; border: none; background: #f0f0f0; border-radius: 10px; font-size: 16px; outline: none; }
+
+/* Botão Salvar do Modal */
+.btn-save-modal {
+    background: var(--primary-orange);
+    border: none;
+    padding: 15px;
+    border-radius: 12px;
+    font-weight: bold;
+    font-size: 18px;
+    margin-top: 15px;
+    cursor: pointer;
+}

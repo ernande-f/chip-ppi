@@ -1,0 +1,221 @@
+/* Variáveis de Cores */
+:root {
+    --primary-orange: #f2a93b;
+    --dark-brown: #5d3a1a;
+    --text-main: #333;
+    --text-secondary: #777;
+    --bg-card: #ececec;
+    --border-color: #ddd;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    background-color: #fff;
+    color: var(--text-main);
+}
+
+/* Navbar */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 5%;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.nav-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.logo-box {
+    background-color: var(--primary-orange);
+    color: #fff;
+    padding: 6px 14px;
+    font-weight: bold;
+    border-radius: 4px;
+}
+
+.search-container {
+    position: relative;
+}
+
+.search-container i {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #aaa;
+}
+
+.search-container input {
+    padding: 8px 15px 8px 38px;
+    border: 1px solid #ccc;
+    border-radius: 20px;
+    width: 320px;
+    background-color: #fcfcfc;
+    outline: none;
+}
+
+.nav-right {
+    display: flex;
+    align-items: center;
+    gap: 25px;
+}
+
+.nav-link {
+    text-decoration: none;
+    color: var(--dark-brown);
+    font-weight: 600;
+}
+
+.icon-btn {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: var(--dark-brown);
+}
+
+.user-circle {
+    width: 35px;
+    height: 35px;
+    background-color: #ccc;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+}
+
+/* Seção de Cabeçalho do Perfil */
+.profile-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 40px 10%;
+}
+
+.profile-main {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+}
+
+.profile-avatar {
+    width: 130px;
+    height: 130px;
+    background-color: #ccc;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.profile-avatar i {
+    font-size: 80px;
+    color: #fff;
+}
+
+.profile-details h1 {
+    font-size: 28px;
+    margin-bottom: 4px;
+}
+
+.profile-details .email {
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+}
+
+.role-badge {
+    display: inline-block;
+    padding: 6px 45px;
+    border: 1px solid #999;
+    border-radius: 25px;
+    font-size: 15px;
+}
+
+/* Ações do Perfil */
+.profile-actions {
+    display: flex;
+    gap: 25px;
+    padding-top: 10px;
+}
+
+.action-btn {
+    text-decoration: none;
+    color: #000;
+    font-weight: bold;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.action-btn:hover {
+    text-decoration: underline;
+}
+
+/* Banner Centralizado */
+.history-banner {
+    background-color: var(--primary-orange);
+    margin: 0 10%;
+    padding: 12px;
+    text-align: center;
+    font-weight: bold;
+    border-radius: 6px;
+    font-size: 18px;
+}
+
+/* Área do Conteúdo Principal */
+.content-container {
+    padding: 20px 10%;
+}
+
+.section-title {
+    color: var(--text-secondary);
+    font-size: 16px;
+    font-weight: normal;
+    margin: 25px 0 15px 0;
+}
+
+/* Card do Histórico */
+.order-card {
+    background-color: var(--bg-card);
+    border-radius: 15px;
+    padding: 30px;
+}
+
+.order-id {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.status-aceito {
+    color: #4caf50;
+    font-weight: bold;
+}
+
+.order-meta {
+    display: flex;
+    gap: 60px;
+    font-size: 13px;
+    color: #555;
+    margin-bottom: 20px;
+}
+
+.order-text {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    text-align: justify;
+}
