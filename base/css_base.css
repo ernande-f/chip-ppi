@@ -1,0 +1,140 @@
+:root {
+    --primary-orange: #f2a933;
+    --bg-light: #fdfdfd;
+    --text-dark: #333;
+    --text-brown: #54320f;
+    --border-gray: #eee;
+    --shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    background-color: var(--bg-light);
+    color: var(--text-dark);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh; /* Garante que o rodapé fique embaixo se a página tiver pouco conteúdo */
+}
+
+/* --- ESTRUTURA --- */
+.container { 
+    padding: 40px 5%; 
+    flex: 1; /* Faz o conteúdo crescer e empurrar o footer para o fim da tela */
+}
+
+/* --- HEADER --- */
+.navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 5%;
+    background: white;
+    border-bottom: 1px solid var(--border-gray);
+}
+
+.logo-img {
+    height: 55px;
+    width: auto;
+    display: block;
+}
+
+.search-bar input {
+    width: 400px;
+    padding: 10px 15px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    outline: none;
+    background-color: #f9f9f9;
+}
+
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+}
+
+.nav-link-item {
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    align-items: center;
+}
+
+.nav-text-bold {
+    font-weight: 700;
+    color: var(--text-brown);
+    font-size: 1.05rem;
+}
+
+.sino-img {
+    width: 55px; 
+    height: auto;
+    cursor: pointer;
+    display: block;
+}
+
+.profile-pic {
+    width: 44px; 
+    height: 44px;
+    background: #f0f0f0;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border: 1px solid #e0e0e0;
+    transition: transform 0.2s;
+}
+
+.profile-pic:hover {
+    transform: scale(1.05);
+}
+
+.profile-pic svg {
+    width: 85%;
+    height: 85%;
+}
+
+/* --- FOOTER --- */
+.main-footer {
+    background-color: #fff;
+    padding: 60px 5%;
+    border-top: 1px solid #e0e0e0;
+    margin-top: 50px;
+}
+
+.footer-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 40px;
+    max-width: 1300px;
+    margin: 0 auto;
+}
+
+.footer-col-icon {
+    flex: 0 0 220px;
+}
+
+.processor-img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.footer-col {
+    flex: 1;
+    color: #666;
+    font-size: 0.85rem;
+    line-height: 1.6;
+}
+
+.footer-col p { margin: 4px 0; }
+
+.iff-logo {
+    height: 55px;
+    margin-top: 15px;
+    display: block;
+}
