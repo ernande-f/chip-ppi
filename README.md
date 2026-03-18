@@ -1,5 +1,3 @@
-# 🚀 Guia Rápido do Projeto CHIP-PPI
-
 Nossa estrutura foi dividida para organizar melhor o código:
 
 - **`/frontend/`**: Onde ficam nossas páginas (HTML), estilos (CSS), scripts do navegador e imagens (`assets/`). Quando for criar ou editar uma tela, é aqui que você deve mexer!
