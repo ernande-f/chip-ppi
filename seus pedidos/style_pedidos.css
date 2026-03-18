@@ -1,0 +1,95 @@
+:root {
+    --primary-orange: #f2a933;
+    --primary-orange-hover: #e09622;
+    --bg-light: #fdfdfd;
+    --text-dark: #333;
+    --text-brown: #54320f;
+    --border-gray: #eee;
+    --shadow: 0 4px 15px rgba(0,0,0,0.06);
+    --border-card: 1px solid #dcc6b1;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    background-color: var(--bg-light);
+    color: var(--text-dark);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.container { padding: 40px 5%; flex: 1; }
+
+/* --- NAVBAR --- */
+.navbar { display: flex; align-items: center; justify-content: space-between; padding: 18px 5%; background: white; border-bottom: 1px solid var(--border-gray); }
+.logo-img { height: 55px; width: auto; }
+.search-bar input { width: 400px; padding: 10px 15px; border: 1px solid #ccc; border-radius: 10px; background-color: #f9f9f9; outline: none; }
+.nav-links { display: flex; align-items: center; gap: 30px; }
+.nav-text-bold { font-weight: 700; color: var(--text-brown); text-decoration: none; }
+.sino-img { width: 55px; cursor: pointer; }
+.profile-pic { width: 44px; height: 44px; background: #f0f0f0; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid #e0e0e0; overflow: hidden; }
+
+/* --- TÍTULOS --- */
+.main-title { font-size: 2.2rem; font-weight: 700; margin-bottom: 5px; }
+.sub-section-title { font-size: 1.1rem; color: var(--text-brown); margin-bottom: 25px; font-weight: 600; }
+.section-title-black { font-size: 1.8rem; font-weight: 700; margin: 60px 0 25px 0; }
+
+/* --- CARRINHO --- */
+.cart-container { display: flex; gap: 30px; align-items: flex-start; }
+.cart-table { flex: 2.5; background: white; border-radius: 15px; border: var(--border-card); overflow: hidden; }
+.table-header { display: flex; justify-content: space-between; padding: 18px 30px; border-bottom: 1px solid #eee; font-weight: 700; font-size: 1.1rem; }
+.table-row { display: flex; justify-content: space-between; align-items: center; padding: 25px 30px; border-bottom: 1px solid #eee; }
+.table-row:last-child { border-bottom: none; }
+
+.product-info { display: flex; align-items: center; gap: 20px; }
+.product-thumb { width: 80px; height: 80px; border-radius: 12px; object-fit: cover; background: #f5f5f5; }
+.product-details strong { display: block; font-size: 1.1rem; margin-bottom: 4px; }
+.product-details span { font-size: 0.85rem; color: #888; display: block; }
+
+.product-actions { display: flex; align-items: center; gap: 50px; }
+.quantity-control { display: flex; align-items: center; gap: 15px; border: 1px solid #bbb; padding: 5px 18px; border-radius: 25px; font-weight: 700; }
+.quantity-control button { border: none; background: none; font-size: 1.3rem; cursor: pointer; color: #555; }
+.delete-btn { border: none; background: none; cursor: pointer; color: #333; transition: color 0.2s; }
+.delete-btn:hover { color: #ff4d4d; }
+
+/* CHECKOUT CARD */
+.checkout-card { flex: 1; background: white; border-radius: 15px; border: var(--border-card); padding: 30px; text-align: center; }
+.duration-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 25px; font-weight: 700; font-size: 0.95rem; }
+.duration-select { background: #eee; border: none; border-radius: 5px; width: 100px; padding: 5px; outline: none; }
+.finish-btn { width: 100%; background: var(--primary-orange); border: none; border-radius: 10px; padding: 15px; font-weight: 700; font-size: 1rem; cursor: pointer; margin-bottom: 15px; transition: background 0.2s; }
+.finish-btn:hover { background: var(--primary-orange-hover); }
+.disclaimer { font-size: 0.75rem; color: #999; line-height: 1.4; font-weight: 500; }
+
+/* --- PEDIDOS EM ANDAMENTO --- */
+.ongoing-grid { display: flex; gap: 25px; }
+.ongoing-card { flex: 1; background: white; border-radius: 15px; padding: 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow); }
+.ongoing-info strong { display: block; font-size: 1.2rem; margin-bottom: 8px; }
+.ongoing-info .devolution-date { font-size: 0.9rem; color: #888; }
+.status-icon { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 900; font-size: 1.4rem; }
+.status-icon.red { background: #ff4747; }
+.status-icon.yellow { background: #ffee00; color: white; text-shadow: 0 0 2px rgba(0,0,0,0.1); }
+
+/* --- HISTÓRICO --- */
+.history-tabs { background: var(--primary-orange); border-radius: 10px; display: flex; overflow: hidden; margin-bottom: 40px; }
+.tab { flex: 1; padding: 15px; border: none; background: none; font-weight: 700; font-size: 1rem; cursor: pointer; }
+.tab.active { background: rgba(0,0,0,0.08); border-bottom: 4px solid #333; }
+
+.history-card { max-width: 450px; background: white; border-radius: 20px; padding: 35px; box-shadow: var(--shadow); margin-bottom: 20px; }
+.history-card-header strong { display: block; font-size: 1.3rem; }
+.history-date { font-size: 0.85rem; color: #999; margin: 8px 0 20px 0; display: block; }
+.history-description { font-size: 0.85rem; line-height: 1.6; color: #666; }
+.no-more-text { font-size: 0.9rem; color: #999; margin: 25px 0; }
+
+.history-footer-actions { display: flex; justify-content: center; gap: 80px; margin-top: 50px; border-top: 1px solid #eee; padding-top: 40px; }
+.action-btn { background: var(--primary-orange); border: none; border-radius: 12px; padding: 18px 80px; font-weight: 700; font-size: 1.3rem; cursor: pointer; min-width: 350px; transition: transform 0.2s; }
+.action-btn:hover { transform: scale(1.02); }
+
+/* --- FOOTER --- */
+.main-footer { background: #fff; padding: 60px 5%; border-top: 1px solid #e0e0e0; margin-top: 100px; }
+.footer-container { display: flex; justify-content: space-between; align-items: flex-start; gap: 40px; max-width: 1300px; margin: 0 auto; }
+.footer-col-icon { flex: 0 0 220px; }
+.processor-img { width: 100%; height: auto; }
+.footer-col { flex: 1; color: #555; font-size: 0.9rem; line-height: 1.6; }
+.footer-col p { margin: 5px 0; }
+.iff-logo { height: 65px; margin-top: 20px; }
