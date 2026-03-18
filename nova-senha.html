@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nova Senha - IFFar</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* --- Reset Básico --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: #f5f5f5; /* Fundo cinza caso a tela seja maior que o container */
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Container principal ocupando a tela toda */
+        .container {
+            display: flex;
+            width: 100%;
+            height: 100vh;
+            background: #fff;
+        }
+
+        /* ================================
+           LADO ESQUERDO (Laranja)
+           ================================ */
+        .left-panel {
+            flex: 1; /* Ocupa 50% da tela */
+            background-color: #d99c3e; /* Cor base laranja/ocre */
+            position: relative;
+            padding: 50px;
+            overflow: hidden;
+        }
+
+        .left-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 2;
+            position: relative;
+        }
+
+        .left-header h2 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #000;
+            letter-spacing: 0.5px;
+        }
+
+        .left-header i {
+            font-size: 24px;
+            color: #000;
+            cursor: pointer;
+        }
+
+        /* Detalhe geométrico no fundo esquerdo (Aproximação) */
+        .shape {
+            position: absolute;
+            bottom: -20px;
+            left: -20px;
+            width: 50%;
+            height: 70%;
+            background-color: #e4ae5d;
+            border-top: 15px solid #ebd094;
+            border-right: 15px solid #ebd094;
+            clip-path: polygon(0 25%, 35% 25%, 70% 50%, 70% 100%, 0 100%);
+        }
+
+        /* ================================
+           LADO DIREITO (Formulário Branco)
+           ================================ */
+        .right-panel {
+            flex: 1; /* Ocupa os outros 50% */
+            background-color: #ffffff;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 50px 10%; /* Espaçamento flexível */
+        }
+
+        .logo-container {
+            position: absolute;
+            top: 50px;
+            right: 50px;
+        }
+
+        .logo-container img {
+            height: 65px; /* Ajuste o tamanho da logo aqui */
+        }
+
+        .form-container {
+            max-width: 450px;
+            width: 100%;
+        }
+
+        .form-container h1 {
+            font-size: 22px;
+            color: #111;
+            margin-bottom: 12px;
+            font-weight: 700;
+        }
+
+        .form-container p {
+            font-size: 14px;
+            color: #5a4a3d; /* Tom marrom escuro/acinzentado */
+            line-height: 1.5;
+            margin-bottom: 30px;
+            font-weight: 600;
+        }
+
+        /* Estilização dos Inputs */
+        .input-group {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 16px 20px;
+            background-color: #f0f0f0; /* Fundo cinza claro */
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            color: #333;
+            font-weight: 600;
+            outline: none;
+        }
+
+        .input-group input::placeholder {
+            color: #888;
+            font-weight: 600;
+        }
+
+        /* Ícone do olho no input de senha */
+        .toggle-password {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        /* Estilização do Botão */
+        .btn-submit {
+            display: inline-block;
+            padding: 14px 45px;
+            background-color: #f4bd60;
+            color: #684a1e; /* Texto num tom escuro da mesma paleta */
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .btn-submit:hover {
+            background-color: #e5b055;
+        }
+
+        /* Responsividade básica para telas menores */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            .left-panel {
+                display: none; /* Esconde o painel laranja no celular */
+            }
+            .right-panel {
+                padding: 40px 20px;
+            }
+            .logo-container {
+                position: static; /* Move a logo para o fluxo normal no celular */
+                margin-bottom: 40px;
+                text-align: right;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <main class="container">
+        
+        <section class="left-panel">
+            <header class="left-header">
+                <h2>CHIP</h2>
+                <i class="fa-regular fa-circle-question"></i>
+            </header>
+            <div class="shape"></div>
+        </section>
+
+        <section class="right-panel">
+            
+            <div class="logo-container">
+                <img src="logo.iffar.png" alt="logo-iffar">
+            </div>
+            
+            <div class="form-container">
+                <h1>Nova senha</h1>
+                <p>Você estava usando uma senha temporária, adicione sua nova senha nos campos abaixo.</p>
+                
+                <form action="#">
+                    
+                    <div class="input-group">
+                        <input type="password" placeholder="Nova senha" id="new-password">
+                        <i class="fa-solid fa-eye-slash toggle-password"></i>
+                    </div>
+                    
+                    <div class="input-group">
+                        <input type="password" placeholder="Confirmar senha" id="confirm-password">
+                    </div>
+                    
+                    <button type="submit" class="btn-submit">Redefinir</button>
+                    
+                </form>
+            </div>
+        </section>
+
+    </main>
+
+</body>
+</html>
