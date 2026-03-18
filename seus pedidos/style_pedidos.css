@@ -19,28 +19,185 @@ body {
     min-height: 100vh;
 }
 
-.container { padding: 40px 5%; flex: 1; }
+/* --- ESTRUTURA --- */
+.container { 
+    padding: 40px 5%; 
+    flex: 1; 
+}
 
-/* --- NAVBAR --- */
-.navbar { display: flex; align-items: center; justify-content: space-between; padding: 18px 5%; background: white; border-bottom: 1px solid var(--border-gray); }
-.logo-img { height: 55px; width: auto; }
-.search-bar input { width: 400px; padding: 10px 15px; border: 1px solid #ccc; border-radius: 10px; background-color: #f9f9f9; outline: none; }
-.nav-links { display: flex; align-items: center; gap: 30px; }
-.nav-text-bold { font-weight: 700; color: var(--text-brown); text-decoration: none; }
-.sino-img { width: 55px; cursor: pointer; }
-.profile-pic { width: 44px; height: 44px; background: #f0f0f0; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid #e0e0e0; overflow: hidden; }
+/* --- HEADER --- */
+:root {
+    --primary-orange: #f2a933;
+    --bg-light: #fdfdfd;
+    --text-dark: #333;
+    --text-brown: #54320f;
+    --border-gray: #eee;
+    --shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    background-color: var(--bg-light);
+    color: var(--text-dark);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh; /* Garante que o rodapé fique embaixo se a página tiver pouco conteúdo */
+}
+
+/* --- ESTRUTURA --- */
+.container { 
+    padding: 40px 5%; 
+    flex: 1; /* Faz o conteúdo crescer e empurrar o footer para o fim da tela */
+}
+
+/* --- HEADER --- */
+.navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 5%;
+    background: white;
+    border-bottom: 1px solid var(--border-gray);
+}
+
+.logo-img {
+    height: 55px;
+    width: auto;
+    display: block;
+}
+
+.search-bar input {
+    width: 400px;
+    padding: 10px 15px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    outline: none;
+    background-color: #f9f9f9;
+}
+
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+}
+
+.nav-link-item {
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    align-items: center;
+}
+
+.nav-text-bold {
+    font-weight: 700;
+    color: var(--text-brown);
+    font-size: 1.05rem;
+}
+
+.sino-img {
+    width: 55px; 
+    height: auto;
+    cursor: pointer;
+    display: block;
+}
+
+.profile-pic {
+    width: 44px; 
+    height: 44px;
+    background: #f0f0f0;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border: 1px solid #e0e0e0;
+    transition: transform 0.2s;
+}
+
+.profile-pic:hover {
+    transform: scale(1.05);
+}
+
+.profile-pic svg {
+    width: 85%;
+    height: 85%;
+}
+
+/* --- FOOTER --- */
+.main-footer {
+    background-color: #fff;
+    padding: 60px 5%;
+    border-top: 1px solid #e0e0e0;
+    margin-top: 50px;
+}
+
+.footer-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 40px;
+    max-width: 1300px;
+    margin: 0 auto;
+}
+
+.footer-col-icon {
+    flex: 0 0 220px;
+}
+
+.processor-img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.footer-col {
+    flex: 1;
+    color: #666;
+    font-size: 0.85rem;
+    line-height: 1.6;
+}
+
+.footer-col p { margin: 4px 0; }
+
+.iff-logo {
+    height: 55px;
+    margin-top: 15px;
+    display: block;
+}
 
 /* --- TÍTULOS --- */
 .main-title { font-size: 2.2rem; font-weight: 700; margin-bottom: 5px; }
 .sub-section-title { font-size: 1.1rem; color: var(--text-brown); margin-bottom: 25px; font-weight: 600; }
 .section-title-black { font-size: 1.8rem; font-weight: 700; margin: 60px 0 25px 0; }
 
-/* --- CARRINHO --- */
+/* --- SEÇÃO: CARRINHO --- */
 .cart-container { display: flex; gap: 30px; align-items: flex-start; }
-.cart-table { flex: 2.5; background: white; border-radius: 15px; border: var(--border-card); overflow: hidden; }
-.table-header { display: flex; justify-content: space-between; padding: 18px 30px; border-bottom: 1px solid #eee; font-weight: 700; font-size: 1.1rem; }
-.table-row { display: flex; justify-content: space-between; align-items: center; padding: 25px 30px; border-bottom: 1px solid #eee; }
-.table-row:last-child { border-bottom: none; }
+
+.cart-table { 
+    flex: 2.5; 
+    background: white; 
+    border-radius: 15px; 
+    border: var(--border-card); /* Borda marrom clara do design */
+    overflow: hidden; 
+}
+
+.table-header { 
+    display: flex; 
+    justify-content: space-between; 
+    padding: 18px 30px; 
+    border-bottom: 1px solid #eee; 
+    font-weight: 700; 
+}
+
+.table-row { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    padding: 25px 30px; 
+    border-bottom: 1px solid #eee; 
+}
 
 .product-info { display: flex; align-items: center; gap: 20px; }
 .product-thumb { width: 80px; height: 80px; border-radius: 12px; object-fit: cover; background: #f5f5f5; }
@@ -48,48 +205,165 @@ body {
 .product-details span { font-size: 0.85rem; color: #888; display: block; }
 
 .product-actions { display: flex; align-items: center; gap: 50px; }
-.quantity-control { display: flex; align-items: center; gap: 15px; border: 1px solid #bbb; padding: 5px 18px; border-radius: 25px; font-weight: 700; }
+.quantity-control { 
+    display: flex; 
+    align-items: center; 
+    gap: 15px; 
+    border: 1px solid #bbb; 
+    padding: 5px 18px; 
+    border-radius: 25px; 
+    font-weight: 700; 
+}
+
 .quantity-control button { border: none; background: none; font-size: 1.3rem; cursor: pointer; color: #555; }
-.delete-btn { border: none; background: none; cursor: pointer; color: #333; transition: color 0.2s; }
-.delete-btn:hover { color: #ff4d4d; }
 
-/* CHECKOUT CARD */
-.checkout-card { flex: 1; background: white; border-radius: 15px; border: var(--border-card); padding: 30px; text-align: center; }
-.duration-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 25px; font-weight: 700; font-size: 0.95rem; }
-.duration-select { background: #eee; border: none; border-radius: 5px; width: 100px; padding: 5px; outline: none; }
-.finish-btn { width: 100%; background: var(--primary-orange); border: none; border-radius: 10px; padding: 15px; font-weight: 700; font-size: 1rem; cursor: pointer; margin-bottom: 15px; transition: background 0.2s; }
-.finish-btn:hover { background: var(--primary-orange-hover); }
-.disclaimer { font-size: 0.75rem; color: #999; line-height: 1.4; font-weight: 500; }
+.delete-btn { border: none; background: none; cursor: pointer; color: #333; }
 
-/* --- PEDIDOS EM ANDAMENTO --- */
+/* CHECKOUT CARD E SELETOR CUSTOMIZADO */
+.checkout-card { 
+    flex: 1; 
+    background: white; 
+    border-radius: 15px; 
+    border: var(--border-card); 
+    padding: 30px; 
+    text-align: center; 
+}
+
+.duration-row { 
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between; 
+    margin-bottom: 25px; 
+    font-weight: 700; 
+}
+
+/* O seletor que você pediu para ajustar */
+.duration-select {
+    width: 110px;
+    appearance: none; 
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-color: #eeeeee; /* Cor cinza */
+    color: #333;
+    border: none; /* Sem linha no contorno */
+    border-radius: 12px; /* Bordas redondas */
+    padding: 8px 15px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    cursor: pointer;
+    outline: none;
+    /* Adiciona a setinha customizada pois removemos a padrão */
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 12px;
+}
+
+.duration-select:hover { background-color: #e5e5e5; }
+
+.finish-btn { 
+    width: 100%; 
+    background: var(--primary-orange); 
+    border: none; 
+    border-radius: 10px; 
+    padding: 15px; 
+    font-weight: 700; 
+    font-size: 1rem; 
+    cursor: pointer; 
+    margin-bottom: 15px; 
+}
+
+.disclaimer { font-size: 0.75rem; color: #999; line-height: 1.4; }
+
+/* --- SEÇÃO: PEDIDOS EM ANDAMENTO --- */
 .ongoing-grid { display: flex; gap: 25px; }
-.ongoing-card { flex: 1; background: white; border-radius: 15px; padding: 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow); }
-.ongoing-info strong { display: block; font-size: 1.2rem; margin-bottom: 8px; }
-.ongoing-info .devolution-date { font-size: 0.9rem; color: #888; }
-.status-icon { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 900; font-size: 1.4rem; }
-.status-icon.red { background: #ff4747; }
-.status-icon.yellow { background: #ffee00; color: white; text-shadow: 0 0 2px rgba(0,0,0,0.1); }
 
-/* --- HISTÓRICO --- */
-.history-tabs { background: var(--primary-orange); border-radius: 10px; display: flex; overflow: hidden; margin-bottom: 40px; }
-.tab { flex: 1; padding: 15px; border: none; background: none; font-weight: 700; font-size: 1rem; cursor: pointer; }
+.ongoing-card { 
+    flex: 1; 
+    background: white; 
+    border-radius: 15px; 
+    padding: 30px; 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    box-shadow: var(--shadow); /* Sombra suave do design */
+}
+
+.status-icon { 
+    width: 40px; 
+    height: 40px; 
+    border-radius: 50%; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    color: white; 
+    font-weight: 900; 
+}
+
+.status-icon.red { background: #ff4747; }
+.status-icon.yellow { background: #ffee00; }
+
+/* --- SEÇÃO: HISTÓRICO --- */
+.history-tabs { 
+    background: var(--primary-orange); 
+    border-radius: 10px; 
+    display: flex; 
+    margin-bottom: 40px; 
+}
+
+.tab { 
+    flex: 1; 
+    padding: 15px; 
+    border: none; 
+    background: none; 
+    font-weight: 700; 
+    cursor: pointer; 
+}
+
 .tab.active { background: rgba(0,0,0,0.08); border-bottom: 4px solid #333; }
 
-.history-card { max-width: 450px; background: white; border-radius: 20px; padding: 35px; box-shadow: var(--shadow); margin-bottom: 20px; }
-.history-card-header strong { display: block; font-size: 1.3rem; }
-.history-date { font-size: 0.85rem; color: #999; margin: 8px 0 20px 0; display: block; }
-.history-description { font-size: 0.85rem; line-height: 1.6; color: #666; }
-.no-more-text { font-size: 0.9rem; color: #999; margin: 25px 0; }
+.history-card { 
+    max-width: 450px; 
+    background: white; 
+    border-radius: 20px; 
+    padding: 35px; 
+    box-shadow: var(--shadow); 
+    margin-bottom: 20px; 
+}
 
-.history-footer-actions { display: flex; justify-content: center; gap: 80px; margin-top: 50px; border-top: 1px solid #eee; padding-top: 40px; }
-.action-btn { background: var(--primary-orange); border: none; border-radius: 12px; padding: 18px 80px; font-weight: 700; font-size: 1.3rem; cursor: pointer; min-width: 350px; transition: transform 0.2s; }
-.action-btn:hover { transform: scale(1.02); }
+.history-footer-actions { 
+    display: flex; 
+    justify-content: center; 
+    gap: 80px; 
+    margin-top: 50px; 
+    border-top: 1px solid #eee; 
+    padding-top: 40px; 
+}
+
+.action-btn { 
+    background: var(--primary-orange); 
+    border: none; 
+    border-radius: 12px; 
+    padding: 18px 80px; 
+    font-weight: 700; 
+    font-size: 1.3rem; 
+    cursor: pointer; 
+    min-width: 350px; /* Botões grandes como no design */
+}
 
 /* --- FOOTER --- */
 .main-footer { background: #fff; padding: 60px 5%; border-top: 1px solid #e0e0e0; margin-top: 100px; }
-.footer-container { display: flex; justify-content: space-between; align-items: flex-start; gap: 40px; max-width: 1300px; margin: 0 auto; }
+
+.footer-container { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: flex-start; 
+    gap: 40px; 
+    max-width: 1300px; 
+    margin: 0 auto; 
+}
+
 .footer-col-icon { flex: 0 0 220px; }
 .processor-img { width: 100%; height: auto; }
 .footer-col { flex: 1; color: #555; font-size: 0.9rem; line-height: 1.6; }
-.footer-col p { margin: 5px 0; }
 .iff-logo { height: 65px; margin-top: 20px; }
