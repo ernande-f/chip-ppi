@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CHIP - Seus Pedidos</title>
+    <link rel="stylesheet" href="style_pedidos.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <header class="navbar">
+        <div class="logo-container">
+            <img src="../logo.png" alt="Logo CHIP" class="logo-img">
+        </div>
+
+        <div class="search-bar">
+            <input type="text" placeholder="Pesquisar por cor, tipo, nome...">
+        </div>
+
+        <div class="nav-links">
+            <a href="pedidos.html" class="nav-link-item">
+                <span class="nav-text-bold">Seus pedidos</span>
+            </a>
+            
+            <div class="icon-notification">
+                <img src="../sino.png" alt="Notificações" class="sino-img">
+            </div>
+
+            <a href="perfil.html" class="nav-link-item">
+                <div class="profile-pic">
+                    <svg viewBox="0 0 24 24" fill="#e0e0e0"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                </div>
+            </a>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="cart-section">
+            <h1 class="main-title">Seus pedidos</h1>
+            <h2 class="sub-section-title">Itens no seu carrinho</h2>
+
+            <div class="cart-container">
+                <div class="cart-table">
+                    <div class="table-header">
+                        <span>Produto</span>
+                        <span>Quantidade</span>
+                    </div>
+
+                    <div class="table-row">
+                        <div class="product-info">
+                            <img src="imagem/arduino.png" alt="Arduino" class="product-thumb">
+                            <div class="product-details">
+                                <strong>Item 1</strong>
+                                <span>Categoria: categoria</span>
+                                <span>Cor: azul</span>
+                            </div>
+                        </div>
+                        <div class="product-actions">
+                            <div class="quantity-control">
+                                <button>-</button>
+                                <span>10</span>
+                                <button>+</button>
+                            </div>
+                            <button class="delete-btn">
+                                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="table-row">
+                        <div class="product-info">
+                            <img src="imagem/resistores.png" alt="Resistores" class="product-thumb">
+                            <div class="product-details">
+                                <strong>Item 2</strong>
+                                <span>Categoria: categoria</span>
+                                <span>Cor: azul</span>
+                            </div>
+                        </div>
+                        <div class="product-actions">
+                            <div class="quantity-control">
+                                <button>-</button>
+                                <span>05</span>
+                                <button>+</button>
+                            </div>
+                            <button class="delete-btn">
+                                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="checkout-card">
+                    <div class="duration-row">
+                        <label>Duração do pedido:</label>
+                        <div class="custom-select-wrapper">
+                            <select class="duration-select">
+                                <option value="" disabled selected></option>
+                                <option value="7">7 dias</option>
+                                <option value="15">15 dias</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="finish-btn">Concluir pedido</button>
+                    <p class="disclaimer">*Você estará enviando uma solicitação que precisa ser aceita pelo administrador. Isso pode demorar um tempinho!</p>
+                </div>
+               </div>
+        </section>
+
+        <section class="ongoing-section">
+            <h2 class="section-title-black">Pedidos em andamento</h2>
+            <div class="ongoing-grid">
+                <div class="card ongoing-card">
+                    <div class="ongoing-info">
+                        <strong>Pedido #455</strong>
+                        <span class="devolution-date">Data de devolução: 11/12/2025</span>
+                    </div>
+                    <div class="status-icon red">!</div>
+                </div>
+                <div class="card ongoing-card">
+                    <div class="ongoing-info">
+                        <strong>Pedido #451</strong>
+                        <span class="devolution-date">Data de devolução: 14/12/2025</span>
+                    </div>
+                    <div class="status-icon yellow">!</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="history-section">
+            <h2 class="section-title-black">Histórico de pedidos</h2>
+            
+            <div class="history-tabs">
+                <button class="tab active">Pendente</button>
+                <button class="tab">Aceito</button>
+                <button class="tab">Negado</button>
+            </div>
+
+            <div class="history-container">
+                <div class="card history-card">
+                    <div class="history-card-header">
+                        <strong>Pedido #456</strong>
+                        <span class="history-date">Data do pedido: 01/01/2025</span>
+                    </div>
+                    <p class="history-description">
+                        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+                    </p>
+                </div>
+                <p class="no-more-text">Não há mais pedidos pendentes.</p>
+            </div>
+
+            <div class="history-footer-actions">
+                <button class="action-btn">Estender prazo</button>
+                <button class="action-btn">Pedir novamente</button>
+            </div>
+        </section>
+    </main>
+
+    <footer class="main-footer">
+        <div class="footer-container">
+            <div class="footer-col-icon">
+                <img src="imagem/processador.png" alt="Processador CPU" class="processor-img">
+            </div>
+
+            <div class="footer-col">
+                <p><strong>CHIP - Controle de Hardware e Itens de Projeto</strong></p>
+                <p>Prática Profissional Integrada - 2025/26</p>
+                <p>Instituto Federal Farroupilha - Campus Frederico Westphalen</p>
+            </div>
+
+            <div class="footer-col">
+                <p>Desenvolvedores:</p>
+                <p>Ariany Maísa Barros Kovalckoski</p>
+                <p>Ernande Facco</p>
+                <p>Luiza de Marchi Brombilla</p>
+                <p>Nicole Freddi</p>
+            </div>
+
+            <div class="footer-col">
+                <p>Curso técnico de informática integrado ao ensino médio</p>
+                <img src="imagem/logo_iffar.png" alt="Logo IFF" class="iff-logo">
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>

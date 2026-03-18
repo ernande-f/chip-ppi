@@ -27,7 +27,7 @@
                 <img src="imagem/sino.png" alt="Notificações" class="sino-img">
             </div>
 
-            <a href="perfil.html" class="nav-link-item">
+            <a href="perfil/perfil.html" class="nav-link-item">
                 <div class="profile-pic">
                     <svg viewBox="0 0 24 24" fill="#e0e0e0"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
                 </div>
@@ -43,10 +43,11 @@
             </div>
             
             <div class="order-cards">
-                <div class="card order-card">
+                <div class="card order-card" onclick="openModal()">
                     <span class="order-id">Pedido #456</span>
                     <span class="status yellow">Pendente</span>
                 </div>
+                
                 <div class="card order-card">
                     <span class="order-id">Pedido #448</span>
                     <span class="status green">Aceito</span>
@@ -67,9 +68,9 @@
 
         <section class="grid-items">
             <div class="card item-card">
-                <div class="item-image" style="background-image: url('https://via.placeholder.com/150');"></div>
+                <div class="item-image" style="background-image: url('imagem/exemplo.png');"></div>
                 <div class="item-info">
-                    <h3>Nome</h3>
+                    <h3>Nome do Item</h3>
                     <p>Quantidade disponível: 09</p>
                     <p>Categoria: categoria</p>
                     <p>Cor: cores</p>
@@ -78,6 +79,58 @@
             </div>
         </section>
     </main>
+
+    <div id="modalPedido" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close-x" onclick="closeModal()">&times;</button>
+            
+            <div class="modal-header-info">
+                <h2>Pedido #456 <span class="status-text yellow">Pendente</span></h2>
+                <p class="modal-subtitle">Data da solicitação: 01/12/2025</p>
+            </div>
+
+            <hr class="modal-divider">
+
+            <div class="modal-body">
+                <h3 class="section-label">Itens no pedido</h3>
+                
+                <div class="modal-table">
+                    <div class="table-header">
+                        <span>Produto</span>
+                        <span>Quantidade</span>
+                    </div>
+
+                    <div class="table-row">
+                        <div class="product-info">
+                            <img src="imagem/exemplo.png" alt="Item" class="product-thumb">
+                            <div class="product-details">
+                                <strong>Item 1</strong>
+                                <span>Categoria: categoria</span>
+                                <span>Cor: azul</span>
+                            </div>
+                        </div>
+                        <div class="product-qty">
+                            <span class="qty-pill">10 un.</span>
+                        </div>
+                    </div>
+
+                    <div class="table-row">
+                        <div class="product-info">
+                            <img src="imagem/exemplo.png" alt="Item" class="product-thumb">
+                            <div class="product-details">
+                                <strong>Item 2</strong>
+                                <span>Categoria: categoria</span>
+                                <span>Cor: azul</span>
+                            </div>
+                        </div>
+                        <div class="product-qty">
+                            <span class="qty-pill">05 un.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <footer class="main-footer">
         <div class="footer-container">
@@ -106,5 +159,21 @@
         </div>
     </footer>
 
+    <script>
+        const modal = document.getElementById('modalPedido');
+        function openModal() {
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden'; 
+        }
+        function closeModal() {
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto'; 
+        }
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
+    </script>
 </body>
 </html>
