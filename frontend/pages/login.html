@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Redefinir Senha - CHIP IFFar</title>
+    <title>Login - CHIP IFFar</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
 
@@ -25,7 +25,7 @@
             width: 100vw;
         }
 
-         /* --- LADO ESQUERDO (AMARELO) --- */
+        /* --- LADO ESQUERDO (AMARELO) --- */
         .left-side {
             background-color: #eeb04b;
             width: 53%;
@@ -43,14 +43,18 @@
             z-index: 10;
         }
 
+        /* BOTÃO DE INFORMAÇÃO POSICIONADO CORRETAMENTE */
         .info-button {
             position: absolute;
             top: 60px;
             right: 40px;
             background: none;
             border: none;
+            padding: 0;
             cursor: pointer;
             z-index: 10;
+            outline: none;
+            transition: transform 0.2s ease;
         }
 
         .info-icon {
@@ -61,10 +65,15 @@
             height: 32px;
             border: 2px solid #000;
             border-radius: 50%;
+            font-family: serif; 
             font-weight: bold;
             font-size: 20px;
+            color: #000;
         }
 
+        .info-button:hover { transform: scale(1.1); }
+
+        /* FORMA GEOMÉTRICA */
         .shape-overlay {
             position: absolute;
             bottom: -5px;
@@ -74,10 +83,9 @@
             background-color: rgba(255, 255, 255, 0.1);
             clip-path: polygon(100% 100%, 100% 30%, 70% 0%, 0% 0%, 0% 100%);
             z-index: 1;
-            border: 15px solid rgba(255, 255, 255, 0.1);
         }
 
-        /* --- LADO DIREITO --- */
+        /* --- LADO DIREITO (BRANCO) --- */
         .right-side {
             background-color: #ffffff;
             width: 47%;
@@ -95,79 +103,78 @@
             width: 100px;
         }
 
-        .back-arrow {
-            color: #eeb04b;
-            font-size: 24px;
-            text-decoration: none;
-            margin-bottom: 10px;
-            display: block;
-        }
-
         .welcome-text {
             font-size: 28px;
             font-weight: 700;
-            margin-bottom: 5px;
+            margin-bottom: 10px;
         }
 
         .instruction-text {
             font-size: 14px;
-            color: #8d621f;
+            color: #555;
             font-weight: 600;
-            margin-bottom: 25px;
+            margin-bottom: 30px;
         }
+
+        .input-group { margin-bottom: 15px; }
 
         input {
             width: 100%;
             padding: 18px 20px;
-            background-color: #ededed;
+            background-color: #e9e9e9;
             border: none;
             border-radius: 8px;
             font-size: 16px;
-            margin-bottom: 20px;
             outline: none;
         }
 
-        .btn-enviar {
-            width: 220px;
+        .btn-entrar {
+            width: 180px;
             padding: 15px;
             background-color: #f7c36f;
             border: none;
             border-radius: 8px;
-            font-size: 18px;
+            font-size: 20px;
             font-weight: 600;
             color: #8d621f;
             cursor: pointer;
+            margin-top: 20px;
             margin-bottom: 25px;
         }
 
-        /* ESTILO DO BOTÃO QUE PARECE TEXTO */
-        .footer-text {
+        .footer-links {
             font-size: 14px;
-            font-weight: 700;
+            font-weight: 600;
             color: #000;
+            line-height: 1.8;
         }
 
-        .btn-link {
-            background: none;
-            border: none;
-            padding: 0;
-            font-family: inherit;
-            font-size: inherit;
-            font-weight: 700;
-            color: #000;
-            text-decoration: underline;
-            cursor: pointer;
-            display: inline;
-        }
-
-        .btn-link:hover {
-            color: #555;
-        }
+        .footer-links a { color: #000; text-decoration: underline; }
 
         @media (max-width: 768px) {
             .container { flex-direction: column; }
             .left-side, .right-side { width: 100%; height: 50vh; }
         }
+
+        .btn-link {
+             background: none;        
+             border: none;            
+             padding: 0;              
+             font-family: inherit;    
+             font-size: inherit;      
+             font-weight: 600;        
+             color: #000;             
+             text-decoration: underline; 
+             cursor: pointer;         
+             display: inline;        
+}
+
+
+            .btn-link:hover {
+                color: #555;
+                text-decoration: none;
+}
+
     </style>
 </head>
 <body>
@@ -175,28 +182,34 @@
     <div class="container">
         <div class="left-side">
             <div class="brand-name">CHIP</div>
-             <button type="button" class="info-button" title="Mais informações">
+            
+            <button type="button" class="info-button" title="Mais informações">
                 <span class="info-icon">i</span>
             </button>
+
             <div class="shape-overlay"></div>
         </div>
 
         <div class="right-side">
-            <img src="logo.iffar.png" alt="Logo IFFar" class="logo-iffar">
-            
-            <a href="#" class="back-arrow">&larr;</a>
+            <img src="../assets/logo.iffar.png" alt="Logo IFFar" class="logo-iffar">
 
-            <h1 class="welcome-text">Redefina sua senha</h1>
-            <p class="instruction-text">As instruções serão enviadas por email para você!</p>
+            <h1 class="welcome-text">Bom te ver novamente!</h1>
+            <p class="instruction-text">Preencha os campos para acessar sua conta.</p>
 
             <form>
-                <input type="email" placeholder="Email" required>
-                <br>
-                <button type="submit" class="btn-enviar">Enviar email</button>
+                <div class="input-group">
+                    <input type="email" placeholder="Email" required>
+                </div>
+                <div class="input-group">
+                    <input type="password" placeholder="Senha" required>
+                </div>
+                <button type="submit" class="btn-entrar">Entrar</button>
             </form>
 
-            <div class="footer-text">
-                O email não chegou? <button type="button" class="btn-link">Reenviar email</button>
+            <div class="footer-links">
+                     Não tem conta? <button type="button" class="btn-link">Cadastrar-se</button><br>
+                     Esqueceu sua senha? <button type="button" class="btn-link">Redefinir</button>
+                </div>
             </div>
         </div>
     </div>
