@@ -1,5 +1,13 @@
 {
+  "name": "chip-ppi",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "node backend/server.js",
+    "dev": "node --watch backend/server.js"
+  },
   "dependencies": {
+    "express": "^4.21.2",
     "postgres": "^3.4.8"
   }
 }
