@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Editar Perfil - CHIP</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="editar_perfil.css">
+    <link rel="stylesheet" href="editar_perfil.css?v=1">
 </head>
 <body>
 
@@ -47,7 +47,7 @@
                         </a>
                     </div>
 
-                    <form class="profile-form">
+                    <form class="profile-form" action="perfil.html">
                         <div class="form-group">
                             <label>Nome:</label>
                             <input type="text" value="Maria da Silva">
@@ -69,7 +69,7 @@
                         </div>
                         <div class="form-buttons">
                             <button type="submit" class="btn-save">Salvar alterações</button>
-                            <button type="button" class="btn-cancel" onclick="toggleModal('modal-sair', true)">Cancelar</button>
+                            <button type="button" class="btn-cancel" onclick="window.location.href='perfil.html'">Cancelar</button>
                         </div>
                         <p class="form-footer-note">*Para alterar esses campos, fale com o administrador do sistema.</p>
                     </form>
@@ -100,16 +100,16 @@
 
     <div id="modal-sair" class="modal-overlay">
         <div class="modal-card exit-card">
-            <div class="modal-header exit-header">
-                <div class="exit-title-group">
+            <div class="exit-content-wrapper">
+                <div class="exit-header-row">
                     <i class="fa-solid fa-arrow-right-from-bracket"></i>
                     <h2>Sair</h2>
                 </div>
-            </div>
-            <p class="exit-message">Você tem certeza que deseja fazer isso?</p>
-            <div class="exit-buttons">
-                <button class="btn-confirm-exit" onclick="window.location.href='login.html'">Confirmar</button>
-                <button class="btn-cancel-exit" onclick="toggleModal('modal-sair', false)">Cancelar</button>
+                <p class="exit-message">Você tem certeza que deseja fazer isso?</p>
+                <div class="exit-buttons-row">
+                    <button class="btn-confirm-exit" onclick="window.location.href='login.html'">Confirmar</button>
+                    <button class="btn-cancel-exit" onclick="toggleModal('modal-sair', false)">Cancelar</button>
+                </div>
             </div>
         </div>
     </div>
@@ -123,7 +123,6 @@
                 page.classList.add('modal-active');
             } else {
                 modal.style.display = 'none';
-                // Só remove a película se não houver outro modal aberto
                 page.classList.remove('modal-active');
             }
         }

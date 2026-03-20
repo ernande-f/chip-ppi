@@ -10,7 +10,7 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: 'Segoe UI', sans-serif; background-color: #fff; min-height: 100vh; }
 
-/* Navbar e Layout Base permanecem iguais... */
+/* Navbar e Layout Base */
 .navbar { display: flex; justify-content: space-between; align-items: center; padding: 10px 5%; border-bottom: 1px solid #eee; }
 .nav-left { display: flex; align-items: center; gap: 20px; }
 .logo-box { background-color: var(--primary-orange); color: #fff; padding: 6px 12px; font-weight: bold; border-radius: 4px; }
@@ -27,7 +27,7 @@ body { font-family: 'Segoe UI', sans-serif; background-color: #fff; min-height: 
 .divider { border: 0; border-top: 1px solid #ddd; margin-bottom: 30px; }
 .edit-content { display: flex; align-items: flex-start; gap: 60px; }
 
-/* Foto e Lápis (Corrigido conforme solicitado anteriormente) */
+/* Foto e Lápis */
 .photo-column { flex: 0 0 150px; }
 .profile-avatar-large {
     width: 150px; height: 150px; background: #ccc; border-radius: 50%;
@@ -41,7 +41,7 @@ body { font-family: 'Segoe UI', sans-serif; background-color: #fff; min-height: 
 }
 .edit-photo-badge i { font-size: 14px; }
 
-/* Formulário e Inputs... */
+/* Formulário e Inputs */
 .form-column { flex: 1; }
 .form-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
 .role-badge { padding: 5px 45px; border: 1px solid #888; border-radius: 12px; }
@@ -59,8 +59,6 @@ body { font-family: 'Segoe UI', sans-serif; background-color: #fff; min-height: 
 .form-footer-note { text-align: center; margin-top: 25px; font-size: 13px; }
 
 /* --- CONTROLE DO EFEITO DE ESCURECIMENTO TOTAL --- */
-
-/* Quando o modal está ativo, criamos a película fixa sobre toda a tela */
 .modal-active::after {
     content: "";
     position: fixed;
@@ -68,12 +66,11 @@ body { font-family: 'Segoe UI', sans-serif; background-color: #fff; min-height: 
     left: 0;
     width: 100vw;
     height: 100vh;
-    background-color: rgba(0, 0, 0, 0.45); /* Escurecimento uniforme em tudo */
+    background-color: rgba(0, 0, 0, 0.45);
     z-index: 900;
     pointer-events: none;
 }
 
-/* Garante que o conteúdo não possa ser clicado por baixo */
 .modal-active {
     pointer-events: none;
     user-select: none;
@@ -89,7 +86,7 @@ body { font-family: 'Segoe UI', sans-serif; background-color: #fff; min-height: 
     display: none;
     justify-content: center;
     align-items: center;
-    z-index: 1000; /* Acima da película */
+    z-index: 1000;
 }
 
 .modal-card {
@@ -98,20 +95,19 @@ body { font-family: 'Segoe UI', sans-serif; background-color: #fff; min-height: 
     padding: 35px;
     border-radius: 20px;
     box-shadow: 0 10px 40px rgba(0,0,0,0.4);
-    pointer-events: auto; /* Permite interagir com o modal */
+    pointer-events: auto;
 }
 
-/* Cabeçalho do Modal e Botão de fechar (X) */
+/* Cabeçalho do Modal Geral */
 .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
 .modal-header h2 { font-size: 26px; font-weight: bold; }
 .close-modal { background: none; border: none; font-size: 45px; color: var(--primary-orange); cursor: pointer; line-height: 0.5; }
 
-/* Inputs do Modal */
+/* Inputs do Modal Redefinir */
 .modal-form { display: flex; flex-direction: column; gap: 15px; }
 .modal-input-group { display: flex; flex-direction: column; gap: 8px; }
 .modal-input-group input { padding: 14px; border: none; background: #f0f0f0; border-radius: 10px; font-size: 16px; outline: none; }
 
-/* Botão Salvar do Modal */
 .btn-save-modal {
     background: var(--primary-orange);
     border: none;
@@ -120,5 +116,72 @@ body { font-family: 'Segoe UI', sans-serif; background-color: #fff; min-height: 
     font-weight: bold;
     font-size: 18px;
     margin-top: 15px;
+    cursor: pointer;
+}
+
+/* --- ESTILO FINAL DO MODAL SAIR (image_e9567e.png) --- */
+
+.exit-card {
+    width: 600px !important; /* Força a largura maior */
+    padding: 40px 50px !important;
+    display: block !important;
+}
+
+.exit-content-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; /* Alinha tudo à esquerda */
+}
+
+.exit-header-row {
+    display: flex;
+    align-items: center; /* Alinha ícone e texto no meio um do outro */
+    gap: 15px;
+    margin-bottom: 10px;
+}
+
+.exit-header-row i {
+    font-size: 28px;
+    color: #000;
+}
+
+.exit-header-row h2 {
+    font-size: 35px; /* Fonte grande como na imagem */
+    font-weight: 800;
+    color: #000;
+}
+
+.exit-message {
+    font-size: 19px;
+    font-weight: 500;
+    margin-bottom: 30px;
+    color: #000;
+}
+
+.exit-buttons-row {
+    display: flex; /* Faz os botões ficarem um ao lado do outro */
+    width: 100%;
+    gap: 20px;
+}
+
+.btn-confirm-exit {
+    flex: 1; /* Faz o botão crescer igualmente */
+    padding: 15px;
+    background-color: var(--primary-orange);
+    border: none;
+    border-radius: 10px;
+    font-weight: bold;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+.btn-cancel-exit {
+    flex: 1; /* Faz o botão crescer igualmente */
+    padding: 15px;
+    background-color: var(--light-orange);
+    border: none;
+    border-radius: 10px;
+    font-weight: bold;
+    font-size: 18px;
     cursor: pointer;
 }
