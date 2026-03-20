@@ -5,71 +5,110 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Perfil do Aluno - CHIP</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="perfil.css">
 </head>
 <body>
 
     <header class="navbar">
-        <div class="nav-left">
-            <div class="logo-box">CHIP</div>
-            <div class="search-container">
-                <i class="fa fa-search"></i>
-                <input type="text" placeholder="Pesquisar por cor, tipo, nome...">
-            </div>
+        <div class="logo-container">
+            <img src="imagem/logo.png" alt="Logo CHIP" class="logo-img">
         </div>
-        <div class="nav-right">
-            <a href="#" class="nav-link">Seus pedidos</a>
-            <button class="icon-btn"><i class="fa-regular fa-bell"></i></button>
-            <div class="user-circle">
-                <i class="fa-solid fa-user"></i>
+
+        <div class="search-bar">
+            <input type="text" placeholder="Pesquisar por cor, tipo, nome...">
+        </div>
+
+        <div class="nav-links">
+            <a href="pedidos.html" class="nav-link-item">
+                <span class="nav-text-bold">Seus pedidos</span>
+            </a>
+            
+            <div class="icon-notification">
+                <img src="imagem/sino.png" alt="Notificações" class="sino-img">
             </div>
+
+            <a href="perfil.html" class="nav-link-item">
+                <div class="profile-pic">
+                    <svg viewBox="0 0 24 24" fill="#e0e0e0"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                </div>
+            </a>
         </div>
     </header>
 
-    <section class="profile-header">
-        <div class="profile-main">
-            <div class="profile-avatar">
-                <i class="fa-solid fa-user"></i>
+    <div class="container">
+        <section class="profile-header">
+            <div class="profile-main">
+                <div class="profile-avatar">
+                    <i class="fa-solid fa-user"></i>
+                </div>
+                <div class="profile-details">
+                    <h1>Maria da Silva</h1>
+                    <p class="email">maria.99807@aluno.iffar.edu.br</p>
+                    <span class="role-badge">Estudante</span>
+                </div>
             </div>
-            <div class="profile-details">
-                <h1>Maria da Silva</h1>
-                <p class="email">maria.99807@aluno.iffar.edu.br</p>
-                <span class="role-badge">Estudante</span>
+            <div class="profile-actions">
+                <a href="editar_perfil.html" class="action-btn">Editar perfil</a>
+                <a href="login.html" class="action-btn logout">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i> Sair
+                </a>
             </div>
-        </div>
-        <div class="profile-actions">
-            <a href="editar_perfil.html" class="action-btn">Editar perfil</a>
-            <a href="#" class="action-btn logout">
-                <i class="fa-solid fa-arrow-right-from-bracket"></i> Sair
-            </a>
-        </div>
-    </section>
+        </section>
 
-    <div class="history-banner">
-        Histórico de pedidos
+        <div class="history-banner">
+            Histórico de pedidos
+        </div>
+
+        <main class="content-container">
+            <h2 class="section-title">Última semana</h2>
+            
+            <article class="order-card">
+                <div class="order-id">
+                    <h3>Pedido #390</h3>
+                    <span class="status-aceito">Aceito</span>
+                </div>
+                
+                <div class="order-meta">
+                    <span>Data do pedido: 12/12/2025</span>
+                    <span>Data de aceite/rejeição: 12/12/2025</span>
+                </div>
+
+                <p class="order-text">
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
+                </p>
+            </article>
+
+            <h2 class="section-title">Último mês</h2>
+        </main>
     </div>
 
-    <main class="content-container">
-        <h2 class="section-title">Última semana</h2>
-        
-        <article class="order-card">
-            <div class="order-id">
-                <h3>Pedido #390</h3>
-                <span class="status-aceito">Aceito</span>
-            </div>
-            
-            <div class="order-meta">
-                <span>Data do pedido: 12/12/2025</span>
-                <span>Data de aceite/rejeição: 12/12/2025</span>
+    <footer class="main-footer">
+        <div class="footer-container">
+            <div class="footer-col-icon">
+                <img src="imagem/processador.png" alt="Processador CPU" class="processor-img">
             </div>
 
-            <p class="order-text">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
-            </p>
-        </article>
+            <div class="footer-col">
+                <p><strong>CHIP - Controle de Hardware e Itens de Projeto</strong></p>
+                <p>Prática Profissional Integrada - 2025/26</p>
+                <p>Instituto Federal Farroupilha - Campus Frederico Westphalen</p>
+            </div>
 
-        <h2 class="section-title">Último mês</h2>
-    </main>
+            <div class="footer-col">
+                <p>Desenvolvedores:</p>
+                <p>Ariany Maísa Barros Kovalckoski</p>
+                <p>Ernande Facco</p>
+                <p>Luiza de Marchi Brombilla</p>
+                <p>Nicole Freddi</p>
+            </div>
+
+            <div class="footer-col">
+                <p>Curso técnico de informática integrado ao ensino médio</p>
+                <img src="imagem/logo_iffar.png" alt="Logo IFF" class="iff-logo">
+            </div>
+        </div>
+    </footer>
 
 </body>
 </html>

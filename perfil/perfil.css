@@ -1,11 +1,14 @@
-/* Variáveis de Cores */
+/* --- VARIÁVEIS E BASE (Unindo as duas bases) --- */
 :root {
-    --primary-orange: #f2a93b;
-    --dark-brown: #5d3a1a;
-    --text-main: #333;
+    --primary-orange: #f2a933;
+    --bg-light: #fdfdfd;
+    --text-dark: #333;
+    --text-brown: #54320f;
+    --border-gray: #eee;
+    --shadow: 0 4px 12px rgba(0,0,0,0.05);
+    /* Variáveis do Perfil */
     --text-secondary: #777;
     --bg-card: #ececec;
-    --border-color: #ddd;
 }
 
 * {
@@ -15,92 +18,95 @@
 }
 
 body {
-    font-family: 'Segoe UI', Tahoma, sans-serif;
-    background-color: #fff;
-    color: var(--text-main);
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    background-color: var(--bg-light);
+    color: var(--text-dark);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
 }
 
-/* Navbar */
+/* --- ESTRUTURA --- */
+.container { 
+    padding: 20px 5%; 
+    flex: 1; 
+}
+
+/* --- HEADER (BASE) --- */
 .navbar {
     display: flex;
+    align-items: center;
     justify-content: space-between;
-    align-items: center;
-    padding: 12px 5%;
-    border-bottom: 1px solid var(--border-color);
+    padding: 18px 5%;
+    background: white;
+    border-bottom: 1px solid var(--border-gray);
 }
 
-.nav-left {
-    display: flex;
-    align-items: center;
-    gap: 20px;
+.logo-img {
+    height: 55px;
+    width: auto;
+    display: block;
 }
 
-.logo-box {
-    background-color: var(--primary-orange);
-    color: #fff;
-    padding: 6px 14px;
-    font-weight: bold;
-    border-radius: 4px;
-}
-
-.search-container {
-    position: relative;
-}
-
-.search-container i {
-    position: absolute;
-    left: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #aaa;
-}
-
-.search-container input {
-    padding: 8px 15px 8px 38px;
+.search-bar input {
+    width: 400px;
+    padding: 10px 15px;
     border: 1px solid #ccc;
-    border-radius: 20px;
-    width: 320px;
-    background-color: #fcfcfc;
+    border-radius: 10px;
     outline: none;
+    background-color: #f9f9f9;
 }
 
-.nav-right {
+.nav-links {
     display: flex;
     align-items: center;
-    gap: 25px;
+    gap: 30px;
 }
 
-.nav-link {
+.nav-link-item {
     text-decoration: none;
-    color: var(--dark-brown);
-    font-weight: 600;
+    color: inherit;
+    display: flex;
+    align-items: center;
 }
 
-.icon-btn {
-    background: none;
-    border: none;
-    font-size: 20px;
+.nav-text-bold {
+    font-weight: 700;
+    color: var(--text-brown);
+    font-size: 1.05rem;
+}
+
+.sino-img {
+    width: 55px; 
+    height: auto;
     cursor: pointer;
-    color: var(--dark-brown);
+    display: block;
 }
 
-.user-circle {
-    width: 35px;
-    height: 35px;
-    background-color: #ccc;
+.profile-pic {
+    width: 44px; 
+    height: 44px;
+    background: #f0f0f0;
     border-radius: 50%;
+    cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #fff;
+    overflow: hidden;
+    border: 1px solid #e0e0e0;
+    transition: transform 0.2s;
 }
 
-/* Seção de Cabeçalho do Perfil */
+.profile-pic:hover { transform: scale(1.05); }
+.profile-pic svg { width: 85%; height: 85%; }
+
+/* --- CONTEÚDO DO PERFIL --- */
 .profile-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    padding: 40px 10%;
+    padding: 40px 5% 20px 5%;
 }
 
 .profile-main {
@@ -127,6 +133,7 @@ body {
 .profile-details h1 {
     font-size: 28px;
     margin-bottom: 4px;
+    color: var(--text-dark);
 }
 
 .profile-details .email {
@@ -140,9 +147,9 @@ body {
     border: 1px solid #999;
     border-radius: 25px;
     font-size: 15px;
+    background: white;
 }
 
-/* Ações do Perfil */
 .profile-actions {
     display: flex;
     gap: 25px;
@@ -159,31 +166,31 @@ body {
     gap: 5px;
 }
 
-.action-btn:hover {
-    text-decoration: underline;
-}
+.action-btn:hover { text-decoration: underline; }
 
-/* Banner Centralizado */
+/* Banner Histórico */
 .history-banner {
     background-color: var(--primary-orange);
-    margin: 0 10%;
-    padding: 12px;
+    margin: 20px 5%;
+    padding: 15px;
     text-align: center;
-    font-weight: bold;
-    border-radius: 6px;
+    font-weight: 700;
+    border-radius: 8px;
     font-size: 18px;
+    color: #fff;
 }
 
-/* Área do Conteúdo Principal */
 .content-container {
-    padding: 20px 10%;
+    padding: 10px 5%;
 }
 
 .section-title {
     color: var(--text-secondary);
     font-size: 16px;
-    font-weight: normal;
+    font-weight: 600;
     margin: 25px 0 15px 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 /* Card do Histórico */
@@ -191,6 +198,7 @@ body {
     background-color: var(--bg-card);
     border-radius: 15px;
     padding: 30px;
+    box-shadow: var(--shadow);
 }
 
 .order-id {
@@ -209,13 +217,43 @@ body {
     display: flex;
     gap: 60px;
     font-size: 13px;
-    color: #555;
+    color: #666;
     margin-bottom: 20px;
 }
 
 .order-text {
     font-size: 14px;
-    color: var(--text-secondary);
+    color: #555;
     line-height: 1.6;
     text-align: justify;
 }
+
+/* --- FOOTER (BASE) --- */
+.main-footer {
+    background-color: #fff;
+    padding: 60px 5%;
+    border-top: 1px solid #e0e0e0;
+    margin-top: 50px;
+}
+
+.footer-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 40px;
+    max-width: 1300px;
+    margin: 0 auto;
+}
+
+.footer-col-icon { flex: 0 0 220px; }
+.processor-img { width: 100%; height: auto; display: block; }
+
+.footer-col {
+    flex: 1;
+    color: #666;
+    font-size: 0.85rem;
+    line-height: 1.6;
+}
+
+.footer-col p { margin: 4px 0; }
+.iff-logo { height: 55px; margin-top: 15px; display: block; }
