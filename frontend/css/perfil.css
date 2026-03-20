@@ -1,4 +1,4 @@
-/* --- VARIÁVEIS E BASE (Unindo as duas bases) --- */
+/* --- VARIÁVEIS E BASE --- */
 :root {
     --primary-orange: #f2a933;
     --bg-light: #fdfdfd;
@@ -27,10 +27,13 @@ body {
     min-height: 100vh;
 }
 
-/* --- ESTRUTURA --- */
+/* --- ESTRUTURA CENTRALIZADA --- */
 .container { 
-    padding: 20px 5%; 
+    padding: 20px 20px; 
     flex: 1; 
+    width: 100%;
+    max-width: 1100px; /* Conteúdo mais centralizado e elegante */
+    margin: 0 auto;    /* Centraliza o bloco na tela */
 }
 
 /* --- HEADER (BASE) --- */
@@ -106,7 +109,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    padding: 40px 5% 20px 5%;
+    padding: 40px 0 20px 0;
 }
 
 .profile-main {
@@ -150,6 +153,7 @@ body {
     background: white;
 }
 
+/* Ações do Perfil (Editar/Sair) */
 .profile-actions {
     display: flex;
     gap: 25px;
@@ -164,24 +168,30 @@ body {
     display: flex;
     align-items: center;
     gap: 5px;
+    cursor: default; /* Indica que não há efeito visual de botão clássico */
 }
 
-.action-btn:hover { text-decoration: underline; }
+/* Garante que nada mude ao passar o mouse (sem linha, sem cor, sem transparência) */
+.action-btn:hover { 
+    text-decoration: none; 
+    color: #000;
+    opacity: 1;
+}
 
-/* Banner Histórico */
+/* Banner Histórico - Mais fino e texto em preto */
 .history-banner {
     background-color: var(--primary-orange);
-    margin: 20px 5%;
-    padding: 15px;
+    padding: 8px; 
     text-align: center;
     font-weight: 700;
     border-radius: 8px;
     font-size: 18px;
-    color: #fff;
+    color: #000; 
+    margin: 20px 0;
 }
 
 .content-container {
-    padding: 10px 5%;
+    padding: 10px 0;
 }
 
 .section-title {
@@ -189,7 +199,7 @@ body {
     font-size: 16px;
     font-weight: 600;
     margin: 25px 0 15px 0;
-    text-transform: uppercase;
+    text-transform: none; /* Mantém exatamente como no HTML (minúsculo/capitalizado) */
     letter-spacing: 0.5px;
 }
 
@@ -241,7 +251,7 @@ body {
     justify-content: space-between;
     align-items: center;
     gap: 40px;
-    max-width: 1300px;
+    max-width: 1100px; /* Acompanha a largura centralizada do topo */
     margin: 0 auto;
 }
 
