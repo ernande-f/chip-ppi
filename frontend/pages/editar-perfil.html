@@ -5,39 +5,53 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Editar Perfil - CHIP</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-<<<<<<< HEAD:perfil/editar_perfil.html
-    <link rel="stylesheet" href="editar_perfil.css?v=1">
-=======
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/css-base.css">
     <link rel="stylesheet" href="../css/editar-perfil.css">
->>>>>>> cdd05a01e229816956be019be22aaf7598927fee:frontend/pages/editar-perfil.html
 </head>
 <body>
 
-    <div id="page-content">
-        <header class="navbar">
-            <div class="nav-left">
-                <div class="logo-box">CHIP</div>
-                <div class="search-container">
-                    <i class="fa fa-search"></i>
-                    <input type="text" placeholder="Pesquisar por cor, tipo, nome...">
-                </div>
-            </div>
-            <div class="nav-right">
-                <a href="#" class="nav-link">Seus pedidos</a>
-                <button class="icon-btn"><i class="fa-regular fa-bell"></i></button>
-                <div class="user-circle"><i class="fa-solid fa-user"></i></div>
-            </div>
-        </header>
+    <header class="navbar">
+        <div class="logo-container">
+            <a href="pagina-inicial.html">
+                <img src="../assets/logo.png" alt="Logo CHIP" class="logo-img">
+            </a>
+        </div>
 
+        <div class="search-bar">
+            <input type="text" placeholder="Pesquisar por cor, tipo, nome...">
+        </div>
+
+        <div class="nav-links">
+            <a href="seus-pedidos.html" class="nav-link-item">
+                <span class="nav-text-bold">Seus pedidos</span>
+            </a>
+            
+            <div class="icon-notification">
+                <img src="../assets/sino.png" alt="Notificações" class="sino-img">
+            </div>
+
+            <a href="perfil.html" class="nav-link-item">
+                <div class="profile-pic">
+                    <svg viewBox="0 0 24 24" fill="#e0e0e0"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                </div>
+            </a>
+        </div>
+    </header>
+
+    <div id="page-content">
         <main class="edit-container">
             <h1 class="page-title">Editar perfil</h1>
             <hr class="divider">
 
             <div class="edit-content">
                 <div class="photo-column">
-                    <div class="profile-avatar-large">
-                        <i class="fa-solid fa-user"></i>
-                        <button class="edit-photo-badge">
+                    <div class="profile-avatar-wrapper">
+                        <div class="profile-avatar-circle" id="avatar-container">
+                            <i class="fa-solid fa-user" id="avatar-icon"></i>
+                        </div>
+                        <input type="file" id="file-input" style="display: none;" accept="image/*">
+                        <button type="button" class="edit-photo-badge" onclick="document.getElementById('file-input').click()">
                             <i class="fa-solid fa-pencil"></i>
                         </button>
                     </div>
@@ -46,9 +60,6 @@
                 <div class="form-column">
                     <div class="form-header">
                         <span class="role-badge">Estudante</span>
-                        <a href="javascript:void(0)" class="logout-link" onclick="toggleModal('modal-sair', true)">
-                            <i class="fa-solid fa-arrow-right-from-bracket"></i> Sair
-                        </a>
                     </div>
 
                     <form class="profile-form" action="perfil.html">
@@ -59,17 +70,17 @@
                         <div class="form-group">
                             <label>Senha:</label>
                             <div class="input-with-button">
-                                <input type="password" value="********" readonly>
+                                <input type="password" value="********" readonly tabindex="-1" class="readonly-input">
                                 <button type="button" class="redefine-btn" onclick="toggleModal('modal-redefinir', true)">Redefinir senha</button>
                             </div>
                         </div>
                         <div class="form-group">
                             <label>*Email:</label>
-                            <input type="email" value="maria.99807@aluno.iffar.edu.br" readonly class="readonly-input">
+                            <input type="email" value="maria.99807@aluno.iffar.edu.br" readonly tabindex="-1" class="readonly-input">
                         </div>
                         <div class="form-group">
                             <label>*CPF:</label>
-                            <input type="text" value="111.111.111-11" readonly class="readonly-input">
+                            <input type="text" value="111.111.111-11" readonly tabindex="-1" class="readonly-input">
                         </div>
                         <div class="form-buttons">
                             <button type="submit" class="btn-save">Salvar alterações</button>
@@ -102,21 +113,32 @@
         </div>
     </div>
 
-    <div id="modal-sair" class="modal-overlay">
-        <div class="modal-card exit-card">
-            <div class="exit-content-wrapper">
-                <div class="exit-header-row">
-                    <i class="fa-solid fa-arrow-right-from-bracket"></i>
-                    <h2>Sair</h2>
-                </div>
-                <p class="exit-message">Você tem certeza que deseja fazer isso?</p>
-                <div class="exit-buttons-row">
-                    <button class="btn-confirm-exit" onclick="window.location.href='login.html'">Confirmar</button>
-                    <button class="btn-cancel-exit" onclick="toggleModal('modal-sair', false)">Cancelar</button>
-                </div>
+    <footer class="main-footer">
+        <div class="footer-container">
+            <div class="footer-col-icon">
+                <img src="../assets/processador.png" alt="Processador CPU" class="processor-img">
+            </div>
+
+            <div class="footer-col">
+                <p><strong>CHIP - Controle de Hardware e Itens de Projeto</strong></p>
+                <p>Prática Profissional Integrada - 2025/26</p>
+                <p>Instituto Federal Farroupilha - Campus Frederico Westphalen</p>
+            </div>
+
+            <div class="footer-col">
+                <p>Desenvolvedores:</p>
+                <p>Ariany Maísa Barros Kovalckoski</p>
+                <p>Ernande Facco</p>
+                <p>Luiza de Marchi Brombilla</p>
+                <p>Nicole Freddi</p>
+            </div>
+
+            <div class="footer-col">
+                <p>Curso técnico de informática integrado ao ensino médio</p>
+                <img src="../assets/logo_iffar.png" alt="Logo IFF" class="iff-logo">
             </div>
         </div>
-    </div>
+    </footer>
 
     <script>
         function toggleModal(modalId, show) {
@@ -130,6 +152,17 @@
                 page.classList.remove('modal-active');
             }
         }
+
+        document.getElementById('file-input').addEventListener('change', function(e) {
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const container = document.getElementById('avatar-container');
+                    container.innerHTML = `<img src="${e.target.result}" style="width:100%; height:100%; object-fit:cover;">`;
+                }
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
     </script>
 </body>
 </html>

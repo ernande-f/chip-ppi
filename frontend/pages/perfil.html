@@ -12,7 +12,9 @@
 
     <header class="navbar">
         <div class="logo-container">
-            <img src="../assets/logo.png" alt="Logo CHIP" class="logo-img">
+            <a href="pagina-inicial.html">
+                <img src="../assets/logo.png" alt="Logo CHIP" class="logo-img">
+            </a>
         </div>
 
         <div class="search-bar">
@@ -20,7 +22,7 @@
         </div>
 
         <div class="nav-links">
-            <a href="pedidos.html" class="nav-link-item">
+            <a href="seus-pedidos.html" class="nav-link-item">
                 <span class="nav-text-bold">Seus pedidos</span>
             </a>
             
@@ -49,7 +51,7 @@
                 </div>
             </div>
             <div class="profile-actions">
-                <a href="editar_perfil.html" class="action-btn">Editar perfil</a>
+                <a href="editar-perfil.html" class="action-btn">Editar perfil</a>
                 <a href="login.html" class="action-btn logout">
                     <i class="fa-solid fa-arrow-right-from-bracket"></i> Sair
                 </a>
@@ -78,7 +80,6 @@
                     Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
                 </p>
             </article>
-
         </main>
     </div>
 
@@ -108,6 +109,41 @@
             </div>
         </div>
     </footer>
+
+    <div class="modal-overlay" id="logoutModal">
+    <div class="modal-card">
+        <div class="modal-header">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+            <h2>Sair</h2>
+        </div>
+        <p>Você tem certeza que deseja fazer isso?</p>
+        <div class="modal-buttons">
+            <a href="login.html" class="confirm-btn">Confirmar</a>
+            <button class="modal-cancel-btn" onclick="closeModal()">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const modal = document.getElementById('logoutModal');
+    const logoutBtn = document.querySelector('.action-btn.logout');
+
+    // Abre o modal ao clicar em "Sair"
+    logoutBtn.addEventListener('click', (e) => {
+        e.preventDefault(); // Impede o redirecionamento imediato
+        modal.classList.add('active');
+    });
+
+    // Fecha o modal
+    function closeModal() {
+        modal.classList.remove('active');
+    }
+
+    // Fecha se clicar fora do card branco
+    window.onclick = (event) => {
+        if (event.target == modal) closeModal();
+    }
+</script>
 
 </body>
 </html>
