@@ -3,7 +3,7 @@ document.getElementById('formCadastro').addEventListener('submit', async (event)
     event.preventDefault();
 
     // Captura os valores digitados no form
-    const name = document.getElementById('name').value;
+    const name = document.getElementById('nome').value;
     const email = document.getElementById('email').value;
     const cpf = document.getElementById('cpf').value;
     const password = document.getElementById('password').value;

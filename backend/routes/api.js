@@ -1,13 +1,14 @@
 import express from 'express';
 import sql from '../db.js';
 import bcrypt from 'bcrypt';
+import { encrypt, decrypt } from '../crypto.js';
 
 const router = express.Router();
 
 router.get('/test-db', async (req, res) => {
     try {
         const result = await sql`SELECT NOW()`;
-        res.json({ success: true, time: result[0].now, message: 'Conexão deu certo'});
+        res.json({ success: true, time: result[0].now, message: 'Conexão deu certo' });
     } catch (error) {
         console.error('Erro ao acessar o banco de dados:', error);
         res.status(500).json({ error: 'Erro interno do servidor' });
@@ -21,35 +22,44 @@ router.get('/status', (req, res) => {
 
 router.post('/login', async (req, res) => {
     const { email, password } = req.body;
-    // TODO: Implementar autenticação real (hash de senha, tokens, etc)
+
     try {
-        const result = await sql`SELECT * FROM users WHERE email = ${email} AND password = ${password}`;
-        if (result.length > 0) {
-            res.json({ success: true, user: result[0] });
-        } else {
-            res.status(401).json({ success: false, message: 'Credenciais inválidas' });
+        const result = await sql`SELECT * FROM usuario WHERE email = ${email}`;
+        if (result.length === 0) {
+            return res.status(401).json({ success: false, message: 'Credenciais inválidas' });
         }
+
+        const user = result[0];
+
+        const senhaCorreta = await bcrypt.compare(password, user.senha);
+        if (!senhaCorreta) {
+            return res.status(401).json({ success: false, message: 'Credenciais inválidas' });
+        }
+
+        const { password: _, cpf: __, ...userSemDadosSensiveis } = user;
+        res.json({ success: true, user: userSemDadosSensiveis });
     } catch (error) {
         console.error('Erro ao acessar o banco de dados:', error);
         res.status(500).json({ error: 'Erro interno do servidor' });
     }
 });
 
+
 router.post('/register', async (req, res) => {
     const { name, email, cpf, password } = req.body;
 
     try {
-        // Verificar se o email já existe
-        const existingUser = await sql`SELECT * FROM users WHERE email = ${email}`;
+        const existingUser = await sql`SELECT * FROM usuario WHERE email = ${email}`;
         if (existingUser.length > 0) {
             return res.status(400).json({ success: false, message: 'Email já registrado' });
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
+        const encryptedCPF = encrypt(cpf);
         const result = await sql`
-            INSERT INTO users (name, email, cpf, password) 
-            VALUES (${name}, ${email}, ${cpf}, ${hashedPassword}) 
-            RETURNING id, name, email, cpf
+            INSERT INTO usuario (nome, email, cpf, senha) 
+            VALUES (${name}, ${email}, ${encryptedCPF}, ${hashedPassword}) 
+            RETURNING id_usuario, nome, email
         `;
         res.json({ success: true, user: result[0] });
     } catch (error) {

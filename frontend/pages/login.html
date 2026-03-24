@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,7 +15,8 @@
             font-family: 'Inter', sans-serif;
         }
 
-        body, html {
+        body,
+        html {
             height: 100%;
             overflow: hidden;
         }
@@ -75,13 +77,15 @@
             height: 32px;
             border: 2px solid #000;
             border-radius: 50%;
-            font-family: serif; 
+            font-family: serif;
             font-weight: bold;
             font-size: 20px;
             color: #000;
         }
 
-        .info-button:hover { transform: scale(1.1); }
+        .info-button:hover {
+            transform: scale(1.1);
+        }
 
         /* FORMA GEOMÉTRICA */
         .shape-overlay {
@@ -126,7 +130,9 @@
             margin-bottom: 30px;
         }
 
-        .input-group { margin-bottom: 15px; }
+        .input-group {
+            margin-bottom: 15px;
+        }
 
         input {
             width: 100%;
@@ -159,42 +165,52 @@
             line-height: 1.8;
         }
 
-        .footer-links a { color: #000; text-decoration: underline; }
+        .footer-links a {
+            color: #000;
+            text-decoration: underline;
+        }
 
         @media (max-width: 768px) {
-            .container { flex-direction: column; }
-            .left-side, .right-side { width: 100%; height: 50vh; }
+            .container {
+                flex-direction: column;
+            }
+
+            .left-side,
+            .right-side {
+                width: 100%;
+                height: 50vh;
+            }
         }
 
         .btn-link {
-             background: none;        
-             border: none;            
-             padding: 0;              
-             font-family: inherit;    
-             font-size: inherit;      
-             font-weight: 600;        
-             color: #000;             
-             text-decoration: underline; 
-             cursor: pointer;         
-             display: inline;        
-}
+            background: none;
+            border: none;
+            padding: 0;
+            font-family: inherit;
+            font-size: inherit;
+            font-weight: 600;
+            color: #000;
+            text-decoration: underline;
+            cursor: pointer;
+            display: inline;
+        }
 
 
-            .btn-link:hover {
-                color: #555;
-                text-decoration: none;
-}
-
+        .btn-link:hover {
+            color: #555;
+            text-decoration: none;
+        }
     </style>
 </head>
+
 <body>
 
     <div class="container">
         <div class="left-side">
             <img src="../assets/imagem_esquerda.png" alt="Foto de fundo" class="fundo-img">
-            
+
             <div class="brand-name">CHIP</div>
-            
+
             <button type="button" class="info-button" title="Mais informações">
                 <span class="info-icon">i</span>
             </button>
@@ -208,23 +224,25 @@
             <h1 class="welcome-text">Bom te ver novamente!</h1>
             <p class="instruction-text">Preencha os campos para acessar sua conta.</p>
 
-            <form>
+            <form id="formLogin">
                 <div class="input-group">
-                    <input type="email" placeholder="Email" required>
+                    <input id="email" type="email" placeholder="Email" required>
                 </div>
                 <div class="input-group">
-                    <input type="password" placeholder="Senha" required>
+                    <input id="senha" type="password" placeholder="Senha" required>
                 </div>
                 <button type="submit" class="btn-entrar">Entrar</button>
             </form>
 
             <div class="footer-links">
-                     Não tem conta? <button type="button" class="btn-link">Cadastrar-se</button><br>
-                     Esqueceu sua senha? <button type="button" class="btn-link">Redefinir</button>
-                </div>
+                Não tem conta? <button type="button" class="btn-link">Cadastrar-se</button><br>
+                Esqueceu sua senha? <button type="button" class="btn-link">Redefinir</button>
             </div>
         </div>
     </div>
+    </div>
 
+    <script src="../js/login.js"></script>
 </body>
+
 </html>
