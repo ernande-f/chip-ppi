@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Início Técnico - CHIP</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/css-base.css">
+    <link rel="stylesheet" href="../css/inicio-tec.css">
+</head>
+<body>
+
+    <header class="navbar">
+        <div class="logo-container">
+            <a href="paginainicio-tec.html">
+                <img src="../assets/logo.png" alt="Logo CHIP" class="logo-img">
+            </a>
+        </div>
+        <div class="search-bar">
+            <input type="text" placeholder="Pesquisar por cor, tipo, nome...">
+        </div>
+        <div class="nav-links">
+            <a href="pedidos.html" class="nav-link-item">
+                <span class="nav-text-bold">Pedidos</span>
+            </a>
+            <div class="icon-notification">
+                <img src="../assets/sino.png" alt="Notificações" class="sino-img">
+            </div>
+            <div class="profile-pic" style="cursor: default;">
+                <svg viewBox="0 0 24 24" fill="#e0e0e0"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+            </div>
+        </div>
+    </header>
+
+    <nav class="tech-nav-container">
+        <div class="tabs-wrapper">
+            <button class="nav-btn active" onclick="changeTab(this)">Cadastrar novo item</button>
+            <button class="nav-btn" onclick="changeTab(this)">Solicitações</button>
+            <span class="tab-divider"></span> <button class="nav-btn" onclick="changeTab(this)">Pedidos para separação</button>
+            <span class="tab-divider"></span> <button class="nav-btn" onclick="changeTab(this)">Devoluções</button>
+        </div>
+    </nav>
+
+    <main class="content-container">
+        <section class="inventory-header">
+            <div class="title-group">
+                <h1>Itens em estoque</h1>
+                <p class="location-text">Laboratório de Hardware - Campus Frederico Westphalen</p>
+            </div>
+            <hr class="header-line">
+        </section>
+
+        <div class="items-grid">
+            <div class="item-card">
+                <div class="item-visual">
+                    <img src="../assets/item1.png" alt="Hardware">
+                </div>
+                <div class="item-data">
+                    <h3>Nome</h3>
+                    <p class="qty-label">Quantidade disponível: 09</p>
+                    <p class="info-label">Categoria: categoria</p>
+                    <p class="info-label">Cor: cores</p>
+                    <button class="btn-edit-item">Alterar</button>
+                </div>
+            </div>
+            </div>
+    </main>
+
+    <script>
+        function changeTab(element) {
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            element.classList.add('active');
+        }
+    </script>
+</body>
+</html>

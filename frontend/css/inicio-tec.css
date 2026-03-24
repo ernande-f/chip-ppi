@@ -1,0 +1,110 @@
+/* Barra Laranja de Abas */
+.tech-nav-container {
+    background-color: #f3a642;
+    width: 100%;
+    display: flex;
+    justify-content: center; /* Ponto 1: Centraliza os tópicos */
+    margin: 0;
+    padding: 0;
+}
+
+.tabs-wrapper {
+    display: flex;
+    align-items: center;
+    height: 50px;
+}
+
+.nav-btn {
+    background: none;
+    border: none;
+    padding: 0 25px;
+    height: 100%;
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    color: #000000; /* Ponto 3: Texto sempre preto */
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    transition: background 0.2s ease;
+}
+
+/* Estado Ativo: Fundo escuro e arredondado, mas texto continua preto */
+.nav-btn.active {
+    background-color: #d48a2a; /* Tom escuro da imagem */
+    color: #000000; /* Garante que o texto continue preto */
+    border-radius: 0 15px 0 0; /* Arredondamento conforme a referência */
+}
+
+/* Ponto 2: Linha branca curta de separação */
+.tab-divider {
+    width: 1px;
+    height: 20px; /* Curta, centralizada verticalmente */
+    background-color: #ffffff;
+    margin: 0 5px;
+    opacity: 0.8;
+}
+
+/* Ajustes de Conteúdo */
+.content-container {
+    padding: 40px 60px;
+}
+
+.inventory-header h1 {
+    font-size: 2.4rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.location-text {
+    color: #888;
+    font-size: 0.9rem;
+}
+
+.header-line {
+    border: none;
+    border-top: 1px solid #ddd;
+    margin-top: 10px;
+    margin-bottom: 35px;
+}
+
+/* Grid de Cards */
+.items-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 30px;
+}
+
+.item-card {
+    background-color: #f2f2f2;
+    border-radius: 20px;
+    display: flex;
+    padding: 12px;
+    height: 165px;
+}
+
+.item-visual img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 12px;
+    clip-path: polygon(0 0, 100% 0, 82% 100%, 0% 100%);
+}
+
+.item-data h3 {
+    color: #f3a642;
+    font-size: 1.2rem;
+    margin-bottom: 5px;
+}
+
+.btn-edit-item {
+    background-color: #f3a642;
+    color: white;
+    border: none;
+    border-radius: 15px;
+    padding: 6px 20px;
+    font-weight: 600;
+    margin-top: auto;
+    width: fit-content;
+    cursor: pointer;
+}

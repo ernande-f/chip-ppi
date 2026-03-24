@@ -179,7 +179,7 @@ body {
     flex: 2.5; 
     background: white; 
     border-radius: 15px; 
-    border: var(--border-card); /* Borda marrom clara do design */
+    border: 1px solid #54320f;
     overflow: hidden; 
 }
 
@@ -187,7 +187,7 @@ body {
     display: flex; 
     justify-content: space-between; 
     padding: 18px 30px; 
-    border-bottom: 1px solid #eee; 
+    border-bottom: 1px solid #54320f; 
     font-weight: 700; 
 }
 
@@ -196,7 +196,7 @@ body {
     justify-content: space-between; 
     align-items: center; 
     padding: 25px 30px; 
-    border-bottom: 1px solid #eee; 
+    border-bottom: 1px solid #54320f; 
 }
 
 .product-info { display: flex; align-items: center; gap: 20px; }
@@ -275,33 +275,236 @@ body {
 
 .disclaimer { font-size: 0.75rem; color: #999; line-height: 1.4; }
 
-/* --- SEÇÃO: PEDIDOS EM ANDAMENTO --- */
-.ongoing-grid { display: flex; gap: 25px; }
 
-.ongoing-card { 
+
+/* --- SEÇÃO: PEDIDOS EM ANDAMENTO --- */
+/* Reset para o botão de card não parecer um botão padrão */
+/* --- AJUSTE NOS BOTÕES DE PEDIDOS (Cards) --- */
+
+/* --- SEÇÃO: PEDIDOS EM ANDAMENTO (Estilo atualizado conforme imagem) --- */
+
+.ongoing-grid { 
+    display: flex; 
+    gap: 30px; /* Um pouco mais de espaço entre eles */
+}
+
+button.ongoing-card { 
     flex: 1; 
     background: white; 
     border-radius: 15px; 
-    padding: 30px; 
+    padding: 25px 30px; 
     display: flex; 
     justify-content: space-between; 
     align-items: center; 
-    box-shadow: var(--shadow); /* Sombra suave do design */
+    
+    /* RESET DE BOTÃO */
+    border: none;
+    font-family: inherit;
+    cursor: pointer;
+    text-align: left;
+
+    /* SOMBRA: Suave e espalhada como na imagem */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04), 0 4px 8px rgba(0, 0, 0, 0.02);
+    
+    transition: all 0.3s ease;
 }
 
+button.ongoing-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
+}
+
+/* ORGANIZAÇÃO DO TEXTO */
+.ongoing-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px; /* Espaço entre o número do pedido e a data */
+}
+
+.ongoing-info strong {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #000; /* Texto bem preto */
+}
+
+.devolution-date {
+    font-size: 0.9rem;
+    color: #999; /* Cinza clarinho conforme a imagem */
+    font-weight: 600;
+}
+
+/* ÍCONES DE STATUS (Bolinhas menores e centralizadas) */
 .status-icon { 
-    width: 40px; 
-    height: 40px; 
+    width: 32px; 
+    height: 32px; 
     border-radius: 50%; 
     display: flex; 
     align-items: center; 
     justify-content: center; 
     color: white; 
     font-weight: 900; 
+    font-size: 1rem;
+    flex-shrink: 0; /* Impede a bolinha de achatar */
 }
 
-.status-icon.red { background: #ff4747; }
-.status-icon.yellow { background: #ffee00; }
+.status-icon.red { 
+    background: #ff4141; 
+    box-shadow: 0 4px 10px rgba(255, 65, 65, 0.2); /* Leve brilho vermelho */
+}
+
+.status-icon.yellow { 
+    background: #fde021; 
+    color: white; /* Exclamação branca conforme a imagem */
+    box-shadow: 0 4px 10px rgba(253, 224, 33, 0.2); /* Leve brilho amarelo */
+}
+
+/* --- MODAL DIALOG BOX --- */
+
+/* Fundo escurecido (Overlay) */
+.modal-overlay {
+    display: none; /* Ativado via JS (display: flex) */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5); /* Escurece o fundo suavemente */
+    z-index: 2000;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(2px); /* Opcional: leve desfoque no fundo */
+}
+
+/* Caixa Branca (Conteúdo) */
+.modal-content {
+    background: white;
+    width: 90%;
+    max-width: 750px;
+    border-radius: 30px; /* Bordas bem arredondadas como na imagem */
+    padding: 40px;
+    position: relative;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-title-group {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+}
+
+.modal-title-group h2 { 
+    margin: 0; 
+    font-size: 1.85rem; 
+    font-weight: 700;
+    color: var(--text-dark);
+}
+
+.status-text-yellow {
+    color: #f2d100; /* Amarelo vivo da imagem */
+    font-weight: 700;
+    font-size: 1.6rem;
+}
+
+.close-modal {
+    background: none;
+    border: none;
+    font-size: 3rem;
+    color: #f2d100;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.modal-date {
+    color: #999;
+    font-size: 0.95rem;
+    margin-top: 5px;
+    margin-bottom: 0;
+}
+
+.modal-divider {
+    border: 0;
+    border-top: 1.5px solid #f0f0f0;
+    margin: 25px 0;
+}
+
+.modal-subtitle {
+    color: #54320f; /* Tom marrom do seu projeto */
+    font-size: 1.3rem;
+    margin-bottom: 20px;
+    font-weight: 700;
+}
+
+/* --- TABELA INTERNA DO MODAL --- */
+
+.modal-table-container {
+    border: 1px solid #dcc6b1; /* Cor de borda suave das imagens */
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.modal-table-header {
+    background: #fff;
+    display: flex;
+    justify-content: space-between;
+    padding: 18px 35px;
+    font-weight: 700;
+    font-size: 1.2rem;
+    border-bottom: 1px solid #dcc6b1;
+}
+
+.modal-item-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 35px;
+    border-bottom: 1.5px solid #f5f5f5;
+}
+
+.modal-item-row:last-child { 
+    border-bottom: none; 
+}
+
+.modal-prod-info { 
+    display: flex; 
+    align-items: center; 
+    gap: 20px; 
+}
+
+.modal-prod-info img {
+    width: 75px;
+    height: 75px;
+    border-radius: 15px;
+    object-fit: cover;
+    background: #f9f9f9;
+}
+
+.modal-prod-details strong { 
+    display: block; 
+    font-size: 1.2rem;
+    margin-bottom: 2px;
+}
+
+.modal-prod-details span { 
+    font-size: 0.85rem; 
+    color: #a0a0a0; 
+    display: block; 
+}
+
+/* O badge da quantidade (o oval cinza claro) */
+.modal-qty-badge {
+    border: 1.5px solid #d0d0d0;
+    padding: 6px 30px;
+    border-radius: 25px;
+    font-weight: 600;
+    color: #444;
+    font-size: 1rem;
+}
 
 /* --- SEÇÃO: HISTÓRICO --- */
 .history-tabs { 
