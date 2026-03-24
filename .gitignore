@@ -2,3 +2,6 @@
 node_modules/
 CHIP - Documento oficial (1).pdf
 CHIP_Cronograma.xlsx
+.agents
+.claude
+.env
