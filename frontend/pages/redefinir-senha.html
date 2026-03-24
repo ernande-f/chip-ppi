@@ -36,11 +36,22 @@
             overflow: hidden; /* Garante que a forma geométrica não saia do limite */
         }
 
+        .fundo-img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 0;
+        }
+
         .brand-name {
             font-weight: 700;
             font-size: 24px;
             color: #000;
             z-index: 10;
+            position: relative;
         }
 
         .info-button {
@@ -174,11 +185,11 @@
 
     <div class="container">
         <div class="left-side">
+            <img src="../assets/imagem_esquerda.png" alt="Foto de fundo" class="fundo-img">
             <div class="brand-name">CHIP</div>
              <button type="button" class="info-button" title="Mais informações">
                 <span class="info-icon">i</span>
             </button>
-            <div class="shape-overlay"></div>
         </div>
 
         <div class="right-side">
