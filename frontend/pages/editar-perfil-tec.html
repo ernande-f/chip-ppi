@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Perfil Técnico - CHIP</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/css-base.css">
+    <link rel="stylesheet" href="../css/editar-perfil.css">
+</head>
+<body>
+
+    <header class="navbar">
+        <div class="logo-container">
+            <a href="pagina-inicial.html">
+                <img src="../assets/logo.png" alt="Logo CHIP" class="logo-img">
+            </a>
+        </div>
+
+        <div class="search-bar">
+            <input type="text" placeholder="Pesquisar por cor, tipo, nome...">
+        </div>
+
+        <div class="nav-links">
+            <a href="pedidos.html" class="nav-link-item">
+                <span class="nav-text-bold">Pedidos</span>
+            </a>
+            
+            <div class="icon-notification">
+                <img src="../assets/sino.png" alt="Notificações" class="sino-img">
+            </div>
+
+            <div class="profile-pic" style="cursor: default;">
+                <svg viewBox="0 0 24 24" fill="#e0e0e0"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+            </div>
+        </div>
+    </header>
+
+    <div id="page-content">
+        <main class="edit-container">
+            <h1 class="page-title">Editar perfil</h1>
+            <hr class="divider">
+
+            <div class="edit-content">
+                <div class="photo-column">
+                    <div class="profile-avatar-wrapper">
+                        <div class="profile-avatar-circle" id="avatar-container">
+                            <i class="fa-solid fa-user" id="avatar-icon"></i>
+                        </div>
+                        <input type="file" id="file-input" style="display: none;" accept="image/*">
+                        <button type="button" class="edit-photo-badge" onclick="document.getElementById('file-input').click()">
+                            <i class="fa-solid fa-pencil"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-column">
+                    <div class="form-header">
+                        <span class="role-badge">Técnico</span>
+                    </div>
+
+                    <form class="profile-form" action="perfil-tec.html">
+                        <div class="form-group">
+                            <label>Nome:</label>
+                            <input type="text" value="Patieli">
+                        </div>
+                        <div class="form-group">
+                            <label>Senha:</label>
+                            <div class="input-with-button">
+                                <input type="password" value="********" readonly tabindex="-1" class="readonly-input">
+                                <button type="button" class="redefine-btn" onclick="toggleModal('modal-redefinir', true)">Redefinir senha</button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>*Email:</label>
+                            <input type="email" value="patieli.tecnica@iffarroupilha.edu.br" readonly tabindex="-1" class="readonly-input">
+                        </div>
+                        <div class="form-group">
+                            <label>*CPF:</label>
+                            <input type="text" value="222.222.222-22" readonly tabindex="-1" class="readonly-input">
+                        </div>
+                        <div class="form-buttons">
+                            <button type="submit" class="btn-save">Salvar alterações</button>
+                            <button type="button" class="btn-cancel" onclick="window.location.href='perfil-tec.html'">Cancelar</button>
+                        </div>
+                        <p class="form-footer-note">*Para alterar esses campos, fale com o administrador do sistema.</p>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="modal-redefinir" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2>Redefinir senha</h2>
+                <button class="close-modal" onclick="toggleModal('modal-redefinir', false)">&times;</button>
+            </div>
+            <form class="modal-form">
+                <div class="modal-input-group">
+                    <label>Nova senha:</label>
+                    <input type="password">
+                </div>
+                <div class="modal-input-group">
+                    <label>Confirmar senha:</label>
+                    <input type="password">
+                </div>
+                <button type="button" class="btn-save-modal" onclick="toggleModal('modal-redefinir', false)">Salvar</button>
+            </form>
+        </div>
+    </div>
+
+    <footer class="main-footer">
+        <div class="footer-container">
+            <div class="footer-col-icon">
+                <img src="../assets/processador.png" alt="Processador CPU" class="processor-img">
+            </div>
+
+            <div class="footer-col">
+                <p><strong>CHIP - Controle de Hardware e Itens de Projeto</strong></p>
+                <p>Prática Profissional Integrada - 2025/26</p>
+                <p>Instituto Federal Farroupilha - Campus Frederico Westphalen</p>
+            </div>
+
+            <div class="footer-col">
+                <p>Desenvolvedores:</p>
+                <p>Ariany Maísa Barros Kovalckoski</p>
+                <p>Ernande Facco</p>
+                <p>Luiza de Marchi Brombilla</p>
+                <p>Nicole Freddi</p>
+            </div>
+
+            <div class="footer-col">
+                <p>Curso técnico de informática integrado ao ensino médio</p>
+                <img src="../assets/logo_iffar.png" alt="Logo IFF" class="iff-logo">
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function toggleModal(modalId, show) {
+            const modal = document.getElementById(modalId);
+            const page = document.getElementById('page-content');
+            if(show) {
+                modal.style.display = 'flex';
+                page.classList.add('modal-active');
+            } else {
+                modal.style.display = 'none';
+                page.classList.remove('modal-active');
+            }
+        }
+
+        document.getElementById('file-input').addEventListener('change', function(e) {
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const container = document.getElementById('avatar-container');
+                    container.innerHTML = `<img src="${e.target.result}" style="width:100%; height:100%; object-fit:cover;">`;
+                }
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+    </script>
+</body>
+</html>
