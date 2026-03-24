@@ -11,7 +11,9 @@
 
     <header class="navbar">
         <div class="logo-container">
-            <img src="../assets/logo.png" alt="Logo CHIP" class="logo-img">
+            <a href="pagina-inicial.html">
+                <img src="../assets/logo.png" alt="Logo CHIP" class="logo-img">
+            </a>
         </div>
 
         <div class="search-bar">
@@ -107,25 +109,78 @@
             </div>
         </section>
 
-        <section class="ongoing-section">
-            <h2 class="section-title-black">Pedidos em andamento</h2>
-            <div class="ongoing-grid">
-                <div class="card ongoing-card">
-                    <div class="ongoing-info">
-                        <strong>Pedido #455</strong>
-                        <span class="devolution-date">Data de devolução: 11/12/2025</span>
+
+
+<section class="ongoing-section">
+    <h2 class="section-title-black">Pedidos em andamento</h2>
+    <div class="ongoing-grid">
+        <button class="card ongoing-card" onclick="openModal('455', '11/12/2025')">
+            <div class="ongoing-info">
+                <strong>Pedido #455</strong>
+                <span class="devolution-date">Data de devolução: 11/12/2025</span>
+            </div>
+            <div class="status-icon red">!</div>
+        </button>
+
+        <button class="card ongoing-card" onclick="openModal('451', '14/12/2025')">
+            <div class="ongoing-info">
+                <strong>Pedido #451</strong>
+                <span class="devolution-date">Data de devolução: 14/12/2025</span>
+            </div>
+            <div class="status-icon yellow">!</div>
+        </button>
+    </div>
+</section>
+
+<div id="modalPedido" class="modal-overlay">
+    <div class="modal-content">
+        <header class="modal-header">
+            <div class="modal-title-group">
+                <h2 id="modalNumPedido">Pedido #456</h2>
+                <span class="status-text-yellow">Pendente</span>
+            </div>
+            <button class="close-modal" onclick="closeModal()">&times;</button>
+        </header>
+        <p class="modal-date">Data da solicitação: <span id="modalData">01/12/2025</span></p>
+        
+        <hr class="modal-divider">
+
+        <h3 class="modal-subtitle">Itens no pedido</h3>
+
+        <div class="modal-table-container">
+            <div class="modal-table-header">
+                <span>Produto</span>
+                <span>Quantidade</span>
+            </div>
+            
+            <div class="modal-table-body">
+                <div class="modal-item-row">
+                    <div class="modal-prod-info">
+                        <img src="../assets/arduino.png" alt="Arduino">
+                        <div class="modal-prod-details">
+                            <strong>Item 1</strong>
+                            <span>Categoria: Eletrônicos</span>
+                            <span>Cor: azul</span>
+                        </div>
                     </div>
-                    <div class="status-icon red">!</div>
+                    <div class="modal-qty-badge">10 un.</div>
                 </div>
-                <div class="card ongoing-card">
-                    <div class="ongoing-info">
-                        <strong>Pedido #451</strong>
-                        <span class="devolution-date">Data de devolução: 14/12/2025</span>
+
+                <div class="modal-item-row">
+                    <div class="modal-prod-info">
+                        <img src="../assets/resistores.png" alt="Resistores">
+                        <div class="modal-prod-details">
+                            <strong>Item 2</strong>
+                            <span>Categoria: Componentes</span>
+                            <span>Cor: azul</span>
+                        </div>
                     </div>
-                    <div class="status-icon yellow">!</div>
+                    <div class="modal-qty-badge">05 un.</div>
                 </div>
             </div>
-        </section>
+        </div>
+    </div>
+</div>
 
         <section class="history-section">
             <h2 class="section-title-black">Histórico de pedidos</h2>
@@ -184,27 +239,26 @@
     </footer>
 
     <script>
-        const quantityControls = document.querySelectorAll('.quantity-control');
+     function openModal(id, data) {
+    const modal = document.getElementById('modalPedido');
+    document.getElementById('modalNumPedido').innerText = `Pedido #${id}`;
+    // Se quiser mudar a data dinamicamente:
+    // document.getElementById('modalData').innerText = data;
+    
+    modal.style.display = 'flex';
+}
 
-        quantityControls.forEach(control => {
-            const btnMinus = control.querySelector('.btn-minus');
-            const btnPlus = control.querySelector('.btn-plus');
-            const qtySpan = control.querySelector('.qty-value');
+function closeModal() {
+    document.getElementById('modalPedido').style.display = 'none';
+}
 
-            btnMinus.addEventListener('click', () => {
-                let value = parseInt(qtySpan.innerText);
-                if (value > 1) {
-                    value--;
-                    qtySpan.innerText = value < 10 ? `0${value}` : value;
-                }
-            });
-
-            btnPlus.addEventListener('click', () => {
-                let value = parseInt(qtySpan.innerText);
-                value++;
-                qtySpan.innerText = value < 10 ? `0${value}` : value;
-            });
-        });
+// Fecha o modal se clicar fora da caixa branca
+window.onclick = function(event) {
+    const modal = document.getElementById('modalPedido');
+    if (event.target == modal) {
+        closeModal();
+    }
+}
     </script>
 </body>
 </html>
