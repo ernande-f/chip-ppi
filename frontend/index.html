@@ -1,20 +1,418 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <script src="js/main.js"></script>
-    
-</head>
-<body>
-        <label for="name">Nome Completo:</label><br>
-        <input type="text" id="name" name="name"><br>
+    <title>CHIP - Laboratório de Hardware</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="js/index.js"></script>
+    <style>
+        :root {
+            --orange-active: #E89A2E;
+            --orange-bar: #FCBD5B;
+            --orange-btn: #F4A12B;
+            --text-dark: #111;
+            --text-gray: #8A8A8A;
+            --bg-body: #ffffff;
+            --font-family: 'Inter', sans-serif;
+        }
 
-        <label for="password">Senha:</label><br>
-        <input type="password" id="password" name="password">
-        <br><br>
-        <button onclick="createUser()">cadastrar-se</button>
+        body {
+            font-family: var(--font-family);
+            margin: 0;
+            background-color: var(--bg-body);
+            color: var(--text-dark);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* --- Header --- */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 45px;
+            border-bottom: 1px solid #e8e8e8;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 35px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 44px;
+        }
+
+        .logo img {
+            max-height: 100%;
+            display: block;
+        }
+
+        .search-box {
+            position: relative;
+            width: 480px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px 15px 10px 40px;
+            border: 1px solid #dfdfdf;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-family: var(--font-family);
+            color: var(--text-dark);
+            outline: none;
+            background-color: #fcfcfc;
+        }
+
+        .search-box input::placeholder {
+            color: #b3b3b3;
+        }
+
+        .search-box svg {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #b3b3b3;
+            width: 18px;
+            height: 18px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .pedidos-link {
+            text-decoration: none;
+            color: #4a2c11;
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            color: #4a2c11;
+            display: flex;
+            align-items: center;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background-color: #d1d1d1;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            overflow: hidden;
+        }
+
+        /* --- Secondary Nav --- */
+        .tabs-container {
+            padding: 30px 45px 15px 45px;
+            display: flex;
+        }
+
+        .tabs-menu {
+            background-color: var(--orange-bar);
+            border-radius: 12px;
+            display: flex;
+            align-items: stretch;
+            overflow: hidden;
+        }
+
+        .tab {
+            padding: 14px 35px;
+            color: #3b220b;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.15rem;
+            display: flex;
+            align-items: center;
+            position: relative;
+        }
+
+        .tab.active {
+            background-color: var(--orange-active);
+            border-radius: 12px;
+            color: #111;
+        }
+
+        .tab:not(:last-child):not(.active)::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 30%;
+            height: 40%;
+            width: 1.5px;
+            background-color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* --- Main Content --- */
+        .main-content {
+            padding: 20px 45px 60px 45px;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            border-bottom: 1.5px solid #d9d9d9;
+            padding-bottom: 25px;
+            margin-bottom: 45px;
+        }
+
+        .page-header h1 {
+            margin: 0;
+            font-size: 2.8rem;
+            font-weight: 700;
+            color: #111;
+            letter-spacing: -0.5px;
+        }
+
+        .page-header p {
+            margin: 0;
+            color: #8C8C8C;
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        /* --- Grid --- */
+        .inventory-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+        }
+
+        .card {
+            background-color: #F8F8F8;
+            border-radius: 18px;
+            display: flex;
+            height: 190px;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .card-image-container {
+            width: 45%;
+            height: 100%;
+        }
+
+        .card-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 18px 80px 80px 18px;
+            background-color: #E2E2E2;
+        }
+
+        .card-content {
+            padding: 20px 20px 20px 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            flex: 1;
+        }
+
+        .card-title {
+            color: var(--orange-btn);
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin: 0 0 6px 0;
+        }
+
+        .card-info {
+            color: var(--text-gray);
+            font-size: 0.85rem;
+            margin: 0 0 4px 0;
+            line-height: 1.3;
+        }
+
+        .card-info span {
+            color: #4a4a4a;
+        }
+
+        .card-action {
+            margin-top: 14px;
+            background-color: var(--orange-btn);
+            color: white;
+            border: none;
+            padding: 9px 30px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1rem;
+            align-self: flex-start;
+            cursor: pointer;
+            font-family: var(--font-family);
+            box-shadow: 0 2px 4px rgba(244, 161, 43, 0.2);
+        }
+
+        .card-action:hover {
+            background-color: #E89A2E;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="header-left">
+            <div class="logo">
+                <img src="assets/logo.png" alt="CHIP">
+            </div>
+            <div class="search-box">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <input type="text" placeholder="Pesquisar por cor, tipo, nome..." aria-label="Pesquisa">
+            </div>
+        </div>
+        <div class="header-right">
+            <a href="#" class="pedidos-link">Pedidos</a>
+            <button class="icon-btn" aria-label="Notificações">
+                <!-- Sino icon from Image -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="#6A3D14"
+                    stroke="none">
+                    <path
+                        d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z" />
+                </svg>
+            </button>
+            <div class="user-avatar" aria-hidden="true">
+                <!-- Perfil icon from Image -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="#FFFFFF"
+                    stroke="none">
+                    <path
+                        d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                </svg>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="tabs-container" aria-label="Menu Secundário">
+        <div class="tabs-menu">
+            <a href="#" class="tab active" aria-current="page">Cadastrar novo item</a>
+            <a href="#" class="tab">Solicitações</a>
+            <a href="#" class="tab">Pedidos para separação</a>
+            <a href="#" class="tab">Devoluções</a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="page-header">
+            <h1>Itens em estoque</h1>
+            <p>Laboratório de Hardware - Campus Frederico Westphalen</p>
+        </header>
+
+        <div class="inventory-grid">
+            <!-- Card 1 -->
+            <article class="card">
+                <div class="card-image-container">
+                    <img src="assets/electronic_components_1_1774913851066.png" alt="" class="card-image"
+                        aria-hidden="true">
+                </div>
+                <div class="card-content">
+                    <h2 class="card-title">Nome</h2>
+                    <p class="card-info">Quantidade disponível: <span>09</span></p>
+                    <p class="card-info">Categoria: categoria</p>
+                    <p class="card-info">Cor: cores</p>
+                    <button class="card-action">Alterar</button>
+                </div>
+            </article>
+
+            <!-- Card 2 -->
+            <article class="card">
+                <div class="card-image-container">
+                    <img src="assets/electronic_components_1_1774913851066.png" alt="" class="card-image"
+                        aria-hidden="true">
+                </div>
+                <div class="card-content">
+                    <h2 class="card-title">Nome</h2>
+                    <p class="card-info">Quantidade disponível: <span>09</span></p>
+                    <p class="card-info">Categoria: categoria</p>
+                    <p class="card-info">Cor: cores</p>
+                    <button class="card-action">Alterar</button>
+                </div>
+            </article>
+
+            <!-- Card 3 -->
+            <article class="card">
+                <div class="card-image-container">
+                    <img src="assets/electronic_components_3_1774913879353.png" alt="" class="card-image"
+                        aria-hidden="true">
+                </div>
+                <div class="card-content">
+                    <h2 class="card-title">Nome</h2>
+                    <p class="card-info">Quantidade disponível: <span>09</span></p>
+                    <p class="card-info">Categoria: categoria</p>
+                    <p class="card-info">Cor: cores</p>
+                    <button class="card-action">Alterar</button>
+                </div>
+            </article>
+
+            <!-- Card 4 -->
+            <article class="card">
+                <div class="card-image-container">
+                    <img src="assets/electronic_components_3_1774913879353.png" alt="" class="card-image"
+                        aria-hidden="true">
+                </div>
+                <div class="card-content">
+                    <h2 class="card-title">Nome</h2>
+                    <p class="card-info">Quantidade disponível: <span>09</span></p>
+                    <p class="card-info">Categoria: categoria</p>
+                    <p class="card-info">Cor: cores</p>
+                    <button class="card-action">Alterar</button>
+                </div>
+            </article>
+
+            <!-- Card 5 -->
+            <article class="card">
+                <div class="card-image-container">
+                    <img src="assets/electronic_components_2_1774913863377.png" alt="" class="card-image"
+                        aria-hidden="true">
+                </div>
+                <div class="card-content">
+                    <h2 class="card-title">Nome</h2>
+                    <p class="card-info">Quantidade disponível: <span>09</span></p>
+                    <p class="card-info">Categoria: categoria</p>
+                    <p class="card-info">Cor: cores</p>
+                    <button class="card-action">Alterar</button>
+                </div>
+            </article>
+
+            <!-- Card 6 -->
+            <article class="card">
+                <div class="card-image-container">
+                    <img src="assets/electronic_components_2_1774913863377.png" alt="" class="card-image"
+                        aria-hidden="true">
+                </div>
+                <div class="card-content">
+                    <h2 class="card-title">Nome</h2>
+                    <p class="card-info">Quantidade disponível: <span>09</span></p>
+                    <p class="card-info">Categoria: categoria</p>
+                    <p class="card-info">Cor: cores</p>
+                    <button class="card-action">Alterar</button>
+                </div>
+            </article>
+        </div>
+    </main>
 
 </body>
+
 </html>
