@@ -1,110 +1,181 @@
-/* Barra Laranja de Abas */
-.tech-nav-container {
-    background-color: #f3a642;
-    width: 100%;
-    display: flex;
-    justify-content: center; /* Ponto 1: Centraliza os tópicos */
-    margin: 0;
-    padding: 0;
+:root {
+    --primary-orange: #f3a642;
+    --text-brown: #54320f;
+    --bg-light: #fdfdfd;
 }
 
-.tabs-wrapper {
+body {
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    background-color: var(--bg-light);
+}
+
+/* --- HEADER --- */
+.navbar {
     display: flex;
     align-items: center;
-    height: 50px;
+    justify-content: space-between;
+    padding: 18px 5%;
+    background: white;
+    border-bottom: 1px solid #eee;
+}
+
+.logo-img { height: 55px; }
+
+.search-bar input {
+    width: 400px;
+    padding: 10px 15px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    background-color: #f9f9f9;
+}
+
+.nav-links { display: flex; align-items: center; gap: 30px; }
+.nav-link-item { text-decoration: none; }
+.nav-text-bold { font-weight: 700; color: var(--text-brown); font-size: 1.05rem; }
+.sino-img { width: 55px; cursor: pointer; }
+
+/* --- BARRA DE ABAS (CENTRALIZADA E EQUILIBRADA) --- */
+.tech-nav-bar {
+    background: var(--primary-orange);
+    border-radius: 12px;
+    display: flex;
+    margin: 30px auto 40px auto; 
+    max-width: 1200px; /* Alinhado com o conteúdo principal */
+    width: 90%;
+    overflow: hidden;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.06);
 }
 
 .nav-btn {
+    flex: 1;
+    padding: 12px 15px; 
+    border: none;
     background: none;
-    border: none;
-    padding: 0 25px;
-    height: 100%;
+    font-weight: 700;
     font-family: 'Inter', sans-serif;
-    font-weight: 700;
     font-size: 1rem;
-    color: #000000; /* Ponto 3: Texto sempre preto */
+    color: #000; 
     cursor: pointer;
-    display: flex;
-    align-items: center;
-    transition: background 0.2s ease;
+    transition: background 0.3s;
 }
 
-/* Estado Ativo: Fundo escuro e arredondado, mas texto continua preto */
 .nav-btn.active {
-    background-color: #d48a2a; /* Tom escuro da imagem */
-    color: #000000; /* Garante que o texto continue preto */
-    border-radius: 0 15px 0 0; /* Arredondamento conforme a referência */
+    background: rgba(0, 0, 0, 0.15); 
+    border-bottom: 4px solid #333;
+    border-radius: 0; 
 }
 
-/* Ponto 2: Linha branca curta de separação */
-.tab-divider {
-    width: 1px;
-    height: 20px; /* Curta, centralizada verticalmente */
-    background-color: #ffffff;
-    margin: 0 5px;
-    opacity: 0.8;
+/* --- CONTAINER CENTRALIZADO --- */
+.content-container { 
+    padding: 0 20px;
+    max-width: 1200px; /* Largura ideal para não amontoar nem espalhar demais */
+    margin: 0 auto;    
 }
 
-/* Ajustes de Conteúdo */
-.content-container {
-    padding: 40px 60px;
+.title-flex-group {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 5px;
 }
 
-.inventory-header h1 {
-    font-size: 2.4rem;
-    font-weight: 700;
-    margin: 0;
+/* Título com tamanho corrigido (Presença sem exagero) */
+.main-title { 
+    font-size: 2.2rem; 
+    font-weight: 700; 
+    margin: 0; 
 }
 
-.location-text {
-    color: #888;
-    font-size: 0.9rem;
+.location-text-right { 
+    color: #888; 
+    font-size: 0.95rem; 
+    margin: 0; 
 }
 
-.header-line {
-    border: none;
-    border-top: 1px solid #ddd;
-    margin-top: 10px;
-    margin-bottom: 35px;
+.header-line { 
+    border: none; 
+    border-top: 1.5px solid #eee; 
+    margin: 10px 0 35px 0; 
 }
 
-/* Grid de Cards */
+/* --- GRID DE ITENS --- */
 .items-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 30px;
+    gap: 30px; /* Mais espaço entre os itens */
 }
 
 .item-card {
     background-color: #f2f2f2;
     border-radius: 20px;
     display: flex;
-    padding: 12px;
-    height: 165px;
+    padding: 15px;
+    height: 160px;
+    align-items: center;
+}
+
+.item-visual {
+    flex: 0 0 140px;
+    height: 100%;
 }
 
 .item-visual img {
-    width: 100%;
+    width: 100%; 
     height: 100%;
-    object-fit: cover;
+    object-fit: cover; 
     border-radius: 12px;
-    clip-path: polygon(0 0, 100% 0, 82% 100%, 0% 100%);
+    clip-path: polygon(0 0, 100% 0, 85% 100%, 0% 100%);
 }
 
-.item-data h3 {
-    color: #f3a642;
-    font-size: 1.2rem;
-    margin-bottom: 5px;
+.item-data { 
+    padding-left: 15px; 
+    display: flex; 
+    flex-direction: column; 
+    justify-content: center;
 }
+
+.item-data h3 { 
+    color: var(--primary-orange); 
+    margin: 0 0 5px 0; 
+    font-size: 1.15rem;
+}
+
+.qty-label { font-size: 0.8rem; font-weight: 700; }
+.info-label { font-size: 0.8rem; color: #777; margin: 1px 0; }
 
 .btn-edit-item {
-    background-color: #f3a642;
-    color: white;
-    border: none;
+    background-color: var(--primary-orange); 
+    color: var(--text-brown); 
+    border: none; 
     border-radius: 15px;
-    padding: 6px 20px;
-    font-weight: 600;
-    margin-top: auto;
-    width: fit-content;
+    padding: 6px 22px; 
+    font-weight: 700;
+    margin-top: 10px; 
+    width: fit-content; 
     cursor: pointer;
 }
+
+/* --- FOOTER --- */
+.main-footer { 
+    background: #fff; 
+    padding: 60px 0; 
+    border-top: 1px solid #e0e0e0; 
+    margin-top: 50px; 
+}
+
+.footer-container { 
+    display: flex; 
+    justify-content: space-between; 
+    max-width: 1200px; 
+    margin: 0 auto; 
+    padding: 0 20px;
+}
+
+.footer-col { 
+    flex: 1; 
+    font-size: 0.85rem; 
+    color: #666; 
+}
+
+.iff-logo { height: 50px; margin-top: 10px; }

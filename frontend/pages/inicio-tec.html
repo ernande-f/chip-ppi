@@ -33,45 +33,104 @@
         </div>
     </header>
 
-    <nav class="tech-nav-container">
-        <div class="tabs-wrapper">
-            <button class="nav-btn active" onclick="changeTab(this)">Cadastrar novo item</button>
-            <button class="nav-btn" onclick="changeTab(this)">Solicitações</button>
-            <span class="tab-divider"></span> <button class="nav-btn" onclick="changeTab(this)">Pedidos para separação</button>
-            <span class="tab-divider"></span> <button class="nav-btn" onclick="changeTab(this)">Devoluções</button>
-        </div>
+    <nav class="tech-nav-bar">
+        <button class="nav-btn active" onclick="changeTab(this)">Cadastrar novo item</button>
+        <button class="nav-btn" onclick="changeTab(this)">Solicitações</button>
+        <button class="nav-btn" onclick="changeTab(this)">Pedidos para separação</button>
+        <button class="nav-btn" onclick="changeTab(this)">Devoluções</button>
     </nav>
 
     <main class="content-container">
         <section class="inventory-header">
-            <div class="title-group">
-                <h1>Itens em estoque</h1>
-                <p class="location-text">Laboratório de Hardware - Campus Frederico Westphalen</p>
+            <div class="title-flex-group">
+                <h1 class="main-title">Itens em estoque</h1>
+                <p class="location-text-right">Laboratório de Hardware - Campus Frederico Westphalen</p>
             </div>
             <hr class="header-line">
         </section>
 
         <div class="items-grid">
+            
             <div class="item-card">
                 <div class="item-visual">
-                    <img src="../assets/item1.png" alt="Hardware">
+                    <img src="../assets/item1_resistores.png" alt="Resistores em placa">
                 </div>
                 <div class="item-data">
-                    <h3>Nome</h3>
+                    <h3>Resistores (Variados)</h3>
                     <p class="qty-label">Quantidade disponível: 09</p>
-                    <p class="info-label">Categoria: categoria</p>
+                    <p class="info-label">Categoria: Componentes</p>
                     <p class="info-label">Cor: cores</p>
                     <button class="btn-edit-item">Alterar</button>
                 </div>
             </div>
+
+            <div class="item-card">
+                <div class="item-visual">
+                    <img src="../assets/item2_fita.png" alt="Fita de resistores">
+                </div>
+                <div class="item-data">
+                    <h3>Resistores 10k&#8486;</h3>
+                    <p class="qty-label">Quantidade disponível: 09</p>
+                    <p class="info-label">Categoria: Componentes</p>
+                    <p class="info-label">Cor: cores</p>
+                    <button class="btn-edit-item">Alterar</button>
+                </div>
             </div>
+
+            <div class="item-card">
+                <div class="item-visual">
+                    <img src="../assets/item3_arduino_proto.png" alt="Arduino com protoboard">
+                </div>
+                <div class="item-data">
+                    <h3>Kit Protótipo Uno</h3>
+                    <p class="qty-label">Quantidade disponível: 09</p>
+                    <p class="info-label">Categoria: Placas</p>
+                    <p class="info-label">Cor: cores</p>
+                    <button class="btn-edit-item">Alterar</button>
+                </div>
+            </div>
+
+            <div class="item-card">
+                <div class="item-visual">
+                    <img src="../assets/item4_placa_proto.png" alt="Arduino Uno">
+                </div>
+                <div class="item-data">
+                    <h3>Arduino Uno R3</h3>
+                    <p class="qty-label">Quantidade disponível: 09</p>
+                    <p class="info-label">Categoria: Placas</p>
+                    <p class="info-label">Cor: cores</p>
+                    <button class="btn-edit-item">Alterar</button>
+                </div>
+            </div>
+
+            <div class="item-card">
+                <div class="item-visual">
+                    <img src="../assets/item5_outra_placa.png" alt="Outra placa eletrônica">
+                </div>
+                <div class="item-data">
+                    <h3>Módulo Relé</h3>
+                    <p class="qty-label">Quantidade disponível: 09</p>
+                    <p class="info-label">Categoria: Módulos</p>
+                    <p class="info-label">Cor: cores</p>
+                    <button class="btn-edit-item">Alterar</button>
+                </div>
+            </div>
+
+            <div class="item-card">
+                <div class="item-visual">
+                    <img src="../assets/item6_resistores_soltos.png" alt="Resistores soltos">
+                </div>
+                <div class="item-data">
+                    <h3>Resistores 220&#8486;</h3>
+                    <p class="qty-label">Quantidade disponível: 09</p>
+                    <p class="info-label">Categoria: Componentes</p>
+                    <p class="info-label">Cor: cores</p>
+                    <button class="btn-edit-item">Alterar</button>
+                </div>
+            </div>
+
+        </div>
     </main>
 
-    <script>
-        function changeTab(element) {
-            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-            element.classList.add('active');
-        }
-    </script>
-</body>
+    </body>
 </html>
