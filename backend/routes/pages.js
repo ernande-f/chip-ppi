@@ -9,8 +9,26 @@ const __dirname = path.dirname(__filename);
 const router = express.Router();
 
 // Rota principal (Cai no login / index.html)
-router.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '../../frontend/index.html'));
+router.get('/', async (req, res) => {
+
+    try {
+        const result = await sql`SELECT nivel_acesso FROM usuario where id = user.id`;
+        
+        if (result[0].nivel_acesso === 'tecnico' || result[0].nivel_acesso === 'adm') {
+            res.sendFile(path.join(__dirname, '../../frontend/index-tec.html'));
+        }
+        else {
+            res.sendFile(path.join(__dirname, '../../frontend/index.html'));
+        }
+    }
+    catch (error) {
+        console.error("Erro ao acessar o banco")
+    }
+
+    // TODO: implementar redirecionamento pra login
+
+
+    
 });
 
 router.get('/login', (req, res) => {

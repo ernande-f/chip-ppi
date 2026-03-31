@@ -7,12 +7,18 @@ import rateLimit from 'express-rate-limit';
 
 import apiRoutes from './routes/api.js';
 import pageRoutes from './routes/pages.js';
+import jwt from 'jsonwebtoken';
+import cookieParser from 'cookie-parser';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// --- Auth and Cookies ---
+const cookieParser = require("cookieParser");
+const jwt = require("jsonwebtoken");
 
 // --- Segurança: Helmet (headers HTTP seguros + HSTS) ---
 app.use(helmet());
@@ -59,8 +65,9 @@ const authLimiter = rateLimit({
 app.use('/api/login', authLimiter);
 app.use('/api/register', authLimiter);
 
-// Middleware para processar JSON (útil para APIs)
+// Middleware para processar JSON e Cookies
 app.use(express.json());
+app.use(cookieParser());
 
 // Serve os arquivos estáticos da pasta "frontend"
 app.use(express.static(path.join(__dirname, '../frontend')));
