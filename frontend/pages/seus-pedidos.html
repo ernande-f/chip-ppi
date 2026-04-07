@@ -182,33 +182,65 @@
     </div>
 </div>
 
-        <section class="history-section">
-            <h2 class="section-title-black">Histórico de pedidos</h2>
-            
-            <div class="history-tabs">
-                <button class="tab active">Pendente</button>
-                <button class="tab">Aceito</button>
-                <button class="tab">Negado</button>
-            </div>
+<section class="history-section">
+    <h2 class="section-title-black">Histórico de pedidos</h2>
+    
+    <input type="radio" name="tabs" id="tab-pendente" checked style="display:none;">
+    <input type="radio" name="tabs" id="tab-aceito" style="display:none;">
+    <input type="radio" name="tabs" id="tab-negado" style="display:none;">
 
-            <div class="history-container">
-                <div class="card history-card">
-                    <div class="history-card-header">
-                        <strong>Pedido #456</strong>
-                        <span class="history-date">Data do pedido: 01/01/2025</span>
-                    </div>
-                    <p class="history-description">
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-                    </p>
+    <div class="history-tabs">
+        <label for="tab-pendente" class="tab">Pendente</label>
+        <label for="tab-aceito" class="tab">Aceito</label>
+        <label for="tab-negado" class="tab">Negado</label>
+    </div>
+
+    <div class="history-container">
+        
+        <div class="tab-content content-pendente">
+            <div class="card history-card">
+                <div class="history-card-header">
+                    <strong>Pedido #456</strong>
+                    <span class="history-date">Data: 01/01/2025</span>
                 </div>
-                <p class="no-more-text">Não há mais pedidos pendentes.</p>
+                <p class="history-description">
+                    Solicitação de 2 Protoboards e 1 kit de Jumpers pendente de aprovação.
+                </p>
             </div>
+            <p class="no-more-text">Não há mais pedidos pendentes.</p>
+        </div>
 
-            <div class="history-footer-actions">
-                <button class="action-btn">Estender prazo</button>
-                <button class="action-btn">Pedir novamente</button>
+        <div class="tab-content content-aceito">
+            <div class="card history-card">
+                <div class="history-card-header">
+                    <strong>Pedido #450</strong>
+                    <span class="history-date">Data: 20/12/2024</span>
+                </div>
+                <p class="history-description">
+                    Seu pedido de Arduino Uno foi aceito! Retire no laboratório.
+                </p>
             </div>
-        </section>
+        </div>
+
+        <div class="tab-content content-negado">
+            <div class="card history-card">
+                <div class="history-card-header">
+                    <strong>Pedido #440</strong>
+                    <span class="history-date">Data: 10/12/2024</span>
+                </div>
+                <p class="history-description">
+                    Pedido negado: Item indisponível no estoque no momento.
+                </p>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="history-footer-actions">
+        <button class="action-btn">Estender prazo</button>
+        <button class="action-btn">Pedir novamente</button>
+    </div>
+</section>
     </main>
 
     <footer class="main-footer">
