@@ -507,37 +507,109 @@ button.ongoing-card:hover {
 }
 
 /* --- SEÇÃO: HISTÓRICO --- */
+/* --- LÓGICA DAS ABAS (SOMENTE CSS) --- */
+
+/* Esconde todos os conteúdos por padrão */
+.tab-content {
+    display: none;
+}
+
+/* Mostra o conteúdo específico baseado no rádio marcado */
+#tab-pendente:checked ~ .history-container .content-pendente { display: block; }
+#tab-aceito:checked ~ .history-container .content-aceito { display: block; }
+#tab-negado:checked ~ .history-container .content-negado { display: block; }
+
+/* Estilo visual da aba selecionada (Troca de cor e borda) */
+#tab-pendente:checked ~ .history-tabs label[for="tab-pendente"],
+#tab-aceito:checked ~ .history-tabs label[for="tab-aceito"],
+#tab-negado:checked ~ .history-tabs label[for="tab-negado"] {
+    background: rgba(0,0,0,0.1);
+    border-bottom: 4px solid #333;
+}
+
+/* --- ESTILOS VISUAIS --- */
+
+/* Container das abas */
 .history-tabs { 
     background: var(--primary-orange); 
     border-radius: 10px; 
     display: flex; 
-    margin-bottom: 40px; 
+    margin-bottom: 40px;
+    overflow: hidden; 
+    border: none !important; /* Força a retirada de qualquer borda do container */
 }
 
+/* Estilo das abas */
 .tab { 
     flex: 1; 
-    padding: 15px; 
-    border: none; 
-    background: none; 
-    font-weight: 700; 
-    cursor: pointer; 
+    padding: 18px; 
+    text-align: center;
+    font-weight: 400; /* Escrita normal por padrão */
+    color: #333;
+    cursor: pointer;
+    transition: 0.2s;
+    
+    /* REMOÇÃO TOTAL DE BORDAS E LINHAS */
+    border: none !important; 
+    border-bottom: 0 !important; 
+    outline: none;
+    background: transparent;
 }
 
-.tab.active { background: rgba(0,0,0,0.08); border-bottom: 4px solid #333; }
+/* Efeito de hover (opcional, para feedback visual) */
+.tab:hover {
+    background: rgba(0,0,0,0.05);
+}
+
+/* QUANDO SELECIONADO: Apenas Negrito */
+/* Se estiver usando a classe .active via JS */
+.tab.active {
+    font-weight: 700 !important; 
+    background: rgba(0,0,0,0.08); /* Fundo sutil para indicar seleção */
+    border: none !important; 
+}
+
+/* Se estiver usando a técnica do Radio Button (HTML puro) */
+#tab-pendente:checked ~ .history-tabs label[for="tab-pendente"],
+#tab-aceito:checked ~ .history-tabs label[for="tab-aceito"],
+#tab-negado:checked ~ .history-tabs label[for="tab-negado"] {
+    font-weight: 700 !important;
+    background: rgba(0,0,0,0.08);
+    border: none !important;
+}
 
 .history-card { 
     max-width: 450px; 
     background: white; 
     border-radius: 20px; 
-    padding: 35px; 
-    box-shadow: var(--shadow); 
-    margin-bottom: 20px; 
+    padding: 30px; 
+    /* 1. Removida a sombra do card */
+    box-shadow: none; 
+    margin-bottom: 20px;
+    border: 1px solid #eee;
+}
+
+/* O restante do código permanece igual */
+.history-card-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+}
+
+.history-date {
+    font-size: 0.85rem;
+    color: #888;
+}
+
+.no-more-text {
+    color: #999;
+    font-style: italic;
 }
 
 .history-footer-actions { 
     display: flex; 
     justify-content: center; 
-    gap: 80px; 
+    gap: 40px; 
     margin-top: 50px; 
     border-top: 1px solid #eee; 
     padding-top: 40px; 
@@ -547,11 +619,16 @@ button.ongoing-card:hover {
     background: var(--primary-orange); 
     border: none; 
     border-radius: 12px; 
-    padding: 18px 80px; 
+    padding: 15px 30px; 
     font-weight: 700; 
-    font-size: 1.3rem; 
+    font-size: 1.1rem; 
     cursor: pointer; 
-    min-width: 350px; /* Botões grandes como no design */
+    min-width: 250px;
+    transition: transform 0.2s;
+}
+
+.action-btn:hover {
+    transform: translateY(-2px);
 }
 
 /* --- FOOTER --- */
