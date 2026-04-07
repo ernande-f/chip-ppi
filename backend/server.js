@@ -19,6 +19,7 @@ const PORT = process.env.PORT || 3000;
 // --- Auth and Cookies ---
 const cookieParser = require("cookieParser");
 const jwt = require("jsonwebtoken");
+app.use(cookieParser());
 
 // --- Segurança: Helmet (headers HTTP seguros + HSTS) ---
 app.use(helmet());
@@ -78,4 +79,13 @@ app.use('/', pageRoutes);
 
 app.listen(PORT, () => {
     console.log(`Servidor rodando em: http://localhost:${PORT}`);
+});
+
+app.get('/logout', (req, res) => {
+    res.clearCookie('authcookie', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'Strict'
+    });
+    res.json({ success: true, message: 'Logout bem-sucedido' });
 });

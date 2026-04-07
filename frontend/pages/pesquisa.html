@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CHIP - Marketplace</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary-orange: #f2a94a;
+            --bg-light: #f9f9f9;
+            --text-brown: #5d4037;
+            --card-bg: #f4f4f4;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: white;
+            margin: 0;
+            color: var(--text-brown);
+        }
+
+        /* --- Header / Navbar --- */
+        .navbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 50px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .logo {
+            background-image: url('../assets/logo.png');
+            background-size: cover;
+            background-position: center;
+            color: transparent;
+            padding: 8px 25px;
+            font-weight: bold;
+            font-size: 1.2rem;
+            border-radius: 6px;
+            /* Efeito de corte na logo */
+            clip-path: polygon(0% 0%, 85% 0%, 100% 35%, 100% 100%, 0% 100%);
+        }
+
+        .search-container {
+            position: relative;
+            width: 35%;
+            margin-left: -45%;
+        }
+
+        .search-bar {
+            width: 100%;
+            padding: 10px 15px 10px 40px;
+            border-radius: 20px;
+            border: 1px solid #ddd;
+            background-color: var(--bg-light);
+            outline: none;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #aaa;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-brown);
+            font-weight: 600;
+        }
+
+        .icon-btn {
+            font-size: 1.3rem;
+            cursor: pointer;
+        }
+
+        .user-avatar {
+            background-color: #d1d1d1;
+            color: white;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        /* --- Conteúdo --- */
+        .container {
+            padding: 40px 8%;
+        }
+
+        .results-count {
+            font-size: 1.1rem;
+            margin-bottom: 25px;
+            font-weight: bold;
+        }
+
+        /* --- Grid e Cards --- */
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+            gap: 25px;
+        }
+
+        .product-card {
+            display: flex;
+            background-color: var(--card-bg);
+            border-radius: 15px;
+            overflow: hidden;
+            height: 190px;
+        }
+
+        .product-image-box {
+            width: 45%;
+            position: relative;
+            background-color: #ddd; /* fallback */
+        }
+
+        .product-image-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            /* Corte diagonal na imagem */
+            clip-path: polygon(0 0, 100% 0, 80% 100%, 0% 100%);
+        }
+
+        .product-info {
+            padding: 20px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .product-info h3 {
+            margin: 0;
+            color: var(--primary-orange);
+            font-size: 1.4rem;
+        }
+
+        .stock-text {
+            font-size: 0.8rem;
+            margin: 5px 0 15px 0;
+            color: #333;
+        }
+
+        .detail-text {
+            font-size: 0.95rem;
+            color: #777;
+            margin: 2px 0;
+        }
+
+        .add-btn {
+            margin-top: 15px;
+            background-color: var(--primary-orange);
+            border: none;
+            color: white;
+            padding: 8px;
+            border-radius: 8px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            line-height: 1;
+        }
+
+        .add-btn:hover {
+            filter: brightness(0.9);
+        }
+
+        /* Responsividade para Telas Pequenas */
+        @media (max-width: 600px) {
+            .product-grid { grid-template-columns: 1fr; }
+            .navbar { padding: 15px; }
+            .search-container { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="navbar">
+        <div class="logo">CHIP</div>
+        
+        <div class="search-container">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" class="search-bar" placeholder="">
+        </div>
+
+        <div class="nav-links">
+            <a href="#">Pedidos</a>
+            <i class="fas fa-bell icon-btn"></i>
+            <div class="user-avatar">
+                <i class="fas fa-user"></i>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="results-count">03 resultados encontrados</div>
+
+        <div class="product-grid">
+            
+            <div class="product-card">
+                <div class="product-image-box">
+                    <img src="../assets/resistor.png" alt="Arduino">
+                </div>
+                <div class="product-info">
+                    <h3>Resistor</h3>
+                    <p class="stock-text">Quantidade disponível: <strong>09</strong></p>
+                    <p class="detail-text">Categoria: categoria</p>
+                    <p class="detail-text">Cor: cores</p>
+                    <button class="add-btn">+</button>
+                </div>
+            </div>
+
+            <div class="product-card">
+                <div class="product-image-box">
+                    <img src="../assets/resistor.png" alt="Arduino">
+                </div>
+                <div class="product-info">
+                    <h3>Resistor</h3>
+                    <p class="stock-text">Quantidade disponível: 09</p>
+                    <p class="detail-text">Categoria: categoria</p>
+                    <p class="detail-text">Cor: cores</p>
+                    <button class="add-btn">+</button>
+                </div>
+            </div>
+
+            <div class="product-card">
+                <div class="product-image-box">
+                    <img src="../assets/resistor.png" alt="Arduino">
+                </div>
+                <div class="product-info">
+                    <h3>Resistor</h3>
+                    <p class="stock-text">Quantidade disponível: 09</p>
+                    <p class="detail-text">Categoria: categoria</p>
+                    <p class="detail-text">Cor: cores</p>
+                    <button class="add-btn">+</button>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+</body>
+</html>
