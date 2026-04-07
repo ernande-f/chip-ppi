@@ -6,46 +6,47 @@
     <title>Início Técnico - CHIP</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../css/css-base.css">
     <link rel="stylesheet" href="../css/inicio-tec.css">
 </head>
 <body>
 
     <header class="navbar">
         <div class="logo-container">
-            <a href="paginainicio-tec.html">
-                <img src="../assets/logo.png" alt="Logo CHIP" class="logo-img">
-            </a>
+            <img src="../assets/logo.png" alt="Logo CHIP" class="logo-img">
         </div>
+
         <div class="search-bar">
             <input type="text" placeholder="Pesquisar por cor, tipo, nome...">
         </div>
+
         <div class="nav-links">
-            <a href="pedidos.html" class="nav-link-item">
+            <a href="pedidos-tec.html" class="nav-link-item">
                 <span class="nav-text-bold">Pedidos</span>
             </a>
+            
             <div class="icon-notification">
                 <img src="../assets/sino.png" alt="Notificações" class="sino-img">
             </div>
-            <div class="profile-pic" style="cursor: default;">
-                <svg viewBox="0 0 24 24" fill="#e0e0e0"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-            </div>
+
+            <a href="perfil-tec.html" class="nav-link-item">
+                <div class="profile-pic">
+                    <svg viewBox="0 0 24 24" fill="#e0e0e0">
+                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                    </svg>
+                </div>
+            </a>
         </div>
     </header>
 
-    <nav class="tech-nav-bar">
-        <button class="nav-btn active" onclick="changeTab(this)">Cadastrar novo item</button>
-        <button class="nav-btn" onclick="changeTab(this)">Solicitações</button>
-        <button class="nav-btn" onclick="changeTab(this)">Pedidos para separação</button>
-        <button class="nav-btn" onclick="changeTab(this)">Devoluções</button>
-    </nav>
-
     <main class="content-container">
         <section class="inventory-header">
-            <div class="title-flex-group">
+            <div class="header-top-row">
                 <h1 class="main-title">Itens em estoque</h1>
-                <p class="location-text-right">Laboratório de Hardware - Campus Frederico Westphalen</p>
+                <a href="cadastro-item.html" class="btn-register-new">
+                    <i class="fas fa-plus"></i> Cadastrar novo item
+                </a>
             </div>
+            <p class="location-text">Laboratório de Hardware - Campus Frederico Westphalen</p>
             <hr class="header-line">
         </section>
 
@@ -53,84 +54,177 @@
             
             <div class="item-card">
                 <div class="item-visual">
-                    <img src="../assets/item1_resistores.png" alt="Resistores em placa">
-                </div>
-                <div class="item-data">
-                    <h3>Resistores (Variados)</h3>
-                    <p class="qty-label">Quantidade disponível: 09</p>
-                    <p class="info-label">Categoria: Componentes</p>
-                    <p class="info-label">Cor: cores</p>
-                    <button class="btn-edit-item">Alterar</button>
-                </div>
-            </div>
-
-            <div class="item-card">
-                <div class="item-visual">
-                    <img src="../assets/item2_fita.png" alt="Fita de resistores">
-                </div>
-                <div class="item-data">
-                    <h3>Resistores 10k&#8486;</h3>
-                    <p class="qty-label">Quantidade disponível: 09</p>
-                    <p class="info-label">Categoria: Componentes</p>
-                    <p class="info-label">Cor: cores</p>
-                    <button class="btn-edit-item">Alterar</button>
-                </div>
-            </div>
-
-            <div class="item-card">
-                <div class="item-visual">
-                    <img src="../assets/item3_arduino_proto.png" alt="Arduino com protoboard">
-                </div>
-                <div class="item-data">
-                    <h3>Kit Protótipo Uno</h3>
-                    <p class="qty-label">Quantidade disponível: 09</p>
-                    <p class="info-label">Categoria: Placas</p>
-                    <p class="info-label">Cor: cores</p>
-                    <button class="btn-edit-item">Alterar</button>
-                </div>
-            </div>
-
-            <div class="item-card">
-                <div class="item-visual">
-                    <img src="../assets/item4_placa_proto.png" alt="Arduino Uno">
+                    <img src="../assets/arduino.png" alt="Arduino">
                 </div>
                 <div class="item-data">
                     <h3>Arduino Uno R3</h3>
                     <p class="qty-label">Quantidade disponível: 09</p>
                     <p class="info-label">Categoria: Placas</p>
-                    <p class="info-label">Cor: cores</p>
-                    <button class="btn-edit-item">Alterar</button>
+                    <p class="info-label">Cor: Azul</p>
+                    <button class="btn-edit-item" onclick="openAlterarModal()">Alterar</button>
                 </div>
             </div>
 
             <div class="item-card">
                 <div class="item-visual">
-                    <img src="../assets/item5_outra_placa.png" alt="Outra placa eletrônica">
+                    <img src="../assets/electronic_components_1_1774913851066.png" alt="Resistores">
                 </div>
                 <div class="item-data">
-                    <h3>Módulo Relé</h3>
-                    <p class="qty-label">Quantidade disponível: 09</p>
-                    <p class="info-label">Categoria: Módulos</p>
-                    <p class="info-label">Cor: cores</p>
-                    <button class="btn-edit-item">Alterar</button>
-                </div>
-            </div>
-
-            <div class="item-card">
-                <div class="item-visual">
-                    <img src="../assets/item6_resistores_soltos.png" alt="Resistores soltos">
-                </div>
-                <div class="item-data">
-                    <h3>Resistores 220&#8486;</h3>
-                    <p class="qty-label">Quantidade disponível: 09</p>
+                    <h3>Resistores (Variados)</h3>
+                    <p class="qty-label">Quantidade disponível: 15</p>
                     <p class="info-label">Categoria: Componentes</p>
-                    <p class="info-label">Cor: cores</p>
-                    <button class="btn-edit-item">Alterar</button>
+                    <p class="info-label">Cor: Colorido</p>
+                    <button class="btn-edit-item" onclick="openAlterarModal()">Alterar</button>
                 </div>
             </div>
 
         </div>
     </main>
 
-    </body>
+    <div id="modalAlterar" class="modal-overlay">
+        <div class="modal-content modal-scrollable">
+            <button class="modal-close-x" onclick="closeAlterarModal()">&times;</button>
+            
+            <div class="modal-header-info">
+                <h2>Alterar item</h2>
+            </div>
+            <hr class="modal-divider">
+
+            <div class="modal-body-alterar">
+                <div class="form-group-full">
+                    <label>Nome:</label>
+                    <input type="text" value="Arduino Uno R3" class="input-light">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Quantidade em estoque:</label>
+                        <div class="input-with-unit">
+                            <input type="text" value="15">
+                            <span class="unit-text">un.</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Categoria:</label>
+                        <input type="text" value="Placas" class="input-light">
+                    </div>
+                </div>
+
+                <div class="form-group-full">
+                    <label>Cor:</label>
+                    <input type="text" value="Azul" class="input-light">
+                </div>
+
+                <div class="image-edit-container">
+                    <div class="image-wrapper">
+                        <img src="../assets/arduino.png" alt="Preview" class="img-preview" id="itemImagePreview">
+                        <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="previewImage(this)">
+                        <button class="btn-edit-photo" onclick="triggerFileInput()" title="Trocar imagem">
+                            <i class="fas fa-pencil-alt"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="archive-section">
+                    <label class="checkbox-container">
+                        <input type="checkbox">
+                        <span class="checkmark"></span>
+                        <span class="archive-label"><strong>Arquivar item</strong></span>
+                    </label>
+                    <p class="helper-text">*Ao arquivar um item, ele não ficará disponível em estoque.</p>
+                </div>
+
+                <div class="modal-footer-btns" id="actionButtons">
+                    <button class="btn-concluir" onclick="closeAlterarModal()">Concluir</button>
+                    <button class="btn-excluir" onclick="showInlineConfirm()">Excluir item</button>
+                </div>
+
+                <div class="inline-confirm-box" id="confirmBox" style="display: none;">
+                    <p class="confirm-text"><i class="fas fa-exclamation-circle"></i> Tem certeza que deseja excluir permanentemente?</p>
+                    <div class="inline-confirm-btns">
+                        <button class="btn-cancel-inline" onclick="hideInlineConfirm()">Cancelar</button>
+                        <button class="btn-delete-inline" onclick="executeDelete()">Sim, excluir</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="main-footer">
+        <div class="footer-container">
+            <div class="footer-col-icon">
+                <img src="../assets/processador.png" alt="Processador" class="processor-img">
+            </div>
+            <div class="footer-col">
+                <p><strong>CHIP - Controle de Hardware e Itens de Projeto</strong></p>
+                <p>Prática Profissional Integrada - 2025/26</p>
+                <p>Instituto Federal Farroupilha - Campus Frederico Westphalen</p>
+            </div>
+            <div class="footer-col">
+                <p>Desenvolvedores:</p>
+                <p>Ariany Maísa Barros Kovalckoski</p>
+                <p>Ernande Facco</p>
+                <p>Luiza de Marchi Brombilla</p>
+                <p>Nicole Freddi</p>
+            </div>
+            <div class="footer-col">
+                <p>Curso técnico de informática integrado ao ensino médio</p>
+                <img src="../assets/logo_iffar.png" alt="Logo IFF" class="iff-logo">
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const mAlterar = document.getElementById('modalAlterar');
+        const actionButtons = document.getElementById('actionButtons');
+        const confirmBox = document.getElementById('confirmBox');
+
+        // Abre modal e trava scroll do fundo
+        function openAlterarModal() { 
+            mAlterar.style.display = 'flex'; 
+            document.body.style.overflow = 'hidden'; 
+        }
+
+        // Fecha modal e reseta botões
+        function closeAlterarModal() { 
+            mAlterar.style.display = 'none'; 
+            document.body.style.overflow = 'auto'; 
+            hideInlineConfirm(); 
+        }
+
+        // Troca os botões normais pelos de confirmação
+        function showInlineConfirm() {
+            actionButtons.style.display = 'none';
+            confirmBox.style.display = 'flex';
+        }
+
+        function hideInlineConfirm() {
+            confirmBox.style.display = 'none';
+            actionButtons.style.display = 'flex';
+        }
+
+        function executeDelete() {
+            alert("O item foi removido do sistema.");
+            closeAlterarModal();
+        }
+
+        // Seleção de foto
+        function triggerFileInput() { document.getElementById('fileInput').click(); }
+
+        function previewImage(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) { 
+                    document.getElementById('itemImagePreview').src = e.target.result; 
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        // Fechar ao clicar fora
+        window.onclick = function(event) {
+            if (event.target == mAlterar) closeAlterarModal();
+        }
+    </script>
+</body>
 </html>
