@@ -74,18 +74,83 @@ body {
 }
 .btn-edit-item:hover { filter: brightness(0.9); }
 
-/* --- MODAL DESIGN --- */
+/* --- MODAL DESIGN RECONSTRUÍDO --- */
 .modal-overlay {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 1000;
+    position: fixed; 
+    top: 0; left: 0; 
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.6); 
+    display: none; 
+    align-items: center; 
+    justify-content: center; 
+    z-index: 1000;
 }
+
 .modal-content {
-    background: white; width: 90%; max-width: 600px; border-radius: 20px; padding: 30px;
-    position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    background: white; 
+    width: 90%; 
+    max-width: 600px; 
+    max-height: 85vh; 
+    border-radius: 20px; 
+    position: relative; 
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    display: flex; /* Essencial para a caixa aparecer e crescer certo */
+    flex-direction: column;
+    overflow: hidden; 
+    padding: 0; 
+    box-sizing: border-box;
 }
-.modal-scrollable { max-height: 85vh; overflow-y: auto; }
-.modal-scrollable::-webkit-scrollbar { width: 6px; }
-.modal-scrollable::-webkit-scrollbar-thumb { background: #ddd; border-radius: 10px; }
+
+/* Área interna que permite o scroll */
+.modal-scrollable { 
+    overflow-y: auto; 
+    overflow-x: hidden;
+    padding: 30px; /* O preenchimento volta para cá */
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* --- ESTILO DA BARRA (TIRO CERTEIRO SEM SETINHAS) --- */
+.modal-scrollable::-webkit-scrollbar { 
+    width: 8px; 
+}
+
+/* Remove as flechas de vez */
+.modal-scrollable::-webkit-scrollbar-button {
+    display: none !important;
+    height: 0 !important;
+}
+
+.modal-scrollable::-webkit-scrollbar-track { 
+    background: transparent; 
+    margin: 15px 0;
+}
+
+.modal-scrollable::-webkit-scrollbar-thumb { 
+    background: #d1d1d1; 
+    border-radius: 10px;
+    border: 2px solid #fff; 
+}
+
+.modal-scrollable::-webkit-scrollbar-thumb:hover { 
+    background: var(--primary-orange); 
+}
+
+/* Botão de fechar (X) - Ajustado para a nova estrutura */
+.modal-close-x { 
+    position: absolute; 
+    top: 15px; 
+    right: 20px; 
+    background: none; 
+    border: none; 
+    font-size: 30px; 
+    color: var(--primary-orange); 
+    cursor: pointer; 
+    z-index: 1010; /* Fica acima do scroll */
+}
+
+.modal-header-info h2 { margin: 0; font-size: 1.8rem; font-weight: 700; }
+.modal-divider { border: 0; border-top: 1px solid #eee; margin: 15px 0; }
 
 .modal-close-x { position: absolute; top: 20px; right: 25px; background: none; border: none; font-size: 30px; color: var(--primary-orange); cursor: pointer; }
 .modal-header-info h2 { margin: 0; font-size: 1.8rem; font-weight: 700; }

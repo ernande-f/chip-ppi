@@ -13,26 +13,6 @@
         <div class="logo-container">
             <img src="../assets/logo.png" alt="Logo CHIP" class="logo-img">
         </div>
-
-        <div class="search-bar">
-            <input type="text" placeholder="Pesquisar por cor, tipo, nome...">
-        </div>
-
-        <div class="nav-links">
-            <a href="seus-pedidos.html" class="nav-link-item">
-                <span class="nav-text-bold">Pedidos</span>
-            </a>
-            
-            <div class="icon-notification">
-                <img src="../assets/sino.png" alt="Notificações" class="sino-img">
-            </div>
-
-            <a href="perfil.html" class="nav-link-item">
-                <div class="profile-pic">
-                    <svg viewBox="0 0 24 24" fill="#e0e0e0"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-                </div>
-            </a>
-        </div>
     </header>
 
     <main class="container">
@@ -40,25 +20,28 @@
             <h1 class="main-title">Cadastro de novo item</h1>
             <hr class="divider">
 
-            <form class="form-grid">
+            <form class="form-grid" id="formCadastro" onsubmit="return false;">
                 <div class="form-group full-width">
                     <label for="nome">Nome:</label>
-                    <input type="text" id="nome" name="nome">
+                    <input type="text" id="nome" name="nome" required>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
                         <label for="estoque">Quantidade em estoque:</label>
-                        <input type="number" id="estoque" name="estoque">
+                        <input type="number" id="estoque" name="estoque" placeholder="Ex: 10" required>
                     </div>
                     <div class="form-group">
-                        <label for="categoria">Categoria:</label>
-                        <div class="select-container">
-                            <select id="categoria" name="categoria">
-                                <option value="" disabled selected></option>
-                                <option value="hardware">Hardware</option>
-                                <option value="periferico">Periférico</option>
-                            </select>
+                        <label for="categoria-input">Categoria:</label>
+                        <div class="category-wrapper">
+                            <input type="text" id="categoria-input" list="categorias-antigas" placeholder="Selecione ou digite...">
+                            <div id="tag-container" class="tag-wrapper"></div>
+                            <datalist id="categorias-antigas">
+                                <option value="Hardware">
+                                <option value="Periférico">
+                                <option value="Componentes">
+                                <option value="Placas">
+                            </datalist>
                         </div>
                     </div>
                 </div>
@@ -66,11 +49,11 @@
                 <div class="form-row align-end">
                     <div class="form-group">
                         <label for="cor">Cor:</label>
-                        <input type="text" id="cor" name="cor">
+                        <input type="text" id="cor" name="cor" required>
                     </div>
                     <div class="form-group">
-                        <label class="upload-label" for="foto">Upload foto</label>
-                        <input type="file" id="foto" name="foto" hidden>
+                        <label class="upload-label" for="foto" id="label-foto">Upload foto</label>
+                        <input type="file" id="foto" name="foto" hidden onchange="updateUploadLabel(this)" required>
                     </div>
                 </div>
 
@@ -78,7 +61,10 @@
                     *Ao concluir o cadastro, esse item ficará disponível no estoque do sistema, para todos os usuários.
                 </p>
 
-                <button type="submit" class="btn-submit">Concluir cadastro</button>
+                <div class="form-actions">
+                    <button type="submit" class="btn-submit" id="btn-salvar" disabled>Concluir cadastro</button>
+                    <button type="button" class="btn-cancel" onclick="window.history.back()">Cancelar</button>
+                </div>
             </form>
         </section>
     </main>
@@ -110,5 +96,92 @@
         </div>
     </footer>
 
+    <script>
+        const form = document.getElementById('formCadastro');
+        const categoryInput = document.getElementById('categoria-input');
+        const tagContainer = document.getElementById('tag-container');
+        const datalist = document.getElementById('categorias-antigas');
+        const btnSalvar = document.getElementById('btn-salvar');
+        const fileInput = document.getElementById('foto');
+
+        // Função que verifica se tudo está preenchido
+        function validarFormulario() {
+            const nome = document.getElementById('nome').value.trim();
+            const estoque = document.getElementById('estoque').value.trim();
+            const cor = document.getElementById('cor').value.trim();
+            const tags = tagContainer.querySelectorAll('.tag').length;
+            const foto = fileInput.files.length > 0;
+
+            // Habilita o botão apenas se todos os critérios forem atendidos
+            if (nome !== "" && estoque !== "" && cor !== "" && tags > 0 && foto) {
+                btnSalvar.disabled = false;
+            } else {
+                btnSalvar.disabled = true;
+            }
+        }
+
+        // Monitorar mudanças nos campos de texto e números
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('input', validarFormulario);
+        });
+
+        function processInput() {
+            const value = categoryInput.value.trim();
+            if (value !== "") {
+                createTag(value);
+                updateDatalist(value);
+                categoryInput.value = ""; 
+                validarFormulario(); 
+            }
+        }
+
+        categoryInput.addEventListener('blur', processInput);
+        categoryInput.addEventListener('change', processInput);
+        
+        categoryInput.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                processInput();
+            }
+        });
+
+        function createTag(label) {
+            const existingTags = Array.from(tagContainer.querySelectorAll('.tag span')).map(s => s.textContent);
+            if(existingTags.includes(label)) return;
+
+            const div = document.createElement('div');
+            div.className = 'tag';
+            div.innerHTML = `<span>${label}</span><span class="remove-tag">&times;</span>`;
+            
+            div.querySelector('.remove-tag').onclick = function() {
+                div.remove();
+                validarFormulario();
+            };
+
+            tagContainer.appendChild(div);
+            validarFormulario();
+        }
+
+        function updateDatalist(newValue) {
+            const options = Array.from(datalist.options).map(opt => opt.value.toLowerCase());
+            if (!options.includes(newValue.toLowerCase())) {
+                const newOption = document.createElement('option');
+                newOption.value = newValue;
+                datalist.appendChild(newOption);
+            }
+        }
+
+        function updateUploadLabel(input) {
+            const label = document.getElementById('label-foto');
+            if (input.files && input.files[0]) {
+                label.innerText = "Foto: " + input.files[0].name;
+                label.style.backgroundColor = "#d4edda";
+            } else {
+                label.innerText = "Upload foto";
+                label.style.backgroundColor = "";
+            }
+            validarFormulario();
+        }
+    </script>
 </body>
 </html>
