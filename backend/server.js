@@ -17,9 +17,9 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // --- Auth and Cookies ---
-const cookieParser = require("cookieParser");
-const jwt = require("jsonwebtoken");
-app.use(cookieParser());
+// const cookieParser = require("cookieParser");
+// const jwt = require("jsonwebtoken");
+// app.use(cookieParser());
 
 // --- Segurança: Helmet (headers HTTP seguros + HSTS) ---
 app.use(helmet());
