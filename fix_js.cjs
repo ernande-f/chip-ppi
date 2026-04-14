@@ -1,4 +1,5 @@
-document.addEventListener('DOMContentLoaded', function() {
+const fs = require('fs');
+const jsContent = `document.addEventListener('DOMContentLoaded', function() {
     
     // ==========================================
     // 1. LÓGICA DE TROCA DE TELAS (PASSOS 1 E 2)
@@ -67,4 +68,5 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-});
+});`;
+fs.writeFileSync('frontend/js/cadastro.js', jsContent);
