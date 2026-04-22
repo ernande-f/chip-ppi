@@ -14,7 +14,6 @@ body {
     margin: 0;
     background-color: var(--bg-light);
     color: var(--text-dark);
-    padding-top: 90px;
 }
 
 /* --- HEADER --- */
@@ -22,37 +21,30 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 24px;
     padding: 18px 5%;
     background: white;
     border-bottom: 1px solid var(--border-gray);
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    z-index: 1000;
 }
-.logo-img {
-    height: 55px; cursor: pointer; 
-
-}
-
-
+.logo-container a { display: block; text-decoration: none; }
+.logo-img { height: 55px; width: auto; display: block; }
+.search-bar { flex: 1; display: flex; justify-content: center; min-width: 0; }
 .search-bar input {
-    width: 400px; padding: 10px 15px; border: 1px solid #ccc;
+    width: min(100%, 420px); padding: 10px 16px; border: 1px solid #d2d2d2;
     border-radius: 10px; outline: none; background-color: #f9f9f9;
+    transition: border-color 0.2s, box-shadow 0.2s;
 }
-.search-bar {
-    margin-left: -45%;
-}
-.nav-links { display: flex; align-items: center; gap: 30px; }
+.search-bar input:focus { border-color: #e0a33f; box-shadow: 0 0 0 3px rgba(242, 169, 51, 0.12); }
+.nav-links { display: flex; align-items: center; gap: 30px; flex-shrink: 0; }
 .nav-link-item { text-decoration: none; color: inherit; display: flex; align-items: center; }
 .nav-text-bold { font-weight: 700; color: var(--text-brown); font-size: 1.05rem; }
-.sino-img { width: 55px; cursor: pointer; }
+.sino-img { width: 55px; height: auto; cursor: pointer; display: block; }
 
 .profile-pic {
     width: 44px; height: 44px; background: #f0f0f0; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    border: 1px solid #e0e0e0; transition: transform 0.2s;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    overflow: hidden; border: 1px solid #e0e0e0; transition: transform 0.2s;
+    color: #54320f; font-weight: 700;
 }
 .profile-pic:hover { transform: scale(1.05); }
 
@@ -186,4 +178,14 @@ body {
     height: 60px;
     margin-top: 15px;
     display: block;
+}
+
+@media (max-width: 900px) {
+    .search-bar input { width: min(100%, 300px); }
+}
+
+@media (max-width: 720px) {
+    .navbar { flex-wrap: wrap; justify-content: center; }
+    .search-bar { order: 3; width: 100%; justify-content: stretch; }
+    .search-bar input { width: 100%; }
 }

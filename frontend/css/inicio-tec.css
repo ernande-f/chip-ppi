@@ -19,22 +19,28 @@ body {
 /* --- HEADER --- */
 .navbar {
     display: flex; align-items: center; justify-content: space-between;
+    gap: 24px;
     padding: 18px 5%; background: white; border-bottom: 1px solid var(--border-gray);
 }
-.logo-img { height: 55px; }
+.logo-img { height: 55px; width: auto; display: block; }
+.search-bar { flex: 1; display: flex; justify-content: center; min-width: 0; }
 .search-bar input {
-    width: 400px; padding: 10px 15px; border: 1px solid #ccc;
+    width: min(100%, 420px); padding: 10px 16px; border: 1px solid #d2d2d2;
     border-radius: 10px; outline: none; background-color: #f9f9f9;
 }
-.nav-links { display: flex; align-items: center; gap: 30px; }
+.search-bar input:focus { border-color: #e0a33f; box-shadow: 0 0 0 3px rgba(242, 169, 51, 0.12); }
+.nav-links { display: flex; align-items: center; gap: 30px; flex-shrink: 0; }
 .nav-link-item { text-decoration: none; color: inherit; display: flex; align-items: center; }
 .nav-text-bold { font-weight: 700; color: var(--text-brown); font-size: 1.05rem; }
-.sino-img { width: 55px; cursor: pointer; }
+.sino-img { width: 55px; height: auto; cursor: pointer; display: block; }
 .profile-pic {
     width: 44px; height: 44px; background: #f0f0f0; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
     border: 1px solid #e0e0e0; transition: 0.2s; overflow: hidden;
+    color: #54320f; font-weight: 700;
 }
+
+.profile-pic:hover { transform: scale(1.05); }
 
 /* --- CONTEÚDO --- */
 .content-container { padding: 40px 5%; max-width: 1300px; margin: 0 auto; }
@@ -133,3 +139,13 @@ body {
 .processor-img { width: 100%; }
 .footer-col { flex: 1; color: var(--text-gray-dark); font-size: 0.9rem; line-height: 1.6; }
 .iff-logo { height: 60px; margin-top: 15px; }
+
+@media (max-width: 900px) {
+    .search-bar input { width: min(100%, 300px); }
+}
+
+@media (max-width: 720px) {
+    .navbar { flex-wrap: wrap; justify-content: center; }
+    .search-bar { order: 3; width: 100%; justify-content: stretch; }
+    .search-bar input { width: 100%; }
+}

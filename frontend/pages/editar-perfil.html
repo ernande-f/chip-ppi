@@ -10,30 +10,29 @@
     <link rel="stylesheet" href="../css/editar-perfil.css">
 </head>
 <body>
-
     <header class="navbar">
         <div class="logo-container">
-            <a href="pagina-inicial.html">
+            <a href="/">
                 <img src="../assets/logo.png" alt="Logo CHIP" class="logo-img">
             </a>
         </div>
 
         <div class="search-bar">
-            <input type="text" placeholder="Pesquisar por cor, tipo, nome...">
+            <input type="text" placeholder="Pesquisar por cor, tipo, nome..." readonly>
         </div>
 
         <div class="nav-links">
-            <a href="seus-pedidos.html" class="nav-link-item">
+            <a href="/pedidos" class="nav-link-item">
                 <span class="nav-text-bold">Seus pedidos</span>
             </a>
-            
+
             <div class="icon-notification">
                 <img src="../assets/sino.png" alt="Notificações" class="sino-img">
             </div>
 
-            <a href="perfil.html" class="nav-link-item">
+            <a href="/perfil" class="nav-link-item">
                 <div class="profile-pic">
-                    <svg viewBox="0 0 24 24" fill="#e0e0e0"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                    <span id="headerAvatar">CH</span>
                 </div>
             </a>
         </div>
@@ -48,7 +47,7 @@
                 <div class="photo-column">
                     <div class="profile-avatar-wrapper">
                         <div class="profile-avatar-circle" id="avatar-container">
-                            <i class="fa-solid fa-user" id="avatar-icon"></i>
+                            <span id="profileAvatar">CH</span>
                         </div>
                         <input type="file" id="file-input" style="display: none;" accept="image/*">
                         <button type="button" class="edit-photo-badge" onclick="document.getElementById('file-input').click()">
@@ -59,34 +58,35 @@
 
                 <div class="form-column">
                     <div class="form-header">
-                        <span class="role-badge">Estudante</span>
+                        <span class="role-badge" id="profileRole">Usuario</span>
+                        <button type="button" class="logout-inline-btn" id="logoutTrigger">Sair</button>
                     </div>
 
-                    <form class="profile-form" action="perfil.html">
+                    <form class="profile-form" id="profileForm">
                         <div class="form-group">
-                            <label>Nome:</label>
-                            <input type="text" value="Maria da Silva">
+                            <label for="profileNameInput">Nome:</label>
+                            <input type="text" id="profileNameInput" autocomplete="name" required>
                         </div>
                         <div class="form-group">
                             <label>Senha:</label>
                             <div class="input-with-button">
                                 <input type="password" value="********" readonly tabindex="-1" class="readonly-input">
-                                <button type="button" class="redefine-btn" onclick="toggleModal('modal-redefinir', true)">Redefinir senha</button>
+                                <button type="button" class="redefine-btn" id="openPasswordModal">Redefinir senha</button>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label>*Email:</label>
-                            <input type="email" value="maria.99807@aluno.iffar.edu.br" readonly tabindex="-1" class="readonly-input">
+                            <label for="profileEmailInput">*Email:</label>
+                            <input type="email" id="profileEmailInput" readonly tabindex="-1" class="readonly-input">
                         </div>
                         <div class="form-group">
-                            <label>*CPF:</label>
-                            <input type="text" value="111.111.111-11" readonly tabindex="-1" class="readonly-input">
+                            <label for="profileCpfInput">*CPF:</label>
+                            <input type="text" id="profileCpfInput" readonly tabindex="-1" class="readonly-input">
                         </div>
                         <div class="form-buttons">
-                            <button type="submit" class="btn-save">Salvar alterações</button>
-                            <button type="button" class="btn-cancel" onclick="window.location.href='perfil.html'">Cancelar</button>
+                            <button type="submit" class="btn-save">Salvar alteracoes</button>
+                            <button type="button" class="btn-cancel" id="cancelEdit">Cancelar</button>
                         </div>
-                        <p class="form-footer-note">*Para alterar esses campos, fale com o administrador do sistema.</p>
+                        <p class="form-footer-note">*Para alterar email ou CPF, fale com o administrador do sistema.</p>
                     </form>
                 </div>
             </div>
@@ -97,19 +97,30 @@
         <div class="modal-card">
             <div class="modal-header">
                 <h2>Redefinir senha</h2>
-                <button class="close-modal" onclick="toggleModal('modal-redefinir', false)">&times;</button>
+                <button type="button" class="close-modal" id="closePasswordModal">&times;</button>
             </div>
-            <form class="modal-form">
+            <form class="modal-form" id="passwordForm">
                 <div class="modal-input-group">
-                    <label>Nova senha:</label>
-                    <input type="password">
+                    <label for="newPassword">Nova senha:</label>
+                    <input type="password" id="newPassword" minlength="8" required>
                 </div>
                 <div class="modal-input-group">
-                    <label>Confirmar senha:</label>
-                    <input type="password">
+                    <label for="confirmPassword">Confirmar senha:</label>
+                    <input type="password" id="confirmPassword" minlength="8" required>
                 </div>
-                <button type="button" class="btn-save-modal" onclick="toggleModal('modal-redefinir', false)">Salvar</button>
+                <button type="submit" class="btn-save-modal">Salvar</button>
             </form>
+        </div>
+    </div>
+
+    <div id="logoutModal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2>Sair</h2>
+                <button type="button" class="close-modal" id="closeLogoutModal">&times;</button>
+            </div>
+            <p>Voce tem certeza que deseja encerrar sua sessao?</p>
+            <button type="button" class="btn-save-modal" id="confirmLogout">Confirmar</button>
         </div>
     </div>
 
@@ -121,48 +132,25 @@
 
             <div class="footer-col">
                 <p><strong>CHIP - Controle de Hardware e Itens de Projeto</strong></p>
-                <p>Prática Profissional Integrada - 2025/26</p>
+                <p>Pratica Profissional Integrada - 2025/26</p>
                 <p>Instituto Federal Farroupilha - Campus Frederico Westphalen</p>
             </div>
 
             <div class="footer-col">
                 <p>Desenvolvedores:</p>
-                <p>Ariany Maísa Barros Kovalckoski</p>
+                <p>Ariany Maisa Barros Kovalckoski</p>
                 <p>Ernande Facco</p>
                 <p>Luiza de Marchi Brombilla</p>
                 <p>Nicole Freddi</p>
             </div>
 
             <div class="footer-col">
-                <p>Curso técnico de informática integrado ao ensino médio</p>
+                <p>Curso tecnico de informatica integrado ao ensino medio</p>
                 <img src="../assets/logo_iffar.png" alt="Logo IFF" class="iff-logo">
             </div>
         </div>
     </footer>
 
-    <script>
-        function toggleModal(modalId, show) {
-            const modal = document.getElementById(modalId);
-            const page = document.getElementById('page-content');
-            if(show) {
-                modal.style.display = 'flex';
-                page.classList.add('modal-active');
-            } else {
-                modal.style.display = 'none';
-                page.classList.remove('modal-active');
-            }
-        }
-
-        document.getElementById('file-input').addEventListener('change', function(e) {
-            if (this.files && this.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const container = document.getElementById('avatar-container');
-                    container.innerHTML = `<img src="${e.target.result}" style="width:100%; height:100%; object-fit:cover;">`;
-                }
-                reader.readAsDataURL(this.files[0]);
-            }
-        });
-    </script>
+    <script type="module" src="../js/edit-profile.js"></script>
 </body>
 </html>

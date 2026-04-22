@@ -13,3 +13,13 @@ Nossa estrutura foi dividida para organizar melhor o código:
 **Dicas:**
 * Se editar algo no **frontend**, é só dar F5 / atualizar a página no navegador.
 * Se editar algo no **backend** (`server.js`), o terminal reinicia o servidor sozinho.
+
+## Auth no desenvolvimento
+
+Para desativar a confirmação de email no cadastro enquanto estiver desenvolvendo, defina no `.env`:
+
+```bash
+SUPABASE_DISABLE_EMAIL_CONFIRMATION=true
+```
+
+Com isso, a rota `/api/register` cria o usuário já confirmado via Admin API do Supabase, evitando bloqueio por rate limit de email.

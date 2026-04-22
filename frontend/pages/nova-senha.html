@@ -214,17 +214,17 @@
             
             <div class="form-container">
                 <h1>Nova senha</h1>
-                <p>Você estava usando uma senha temporária, adicione sua nova senha nos campos abaixo.</p>
+                <p>Defina sua nova senha para concluir a recuperação de acesso à sua conta.</p>
                 
-                <form action="#">
+                <form id="resetPasswordForm">
                     
                     <div class="input-group">
-                        <input type="password" placeholder="Nova senha" id="new-password">
+                        <input type="password" placeholder="Nova senha" id="new-password" required>
                         <i class="fa-solid fa-eye-slash toggle-password"></i>
                     </div>
                     
                     <div class="input-group">
-                        <input type="password" placeholder="Confirmar senha" id="confirm-password">
+                        <input type="password" placeholder="Confirmar senha" id="confirm-password" required>
                     </div>
                     
                     <button type="submit" class="btn-submit">Redefinir</button>
@@ -235,5 +235,6 @@
 
     </main>
 
+    <script type="module" src="../js/reset-password.js"></script>
 </body>
 </html>
