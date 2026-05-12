@@ -41,10 +41,11 @@ create table if not exists notificacao (
 -- Usuários do sistema
 create table if not exists usuario (
   id_usuario bigint generated always as identity primary key,
+  auth_user_id uuid unique references auth.users(id) on delete cascade,
   nome varchar(60) not null,
-  cpf varchar(14) not null unique,
+  cpf text unique,
   email varchar(60) not null unique,
-  senha varchar(80) not null,
+  senha varchar(80),
   status_conta boolean not null default true,
   motivo_bloqueio text,
   data_bloqueio timestamptz,
@@ -155,6 +156,7 @@ create index if not exists idx_produto_statusproduto on produto(id_statusproduto
 
 -- Pedido
 create index if not exists idx_pedido_usuario on pedido(id_usuario);
+create index if not exists idx_usuario_auth_user_id on usuario(auth_user_id);
 create index if not exists idx_pedido_status on pedido(id_status);
 
 -- Log de auditoria
@@ -174,3 +176,31 @@ create index if not exists idx_categorizar_produto on categorizar(id_produto);
 
 -- Renovação pedido
 create index if not exists idx_renovacao_pedido_pedido on renovacao_pedido(id_pedido);
+
+-- ============================================================
+-- 5. RLS BÁSICO PARA PERFIL
+-- ============================================================
+
+alter table public.usuario enable row level security;
+
+drop policy if exists "Users can view their own profile" on public.usuario;
+create policy "Users can view their own profile"
+  on public.usuario
+  for select
+  to authenticated
+  using (auth.uid() = auth_user_id);
+
+drop policy if exists "Users can update their own profile" on public.usuario;
+create policy "Users can update their own profile"
+  on public.usuario
+  for update
+  to authenticated
+  using (auth.uid() = auth_user_id)
+  with check (auth.uid() = auth_user_id);
+
+drop policy if exists "Users can create their own profile" on public.usuario;
+create policy "Users can create their own profile"
+  on public.usuario
+  for insert
+  to authenticated
+  with check (auth.uid() = auth_user_id);

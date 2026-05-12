@@ -7,7 +7,11 @@
     "dev": "node --watch backend/server.js"
   },
   "dependencies": {
+<<<<<<< HEAD
     "@supabase/supabase-js": "^2.103.0",
+=======
+    "@supabase/supabase-js": "^2.102.1",
+>>>>>>> 3add7a843d0e5aac6f936b8162ff18497834a195
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
     "dotenv": "^17.3.1",

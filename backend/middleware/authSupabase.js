@@ -1,20 +1,28 @@
-import { createClient } from '@supabase/supabase-js';
 import 'dotenv/config';
+import { supabaseAdmin } from '../supabase.js';
 
-const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
+function handleUnauthorized(req, res, message) {
+    const acceptsHtml = req.method === 'GET' && !req.originalUrl.startsWith('/api/');
+
+    if (acceptsHtml) {
+        return res.redirect('/login');
+    }
+
+    return res.status(401).json({ success: false, message });
+}
 
 export async function verifySupabaseAuth(req, res, next) {
     try {
         const token = req.cookies.authcookie || req.headers.authorization?.split(' ')[1];
         
         if (!token) {
-            return res.status(401).json({ success: false, message: 'Token não fornecido' });
+            return handleUnauthorized(req, res, 'Token não fornecido');
         }
 
-        const { data: { user }, error } = await supabase.auth.getUser(token);
+        const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
 
         if (error || !user) {
-            return res.status(401).json({ success: false, message: 'Token inválido ou expirado' });
+            return handleUnauthorized(req, res, 'Token inválido ou expirado');
         }
 
         req.user = user;

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CHIP - Marketplace</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     
     <style>
         :root {
@@ -26,73 +27,89 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 15px 50px;
+            gap: 24px;
+            padding: 18px 5%;
             border-bottom: 1px solid #eee;
+            font-family: 'Inter', sans-serif;
         }
 
-        .logo {
-            background-image: url('../assets/logo.png');
-            background-size: cover;
-            background-position: center;
-            color: transparent;
-            padding: 8px 25px;
-            font-weight: bold;
-            font-size: 1.2rem;
-            border-radius: 6px;
-            /* Efeito de corte na logo */
-            clip-path: polygon(0% 0%, 85% 0%, 100% 35%, 100% 100%, 0% 100%);
+        .logo-container a {
+            display: block;
+            text-decoration: none;
         }
 
-        .search-container {
-            position: relative;
-            width: 35%;
-            margin-left: -45%;
+        .logo-img {
+            height: 55px;
+            width: auto;
+            display: block;
         }
 
         .search-bar {
-            width: 100%;
-            padding: 10px 15px 10px 40px;
-            border-radius: 20px;
-            border: 1px solid #ddd;
-            background-color: var(--bg-light);
-            outline: none;
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            min-width: 0;
         }
 
-        .search-icon {
-            position: absolute;
-            left: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #aaa;
+        .search-bar input {
+            width: min(100%, 420px);
+            padding: 10px 16px;
+            border-radius: 10px;
+            border: 1px solid #d2d2d2;
+            background-color: var(--bg-light);
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .search-bar input:focus {
+            border-color: #e0a33f;
+            box-shadow: 0 0 0 3px rgba(242, 169, 74, 0.12);
         }
 
         .nav-links {
             display: flex;
             align-items: center;
             gap: 30px;
+            flex-shrink: 0;
         }
 
-        .nav-links a {
+        .nav-link-item {
             text-decoration: none;
-            color: var(--text-brown);
-            font-weight: 600;
+            color: inherit;
+            display: flex;
+            align-items: center;
         }
 
-        .icon-btn {
-            font-size: 1.3rem;
+        .nav-text-bold {
+            font-weight: 700;
+            color: #54320f;
+            font-size: 1.05rem;
+        }
+
+        .sino-img {
+            width: 55px;
+            height: auto;
+            display: block;
             cursor: pointer;
         }
 
-        .user-avatar {
-            background-color: #d1d1d1;
-            color: white;
-            width: 45px;
-            height: 45px;
+        .profile-pic {
+            width: 44px;
+            height: 44px;
+            background: #f0f0f0;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.2rem;
+            overflow: hidden;
+            border: 1px solid #e0e0e0;
+            transition: transform 0.2s;
+            color: #54320f;
+            font-weight: 700;
+        }
+
+        .profile-pic:hover {
+            transform: scale(1.05);
         }
 
         /* --- Conteúdo --- */
@@ -185,27 +202,37 @@
         /* Responsividade para Telas Pequenas */
         @media (max-width: 600px) {
             .product-grid { grid-template-columns: 1fr; }
-            .navbar { padding: 15px; }
-            .search-container { display: none; }
+            .navbar { padding: 15px; flex-wrap: wrap; justify-content: center; }
+            .search-bar { width: 100%; order: 3; justify-content: stretch; }
+            .search-bar input { width: 100%; }
         }
     </style>
 </head>
 <body>
 
     <header class="navbar">
-        <div class="logo">CHIP</div>
+        <div class="logo-container">
+            <a href="/">
+                <img src="../assets/logo.png" alt="Logo CHIP" class="logo-img">
+            </a>
+        </div>
         
-        <div class="search-container">
-            <i class="fas fa-search search-icon"></i>
-            <input type="text" class="search-bar" placeholder="">
+        <div class="search-bar">
+            <input type="text" placeholder="Pesquisar por cor, tipo, nome...">
         </div>
 
         <div class="nav-links">
-            <a href="#">Pedidos</a>
-            <i class="fas fa-bell icon-btn"></i>
-            <div class="user-avatar">
-                <i class="fas fa-user"></i>
+            <a href="/pedidos" class="nav-link-item">
+                <span class="nav-text-bold">Seus pedidos</span>
+            </a>
+            <div class="icon-notification">
+                <img src="../assets/sino.png" alt="Notificações" class="sino-img">
             </div>
+            <a href="/perfil" class="nav-link-item">
+                <div class="profile-pic">
+                    <span id="headerAvatar">CH</span>
+                </div>
+            </a>
         </div>
     </header>
 
@@ -255,6 +282,8 @@
 
         </div>
     </main>
+
+    <script type="module" src="../js/header-avatar.js"></script>
 
 </body>
 </html>

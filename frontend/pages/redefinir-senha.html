@@ -195,22 +195,23 @@
         <div class="right-side">
             <img src="../assets/logo.iffar.png" alt="Logo IFFar" class="logo-iffar">
             
-            <a href="#" class="back-arrow">&larr;</a>
+            <a href="/login" class="back-arrow">&larr;</a>
 
             <h1 class="welcome-text">Redefina sua senha</h1>
             <p class="instruction-text">As instruções serão enviadas por email para você!</p>
 
-            <form>
-                <input type="email" placeholder="Email" required>
+            <form id="forgotPasswordForm">
+                <input id="forgotPasswordEmail" type="email" placeholder="Email" required>
                 <br>
                 <button type="submit" class="btn-enviar">Enviar email</button>
             </form>
 
             <div class="footer-text">
-                O email não chegou? <button type="button" class="btn-link">Reenviar email</button>
+                O email não chegou? <button id="resendForgotPassword" type="button" class="btn-link">Reenviar email</button>
             </div>
         </div>
     </div>
 
+    <script type="module" src="../js/forgot-password.js"></script>
 </body>
 </html>

@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pedidos - CHIP</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap">
+    <link rel="stylesheet" href="../css/pedidos-tec.css">
+</head>
+<body>
+    <div class="page-wrap">
+        <header class="navbar">
+            <a href="index-tec.html">
+                <img src="../assets/logo.png" alt="Logo CHIP" class="logo-img">
+            </a>
+
+            <div class="search-bar">
+                <input type="text" placeholder="Pesquisar por cor, tipo, nome...">
+            </div>
+
+            <div class="nav-links">
+                <a href="pedidos.html" class="nav-link-item">Pedidos</a>
+                <img src="../assets/sino.png" alt="Notificações" class="sino-img">
+                <a href="perfil-tec.html" class="nav-link-item">
+                    <div class="profile-pic">
+                        <svg viewBox="0 0 24 24" fill="#c7c7c7"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                    </div>
+                </a>
+            </div>
+        </header>
+
+        <section class="page-header">
+            <h1>Pedidos</h1>
+            <p>Gerenciamento dos pedidos</p>
+        </section>
+
+        <hr class="header-divider">
+
+        <section class="tabs-row">
+            <button class="tab-button active" data-tab="solicitacoes">Solicitações de empréstimo</button>
+            <button class="tab-button" data-tab="separacao">Para separação</button>
+            <button class="tab-button" data-tab="retirada">Para retirada</button>
+            <button class="tab-button" data-tab="devolucao">Para devolução</button>
+        </section>
+
+        <p class="tab-note" id="tabNote"></p>
+        <section class="orders-grid" id="ordersGrid"></section>
+    </div>
+
+    <div class="modal-overlay" id="orderModal">
+        <div class="modal-card">
+            <button class="modal-close" id="modalClose">&times;</button>
+            <h2 class="modal-title" id="modalTitle">Pedido #620</h2>
+            <p class="modal-subtitle" id="modalSubtitle">Data da solicitação: 01/12/2025</p>
+
+            <p class="modal-section-title">Itens no pedido</p>
+            <div class="items-table">
+                <div class="items-head">
+                    <span>Produto</span>
+                    <span>Quantidade</span>
+                </div>
+                <div id="modalItems"></div>
+            </div>
+
+            <div class="user-info-box" id="modalUserInfo">
+                <div class="user-avatar">
+                    <svg viewBox="0 0 24 24" fill="#c7c7c7"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                </div>
+                <div>
+                    <h3 class="item-name" id="modalUserName">João Pedro</h3>
+                    <p class="user-email" id="modalUserEmail">joao.08767@aluno.iffar.edu.br</p>
+                    <div class="user-role" id="modalUserRole">Estudante</div>
+                </div>
+            </div>
+
+            <div class="modal-actions" id="modalActions"></div>
+        </div>
+    </div>
+
+    <script>
+        const ordersByTab = {
+            solicitacoes: {
+                note: '',
+                showAlert: true,
+                actions: ['Aprovar pedido', 'Negar pedido'],
+                dateLabel: 'Data da solicitação',
+                orders: [
+                    { id: 620, date: '01/12/2025', name: 'João Pedro', email: 'joao.08767@aluno.iffar.edu.br', role: 'Estudante' },
+                    { id: 621, date: '08/12/2025', name: 'Maria Clara', email: 'maria.99764@aluno.iffar.edu.br', role: 'Estudante' },
+                    { id: 623, date: '08/12/2025', name: 'Felipe Gabriel', email: 'felipe.33876@aluno.iffar.edu.br', role: 'Estudante' },
+                    { id: 628, date: '09/12/2025', name: 'Luana Grigio', email: 'luana.22876@aluno.iffar.edu.br', role: 'Estudante' }
+                ]
+            },
+            separacao: {
+                note: '',
+                showAlert: false,
+                actions: ['Marcar para retirada'],
+                dateLabel: 'Data da solicitação',
+                orders: [
+                    { id: 620, date: '01/12/2025', name: 'João Pedro', email: 'joao.08767@aluno.iffar.edu.br', role: 'Estudante' },
+                    { id: 621, date: '08/12/2025', name: 'Maria Clara', email: 'maria.99764@aluno.iffar.edu.br', role: 'Estudante' }
+                ]
+            },
+            retirada: {
+                note: '*Após 7 dias sem retirada, o pedido é automaticamente cancelado.',
+                showAlert: true,
+                actions: ['Confirmar retirada', 'Cancelar pedido'],
+                dateLabel: 'Data da retirada',
+                orders: [
+                    { id: 620, date: '05/12/2025', name: 'Julia Santos', email: 'julia.08767@aluno.iffar.edu.br', role: 'Estudante' },
+                    { id: 621, date: '08/12/2025', name: 'Pedro Henrique', email: 'pedro.99764@aluno.iffar.edu.br', role: 'Estudante' }
+                ]
+            },
+            devolucao: {
+                note: 'Vá para a página devoluções.',
+                showAlert: false,
+                actions: ['Registrar devolução'],
+                dateLabel: 'Data estimada de devolução',
+                orders: [
+                    { id: 620, date: '15/12/2025', name: 'João Pedro', email: 'joao.08767@aluno.iffar.edu.br', role: 'Estudante' },
+                    { id: 621, date: '18/12/2025', name: 'Maria Clara', email: 'maria.99764@aluno.iffar.edu.br', role: 'Estudante' },
+                    { id: 623, date: '19/12/2025', name: 'Felipe Gabriel', email: 'felipe.33876@aluno.iffar.edu.br', role: 'Estudante' },
+                    { id: 628, date: '19/12/2025', name: 'Luana Grigio', email: 'luana.22876@aluno.iffar.edu.br', role: 'Estudante' }
+                ]
+            }
+        };
+
+        const modalItemsData = [
+            { name: 'Item 1', category: 'categoria', color: 'azul', quantity: '10 un.', image: '../assets/electronic_components_1_1774913851066.png' },
+            { name: 'Item 2', category: 'categoria', color: 'azul', quantity: '05 un.', image: '../assets/electronic_components_3_1774913879353.png' }
+        ];
+
+        const ordersGrid = document.getElementById('ordersGrid');
+        const tabNote = document.getElementById('tabNote');
+        const modal = document.getElementById('orderModal');
+        const modalClose = document.getElementById('modalClose');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalSubtitle = document.getElementById('modalSubtitle');
+        const modalItems = document.getElementById('modalItems');
+        const modalActions = document.getElementById('modalActions');
+        const modalUserName = document.getElementById('modalUserName');
+        const modalUserEmail = document.getElementById('modalUserEmail');
+        const modalUserRole = document.getElementById('modalUserRole');
+
+        let activeTab = 'solicitacoes';
+
+        function renderOrders() {
+            const current = ordersByTab[activeTab];
+            tabNote.textContent = current.note;
+
+            ordersGrid.innerHTML = current.orders.map((order) => `
+                <article class="order-card" data-order="${order.id}">
+                    <div class="order-top">
+                        <div>
+                            <h3 class="order-title">Pedido #${order.id}</h3>
+                            <p class="order-date">${current.dateLabel}: ${order.date}</p>
+                        </div>
+                        ${current.showAlert ? '<div class="alert-badge">!</div>' : ''}
+                    </div>
+                    <hr class="card-divider">
+                    <div class="order-user">
+                        <div class="user-avatar">
+                            <svg viewBox="0 0 24 24" fill="#c7c7c7"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                        </div>
+                        <div>
+                            <p class="user-name">${order.name}</p>
+                            <p class="user-email">${order.email}</p>
+                        </div>
+                    </div>
+                </article>
+            `).join('');
+
+            document.querySelectorAll('.order-card').forEach((card) => {
+                card.addEventListener('click', () => openModal(Number(card.dataset.order)));
+            });
+        }
+
+        function openModal(orderId) {
+            const current = ordersByTab[activeTab];
+            const order = current.orders.find((item) => item.id === orderId);
+            if (!order) return;
+
+            modalTitle.textContent = `Pedido #${order.id}`;
+            modalSubtitle.textContent = `${current.dateLabel}: ${order.date}`;
+            modalUserName.textContent = order.name;
+            modalUserEmail.textContent = order.email;
+            modalUserRole.textContent = order.role;
+
+            modalItems.innerHTML = modalItemsData.map((item) => `
+                <div class="item-row">
+                    <div class="item-info">
+                        <img src="${item.image}" alt="${item.name}" class="item-thumb">
+                        <div>
+                            <p class="item-name">${item.name}</p>
+                            <p class="item-meta">Categoria: ${item.category}<br>Cor: ${item.color}</p>
+                        </div>
+                    </div>
+                    <span class="qty-pill">${item.quantity}</span>
+                </div>
+            `).join('');
+
+            modalActions.innerHTML = current.actions.map((action, index) => `
+                <button class="modal-btn ${index === 0 ? 'btn-approve' : 'btn-deny'}">${action}</button>
+            `).join('');
+
+            modal.style.display = 'flex';
+        }
+
+        document.querySelectorAll('.tab-button').forEach((button) => {
+            button.addEventListener('click', () => {
+                document.querySelectorAll('.tab-button').forEach((tab) => tab.classList.remove('active'));
+                button.classList.add('active');
+                activeTab = button.dataset.tab;
+                renderOrders();
+            });
+        });
+
+        modalClose.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+
+        modal.addEventListener('click', (event) => {
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+
+        renderOrders();
+    </script>
+    <script type="module" src="../js/header-avatar.js"></script>
+</body>
+</html>
