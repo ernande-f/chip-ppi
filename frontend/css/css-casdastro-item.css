@@ -21,32 +21,6 @@ body {
 
 /* --- NAVBAR --- */
 .navbar {
-<<<<<<< HEAD
-    display: flex; 
-    align-items: center; 
-    justify-content: flex-start;
-    padding: 15px 5%; 
-    background: white; 
-    border-bottom: 1px solid var(--border-gray);
-}
-
-.logo-img { 
-    height: 60px; 
-    pointer-events: none; 
-}
-
-/* --- FORMULÁRIO --- */
-.cadastro-section { max-width: 1000px; margin: 0 auto; }
-.main-title { font-size: 2.2rem; font-weight: 700; margin-bottom: 10px; }
-.divider { border: 0; border-top: 1px solid #ddd; margin-bottom: 30px; }
-
-.form-grid { display: flex; flex-direction: column; gap: 20px; }
-.form-row { display: flex; gap: 30px; align-items: flex-start; }
-.form-group { display: flex; flex-direction: column; gap: 8px; flex: 1; }
-.full-width { width: 100%; }
-
-.form-group label { font-size: 1.1rem; font-weight: 500; }
-=======
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -95,7 +69,6 @@ body {
     max-width: 1000px;
     margin: 0 auto;
 }
->>>>>>> 3add7a843d0e5aac6f936b8162ff18497834a195
 
 .form-group input, .upload-label {
     background-color: var(--input-bg);
@@ -160,12 +133,8 @@ body {
 @media (max-width: 768px) {
     .form-row { flex-direction: column; }
     .footer-container { flex-direction: column; text-align: center; }
-<<<<<<< HEAD
-}
-=======
     .footer-col-icon { margin: 0 auto; }
     .navbar { flex-wrap: wrap; justify-content: center; }
     .search-bar { order: 3; width: 100%; justify-content: stretch; }
     .search-bar input { width: 100%; }
 }
->>>>>>> 3add7a843d0e5aac6f936b8162ff18497834a195

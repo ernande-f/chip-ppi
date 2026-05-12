@@ -15,8 +15,6 @@
                 <img src="../assets/logo.png" alt="Logo CHIP" class="logo-img">
             </a>
         </div>
-<<<<<<< HEAD
-=======
 
         <div class="search-bar">
             <input type="text" placeholder="Pesquisar por cor, tipo, nome...">
@@ -37,7 +35,6 @@
                 </div>
             </a>
         </div>
->>>>>>> 3add7a843d0e5aac6f936b8162ff18497834a195
     </header>
 
     <main class="container">
@@ -121,96 +118,6 @@
         </div>
     </footer>
 
-<<<<<<< HEAD
-    <script>
-        const form = document.getElementById('formCadastro');
-        const categoryInput = document.getElementById('categoria-input');
-        const tagContainer = document.getElementById('tag-container');
-        const datalist = document.getElementById('categorias-antigas');
-        const btnSalvar = document.getElementById('btn-salvar');
-        const fileInput = document.getElementById('foto');
-
-        // Função que verifica se tudo está preenchido
-        function validarFormulario() {
-            const nome = document.getElementById('nome').value.trim();
-            const estoque = document.getElementById('estoque').value.trim();
-            const cor = document.getElementById('cor').value.trim();
-            const tags = tagContainer.querySelectorAll('.tag').length;
-            const foto = fileInput.files.length > 0;
-
-            // Habilita o botão apenas se todos os critérios forem atendidos
-            if (nome !== "" && estoque !== "" && cor !== "" && tags > 0 && foto) {
-                btnSalvar.disabled = false;
-            } else {
-                btnSalvar.disabled = true;
-            }
-        }
-
-        // Monitorar mudanças nos campos de texto e números
-        document.querySelectorAll('input').forEach(input => {
-            input.addEventListener('input', validarFormulario);
-        });
-
-        function processInput() {
-            const value = categoryInput.value.trim();
-            if (value !== "") {
-                createTag(value);
-                updateDatalist(value);
-                categoryInput.value = ""; 
-                validarFormulario(); 
-            }
-        }
-
-        categoryInput.addEventListener('blur', processInput);
-        categoryInput.addEventListener('change', processInput);
-        
-        categoryInput.addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                processInput();
-            }
-        });
-
-        function createTag(label) {
-            const existingTags = Array.from(tagContainer.querySelectorAll('.tag span')).map(s => s.textContent);
-            if(existingTags.includes(label)) return;
-
-            const div = document.createElement('div');
-            div.className = 'tag';
-            div.innerHTML = `<span>${label}</span><span class="remove-tag">&times;</span>`;
-            
-            div.querySelector('.remove-tag').onclick = function() {
-                div.remove();
-                validarFormulario();
-            };
-
-            tagContainer.appendChild(div);
-            validarFormulario();
-        }
-
-        function updateDatalist(newValue) {
-            const options = Array.from(datalist.options).map(opt => opt.value.toLowerCase());
-            if (!options.includes(newValue.toLowerCase())) {
-                const newOption = document.createElement('option');
-                newOption.value = newValue;
-                datalist.appendChild(newOption);
-            }
-        }
-
-        function updateUploadLabel(input) {
-            const label = document.getElementById('label-foto');
-            if (input.files && input.files[0]) {
-                label.innerText = "Foto: " + input.files[0].name;
-                label.style.backgroundColor = "#d4edda";
-            } else {
-                label.innerText = "Upload foto";
-                label.style.backgroundColor = "";
-            }
-            validarFormulario();
-        }
-    </script>
-=======
     <script type="module" src="../js/header-avatar.js"></script>
->>>>>>> 3add7a843d0e5aac6f936b8162ff18497834a195
 </body>
 </html>
