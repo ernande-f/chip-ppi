@@ -3,8 +3,10 @@ import { verifySupabaseAuth } from '../middleware/authSupabase.js';
 import {
     getProfileSummaryByAuthUserId,
     updateProfileByAuthUserId,
-    upsertUserProfile
+    upsertUserProfile,
+    getAccessLevelLabel
 } from '../services/userProfile.js';
+import { createProduct, getAllStatuses } from '../services/productService.js';
 import { supabaseAdmin, supabaseAuth } from '../supabase.js';
 
 const router = express.Router();
@@ -307,6 +309,48 @@ router.get('/produtos', verifySupabaseAuth, async (req, res) => {
     } catch (error) {
         console.error('Erro na rota /produtos:', error);
         res.status(500).json({ success: false, message: 'Erro interno ao buscar produtos.' });
+    }
+});
+
+router.post('/produtos', verifySupabaseAuth, async (req, res) => {
+    const { nome, estoque_total, cor, foto_produto, categorias } = req.body;
+
+    try {
+        // Verificar se é técnico ou adm
+        const profile = await getProfileSummaryByAuthUserId(req.user.id);
+
+        if (!profile) {
+            return res.status(404).json({ success: false, message: 'Perfil não encontrado.' });
+        }
+
+        const label = getAccessLevelLabel(profile.nivel_acesso);
+
+        if (label === 'Estudante') {
+            return res.status(403).json({ success: false, message: 'Acesso negado. Apenas técnicos podem cadastrar itens.' });
+        }
+
+        if (!nome || !estoque_total) {
+            return res.status(400).json({ success: false, message: 'Nome e quantidade em estoque são obrigatórios.' });
+        }
+
+        // Buscar o primeiro status_produto disponível (ex: "Disponível")
+        // Como o sistema está começando, vamos assumir que id_statusproduto = 1 existe ou buscar
+        const statuses = await getAllStatuses();
+        const defaultStatus = statuses[0]?.id_statusproduto || 1;
+
+        const produto = await createProduct({
+            nome,
+            estoque_total: parseInt(estoque_total),
+            cor,
+            foto_produto,
+            id_statusproduto: defaultStatus,
+            categorias: categorias || []
+        });
+
+        res.json({ success: true, message: 'Produto cadastrado com sucesso!', produto });
+    } catch (error) {
+        console.error('Erro ao cadastrar produto:', error);
+        res.status(500).json({ success: false, message: 'Erro ao cadastrar produto.' });
     }
 });
 
