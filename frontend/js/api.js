@@ -12,6 +12,11 @@ async function parseJsonSafely(response) {
     }
 }
 
+export async function getProdutos() {
+    const data = await apiRequest('/api/produtos');
+    return data.produtos || [];
+}
+
 export async function apiRequest(url, options = {}) {
     const config = {
         credentials: 'same-origin',

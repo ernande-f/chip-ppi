@@ -289,4 +289,27 @@ router.post('/logout', async (req, res) => {
     }
 });
 
+
+// Rota: GET /api/produtos (requer sessão)
+router.get('/produtos', verifySupabaseAuth, async (req, res) => {
+    try {
+        const { data, error } = await supabaseAdmin
+            .from('produto')
+            .select('id_produto, nome, descricao_produto, estoque_total, cor, foto_produto')
+            .order('nome', { ascending: true });
+
+        if (error) {
+            console.error('Erro ao buscar produtos:', error);
+            return res.status(500).json({ success: false, message: error.message || 'Erro ao buscar produtos.' });
+        }
+
+        res.json({ success: true, produtos: data || [] });
+    } catch (error) {
+        console.error('Erro na rota /produtos:', error);
+        res.status(500).json({ success: false, message: 'Erro interno ao buscar produtos.' });
+    }
+});
+
+
+// ÚLTIMA LINHA ABAIXO!!!
 export default router;
