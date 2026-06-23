@@ -52,34 +52,9 @@
             <hr class="header-line">
         </section>
 
-        <div class="items-grid">
-            
-            <div class="item-card">
-                <div class="item-visual">
-                    <img src="../assets/electronic_components_1_1774913851066.png" alt="Arduino">
-                </div>
-                <div class="item-data">
-                    <h3>Arduino Uno R3</h3>
-                    <p class="qty-label">Quantidade disponível: 09</p>
-                    <p class="info-label">Categoria: Placas</p>
-                    <p class="info-label">Cor: Azul</p>
-                    <button class="btn-edit-item" onclick="openAlterarModal()">Alterar</button>
-                </div>
-            </div>
-
-            <div class="item-card">
-                <div class="item-visual">
-                    <img src="../assets/electronic_components_2_1774913863377.png" alt="Resistores">
-                </div>
-                <div class="item-data">
-                    <h3>Resistores (Variados)</h3>
-                    <p class="qty-label">Quantidade disponível: 15</p>
-                    <p class="info-label">Categoria: Componentes</p>
-                    <p class="info-label">Cor: Colorido</p>
-                    <button class="btn-edit-item" onclick="openAlterarModal()">Alterar</button>
-                </div>
-            </div>
-
+        <div class="items-grid" id="itemsGrid">
+            <!-- Os itens serão carregados dinamicamente via JS -->
+            <p style="text-align: center; grid-column: 1/-1;">Carregando itens...</p>
         </div>
     </main>
 
@@ -229,5 +204,6 @@
         }
     </script>
     <script type="module" src="../js/header-avatar.js"></script>
+    <script type="module" src="../js/index-tec.js"></script>
 </body>
 </html>
