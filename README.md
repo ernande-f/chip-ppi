@@ -35,3 +35,13 @@ node scripts/apply-migration.mjs supabase/migrations/20260712_000002_add_institu
 ```
 
 Essa migração remove a chave estrangeira para `auth.users`, necessária para que perfis LDAP/SIGAA existam mesmo sem uma conta no Supabase Auth. O serviço institucional deve retornar JSON com um status explícito de sucesso (`success`, `ok` ou `authenticated`).
+
+## Catálogo e gestão de itens
+
+O módulo de julho cobre o catálogo pesquisável para estudantes e o CRUD de itens para técnicos/administradores: cadastro com descrição, foto e categorias; edição; atualização de estoque; arquivamento; e exclusão confirmada. A exclusão é bloqueada quando o item já possui histórico de pedidos, para preservar a integridade do sistema — nesse caso, use o arquivamento.
+
+Antes de usar fotos enviadas pelo formulário, aplique a migração do catálogo:
+
+```bash
+node scripts/apply-migration.mjs supabase/migrations/20260712_000003_catalog_management.sql
+```

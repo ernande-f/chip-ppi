@@ -60,7 +60,7 @@ create table if not exists usuario (
 -- Produtos disponíveis
 create table if not exists produto (
   id_produto bigint generated always as identity primary key,
-  foto_produto varchar(1024),
+  foto_produto text,
   descricao_produto text,
   nome varchar(50) not null,
   estoque_total int not null default 0,
@@ -179,6 +179,16 @@ create index if not exists idx_categorizar_produto on categorizar(id_produto);
 
 -- Renovação pedido
 create index if not exists idx_renovacao_pedido_pedido on renovacao_pedido(id_pedido);
+
+-- Estados mínimos necessários para exibir e administrar o catálogo.
+insert into status_produto (status_produto)
+select required_status
+from (values ('Disponível'), ('Indisponível'), ('Arquivado')) as statuses(required_status)
+where not exists (
+  select 1
+  from status_produto existing_status
+  where lower(existing_status.status_produto) = lower(required_status)
+);
 
 -- ============================================================
 -- 5. RLS BÁSICO PARA PERFIL

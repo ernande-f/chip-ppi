@@ -12,9 +12,48 @@ async function parseJsonSafely(response) {
     }
 }
 
-export async function getProdutos() {
-    const data = await apiRequest('/api/produtos');
+export async function getProdutos(filters = {}) {
+    const params = new URLSearchParams();
+
+    Object.entries(filters).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+            params.set(key, String(value));
+        }
+    });
+
+    const suffix = params.size > 0 ? `?${params.toString()}` : '';
+    const data = await apiRequest(`/api/produtos${suffix}`);
     return data.produtos || [];
+}
+
+export async function getProduto(id) {
+    const data = await apiRequest(`/api/produtos/${encodeURIComponent(id)}`);
+    return data.produto;
+}
+
+export async function getCategorias() {
+    const data = await apiRequest('/api/categorias');
+    return data.categorias || [];
+}
+
+export async function createProduto(payload) {
+    return apiRequest('/api/produtos', {
+        method: 'POST',
+        body: payload
+    });
+}
+
+export async function updateProduto(id, payload) {
+    return apiRequest(`/api/produtos/${encodeURIComponent(id)}`, {
+        method: 'PATCH',
+        body: payload
+    });
+}
+
+export async function deleteProduto(id) {
+    return apiRequest(`/api/produtos/${encodeURIComponent(id)}`, {
+        method: 'DELETE'
+    });
 }
 
 export async function apiRequest(url, options = {}) {

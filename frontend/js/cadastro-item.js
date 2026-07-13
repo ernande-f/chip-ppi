@@ -1,100 +1,124 @@
-import { apiRequest } from './api.js';
+import { createProduto, getCategorias } from './api.js';
 
-document.addEventListener('DOMContentLoaded', () => {
-    const formCadastro = document.getElementById('formCadastro');
-    const btnSalvar = document.getElementById('btn-salvar');
-    const categoriaInput = document.getElementById('categoria-input');
+function createTag(category, onRemove) {
+    const tag = document.createElement('span');
+    tag.className = 'tag-item';
+    tag.textContent = category;
+
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = '×';
+    button.setAttribute('aria-label', `Remover categoria ${category}`);
+    button.addEventListener('click', onRemove);
+    tag.appendChild(button);
+    return tag;
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+    const form = document.getElementById('formCadastro');
+    const saveButton = document.getElementById('btn-salvar');
+    const categoryInput = document.getElementById('categoria-input');
     const tagContainer = document.getElementById('tag-container');
-    const fotoInput = document.getElementById('foto');
+    const categoryList = document.getElementById('categorias-antigas');
+    const photoInput = document.getElementById('foto');
+    const photoLabel = document.getElementById('label-foto');
+    let categories = [];
+    let photo = '';
 
-    let categorias = [];
-    let base64Foto = '';
-
-    // Lógica de Tags para Categorias
-    categoriaInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            const val = categoriaInput.value.trim();
-            if (val && !categorias.includes(val)) {
-                categorias.push(val);
-                renderTags();
-            }
-            categoriaInput.value = '';
-        }
-    });
+    function updateSaveState() {
+        saveButton.disabled = !form.checkValidity() || categories.length === 0 || !photo;
+    }
 
     function renderTags() {
-        tagContainer.innerHTML = '';
-        categorias.forEach((cat, index) => {
-            const tag = document.createElement('span');
-            tag.className = 'tag-item';
-            tag.innerHTML = `${cat} <button type="button" data-index="${index}">&times;</button>`;
-            tagContainer.appendChild(tag);
+        tagContainer.replaceChildren();
+        categories.forEach((category, index) => {
+            tagContainer.appendChild(createTag(category, () => {
+                categories.splice(index, 1);
+                renderTags();
+            }));
         });
-        checkFormValidity();
+        updateSaveState();
     }
 
-    tagContainer.addEventListener('click', (e) => {
-        if (e.target.tagName === 'BUTTON') {
-            const index = e.target.getAttribute('data-index');
-            categorias.splice(index, 1);
+    function addCategory(value) {
+        const category = value.trim();
+        if (!category) return;
+
+        if (!categories.some((item) => item.localeCompare(category, 'pt-BR', { sensitivity: 'accent' }) === 0)) {
+            categories.push(category);
             renderTags();
         }
-    });
-
-    // Lógica de Preview de Foto e conversão para Base64 (simulando upload)
-    fotoInput.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                base64Foto = event.target.result;
-                document.getElementById('label-foto').textContent = 'Foto selecionada';
-                checkFormValidity();
-            };
-            reader.readAsDataURL(file);
-        }
-    });
-
-    // Validação básica do formulário
-    const inputs = formCadastro.querySelectorAll('input[required]');
-    inputs.forEach(input => {
-        input.addEventListener('input', checkFormValidity);
-    });
-
-    function checkFormValidity() {
-        const allFilled = Array.from(inputs).every(input => input.value.trim() !== '');
-        btnSalvar.disabled = !allFilled;
+        categoryInput.value = '';
     }
 
-    // Envio do formulário
-    formCadastro.addEventListener('submit', async (e) => {
-        e.preventDefault();
+    async function readImage(file) {
+        if (!file) return '';
+        if (!file.type.startsWith('image/')) throw new Error('Selecione um arquivo de imagem.');
+        if (file.size > 2 * 1024 * 1024) throw new Error('A imagem deve ter no máximo 2 MB.');
 
-        const payload = {
-            nome: document.getElementById('nome').value,
-            estoque_total: document.getElementById('estoque').value,
-            cor: document.getElementById('cor').value,
-            foto_produto: base64Foto,
-            categorias: categorias
-        };
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = () => reject(new Error('Não foi possível ler a imagem.'));
+            reader.readAsDataURL(file);
+        });
+    }
 
-        try {
-            btnSalvar.disabled = true;
-            btnSalvar.textContent = 'Enviando...';
-
-            await apiRequest('/api/produtos', {
-                method: 'POST',
-                body: payload
-            });
-
-            alert('Item cadastrado com sucesso!');
-            window.location.href = 'index-tec.html';
-        } catch (error) {
-            console.error('Erro ao cadastrar item:', error);
-            alert(error.message || 'Erro ao cadastrar item.');
-            btnSalvar.disabled = false;
-            btnSalvar.textContent = 'Concluir cadastro';
+    categoryInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            addCategory(categoryInput.value);
         }
     });
+    categoryInput.addEventListener('change', () => addCategory(categoryInput.value));
+    form.querySelectorAll('input, textarea').forEach((input) => input.addEventListener('input', updateSaveState));
+
+    photoInput.addEventListener('change', async () => {
+        try {
+            photo = await readImage(photoInput.files[0]);
+            photoLabel.textContent = photo ? 'Foto selecionada' : 'Selecionar foto';
+        } catch (error) {
+            photo = '';
+            photoInput.value = '';
+            photoLabel.textContent = 'Selecionar foto';
+            alert(error.message);
+        }
+        updateSaveState();
+    });
+
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        updateSaveState();
+        if (saveButton.disabled) return;
+
+        saveButton.disabled = true;
+        saveButton.textContent = 'Cadastrando…';
+
+        try {
+            await createProduto({
+                nome: document.getElementById('nome').value,
+                descricao_produto: document.getElementById('descricao').value,
+                estoque_total: document.getElementById('estoque').value,
+                cor: document.getElementById('cor').value,
+                foto_produto: photo,
+                categorias: categories
+            });
+            window.location.href = '/';
+        } catch (error) {
+            alert(error.message || 'Não foi possível cadastrar o item.');
+            saveButton.textContent = 'Concluir cadastro';
+            updateSaveState();
+        }
+    });
+
+    try {
+        const existingCategories = await getCategorias();
+        existingCategories.forEach((category) => {
+            const option = document.createElement('option');
+            option.value = category.nome_categoria;
+            categoryList.appendChild(option);
+        });
+    } catch (error) {
+        console.warn('Não foi possível carregar categorias existentes:', error);
+    }
 });

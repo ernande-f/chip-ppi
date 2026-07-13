@@ -56,6 +56,10 @@ body {
 .btn-register-new:hover { background-color: var(--primary-orange-dark); transform: translateY(-2px); }
 
 .location-text { color: #888; font-size: 0.95rem; margin-top: 5px; }
+.management-subheader { display: flex; align-items: end; justify-content: space-between; gap: 18px; }
+.management-subheader .location-text { margin-bottom: 0; }
+.status-filter { display: grid; gap: 5px; color: var(--text-brown); font-size: .76rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
+.status-filter select { border: 1px solid #d7c5aa; border-radius: 8px; background: #fff; color: var(--text-brown); padding: 8px 10px; font: inherit; text-transform: none; }
 .header-line { border: none; border-top: 1.5px solid var(--border-gray); margin: 15px 0 35px 0; }
 
 /* --- GRID E CARDS (DESIGN ORIGINAL) --- */
@@ -63,7 +67,7 @@ body {
 
 .item-card {
     background-color: #f2f2f2; border-radius: 18px; display: flex;
-    height: 160px; overflow: hidden; box-shadow: var(--shadow);
+    min-height: 190px; overflow: hidden; box-shadow: var(--shadow);
 }
 .item-visual { flex: 0 0 135px; background: #e5e5e5; }
 .item-visual img { width: 100%; height: 100%; object-fit: cover; }
@@ -72,6 +76,12 @@ body {
 .item-data h3 { color: var(--primary-orange); margin: 0 0 5px 0; font-size: 1.15rem; }
 .qty-label { font-size: 0.9rem; font-weight: 600; color: #555; margin: 2px 0; }
 .info-label { font-size: 0.85rem; color: #888; margin: 1px 0; }
+.status-badge { align-self: flex-start; margin-top: 7px; border-radius: 999px; padding: 3px 9px; font-size: .72rem; font-weight: 700; }
+.status-disponivel { background: #dff3e7; color: #18633a; }
+.status-indisponivel { background: #fff0cf; color: #815d00; }
+.status-arquivado { background: #ececec; color: #666; }
+.catalog-empty { grid-column: 1 / -1; padding: 30px; text-align: center; color: var(--text-gray-dark); }
+.catalog-error { color: #9e2424; }
 
 .btn-edit-item {
     background-color: var(--primary-orange); color: var(--text-brown); border: none;
@@ -168,6 +178,11 @@ body {
 .form-group, .form-group-full { display: flex; flex-direction: column; gap: 6px; }
 .modal-body-alterar label { font-weight: 600; font-size: 0.95rem; }
 .input-light, .input-with-unit { padding: 12px; border: none; background: #f0f0f0; border-radius: 8px; font-family: inherit; outline: none; }
+.modal-body-alterar textarea { min-height: 90px; resize: vertical; }
+.tag-wrapper { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 6px; }
+.tag-wrapper:empty { display: none; }
+.tag-item { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 4px 9px; background: #f3dfbe; color: #54320f; font-size: .8rem; font-weight: 700; }
+.tag-item button { border: 0; padding: 0; background: transparent; color: inherit; cursor: pointer; font: inherit; font-size: 1rem; line-height: 1; }
 .input-with-unit { display: flex; align-items: center; padding-right: 15px; }
 .input-with-unit input { flex: 1; background: transparent; border: none; outline: none; padding: 0; }
 .unit-text { color: #888; font-size: 0.9rem; }
@@ -213,4 +228,5 @@ body {
     .navbar { flex-wrap: wrap; justify-content: center; }
     .search-bar { order: 3; width: 100%; justify-content: stretch; }
     .search-bar input { width: 100%; }
+    .management-subheader { align-items: stretch; flex-direction: column; }
 }

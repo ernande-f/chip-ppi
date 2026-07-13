@@ -92,8 +92,9 @@ app.use('/api/login', authLimiter);
 app.use('/api/institutional-login', authLimiter);
 app.use('/api/register', authLimiter);
 
-// Middleware para processar JSON e Cookies
-app.use(express.json());
+// Middleware para processar JSON e Cookies. Fotos do catálogo são aceitas até 2 MB
+// no navegador; o limite considera a expansão do Base64.
+app.use(express.json({ limit: '3mb' }));
 app.use(cookieParser());
 
 app.use((req, res, next) => {
@@ -131,6 +132,17 @@ app.use(express.static(path.join(__dirname, '../frontend'), { index: false }));
 // Rotas da Aplicação
 app.use('/api', apiRoutes);
 app.use('/', pageRoutes);
+
+app.use((error, req, res, next) => {
+    if (error?.type === 'entity.too.large') {
+        return res.status(413).json({
+            success: false,
+            message: 'A foto é muito grande. Envie uma imagem de até 2 MB.'
+        });
+    }
+
+    return next(error);
+});
 
 app.listen(PORT, () => {
     console.log(`Servidor rodando em: http://localhost:${PORT}`);

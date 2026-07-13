@@ -4,10 +4,19 @@ import {
     getProfileSummaryByAuthUserId,
     updateProfileByAuthUserId,
     upsertUserProfile,
-    upsertInstitutionalUserProfile,
-    getAccessLevelLabel
+    upsertInstitutionalUserProfile
 } from '../services/userProfile.js';
-import { createProduct, getAllStatuses } from '../services/productService.js';
+import {
+    ProductConflictError,
+    ProductNotFoundError,
+    ProductValidationError,
+    createProduct,
+    deleteProduct,
+    getAllCategories,
+    getProductById,
+    listProducts,
+    updateProduct
+} from '../services/productService.js';
 import { supabaseAdmin, supabaseAuth } from '../supabase.js';
 import { authenticateInstitutional } from '../services/institutionalAuth.js';
 import { clearSessionCookie, setSessionCookie } from '../services/sessionAuth.js';
@@ -22,6 +31,37 @@ function isEmailConfirmationDisabled() {
     return ['true', '1', 'yes', 'on'].includes(
         (process.env.SUPABASE_DISABLE_EMAIL_CONFIRMATION || '').toLowerCase()
     );
+}
+
+function hasCatalogManagementAccess(level) {
+    return level === 1 || level === 2 || level === 'tecnico' || level === 'adm' || level === 'administrador';
+}
+
+async function getCatalogManagerProfile(req) {
+    const profile = await getProfileSummaryByAuthUserId(req.user.id);
+
+    if (!profile || !hasCatalogManagementAccess(profile.nivel_acesso)) {
+        return null;
+    }
+
+    return profile;
+}
+
+function sendProductError(res, error) {
+    if (error instanceof ProductValidationError) {
+        return res.status(400).json({ success: false, message: error.message });
+    }
+
+    if (error instanceof ProductNotFoundError) {
+        return res.status(404).json({ success: false, message: error.message });
+    }
+
+    if (error instanceof ProductConflictError) {
+        return res.status(409).json({ success: false, message: error.message });
+    }
+
+    console.error('Erro no catálogo:', error);
+    return res.status(500).json({ success: false, message: 'Não foi possível concluir a operação no catálogo.' });
 }
 
 router.get('/test-db', async (req, res) => {
@@ -358,17 +398,14 @@ router.post('/logout', async (req, res) => {
 // Rota: GET /api/produtos (requer sessão)
 router.get('/produtos', verifySessionAuth, async (req, res) => {
     try {
-        const { data, error } = await supabaseAdmin
-            .from('produto')
-            .select('id_produto, nome, descricao_produto, estoque_total, cor, foto_produto')
-            .order('nome', { ascending: true });
+        const managerProfile = await getCatalogManagerProfile(req);
+        const produtos = await listProducts({
+            ...req.query,
+            availableOnly: managerProfile ? req.query.availableOnly : true,
+            includeArchived: managerProfile && req.query.includeArchived === 'true'
+        });
 
-        if (error) {
-            console.error('Erro ao buscar produtos:', error);
-            return res.status(500).json({ success: false, message: error.message || 'Erro ao buscar produtos.' });
-        }
-
-        res.json({ success: true, produtos: data || [] });
+        return res.json({ success: true, produtos, isCatalogManager: Boolean(managerProfile) });
     } catch (error) {
         console.error('Erro na rota /produtos:', error);
         res.status(500).json({ success: false, message: 'Erro interno ao buscar produtos.' });
@@ -376,44 +413,77 @@ router.get('/produtos', verifySessionAuth, async (req, res) => {
 });
 
 router.post('/produtos', verifySessionAuth, async (req, res) => {
-    const { nome, estoque_total, cor, foto_produto, categorias } = req.body;
-
     try {
-        // Verificar se é técnico ou adm
-        const profile = await getProfileSummaryByAuthUserId(req.user.id);
+        const profile = await getCatalogManagerProfile(req);
 
         if (!profile) {
-            return res.status(404).json({ success: false, message: 'Perfil não encontrado.' });
-        }
-
-        const label = getAccessLevelLabel(profile.nivel_acesso);
-
-        if (label === 'Estudante') {
             return res.status(403).json({ success: false, message: 'Acesso negado. Apenas técnicos podem cadastrar itens.' });
         }
 
-        if (!nome || !estoque_total) {
-            return res.status(400).json({ success: false, message: 'Nome e quantidade em estoque são obrigatórios.' });
+        const produto = await createProduct(req.body);
+
+        return res.status(201).json({ success: true, message: 'Item cadastrado com sucesso!', produto });
+    } catch (error) {
+        return sendProductError(res, error);
+    }
+});
+
+router.get('/produtos/:id', verifySessionAuth, async (req, res) => {
+    try {
+        const produto = await getProductById(req.params.id);
+
+        if (!produto) {
+            return res.status(404).json({ success: false, message: 'Item não encontrado.' });
         }
 
-        // Buscar o primeiro status_produto disponível (ex: "Disponível")
-        // Como o sistema está começando, vamos assumir que id_statusproduto = 1 existe ou buscar
-        const statuses = await getAllStatuses();
-        const defaultStatus = statuses[0]?.id_statusproduto || 1;
+        const managerProfile = await getCatalogManagerProfile(req);
+        if (!managerProfile && (produto.status_produto !== 'Disponível' || produto.estoque_total < 1)) {
+            return res.status(404).json({ success: false, message: 'Item não encontrado.' });
+        }
 
-        const produto = await createProduct({
-            nome,
-            estoque_total: parseInt(estoque_total),
-            cor,
-            foto_produto,
-            id_statusproduto: defaultStatus,
-            categorias: categorias || []
-        });
-
-        res.json({ success: true, message: 'Produto cadastrado com sucesso!', produto });
+        return res.json({ success: true, produto });
     } catch (error) {
-        console.error('Erro ao cadastrar produto:', error);
-        res.status(500).json({ success: false, message: 'Erro ao cadastrar produto.' });
+        return sendProductError(res, error);
+    }
+});
+
+router.patch('/produtos/:id', verifySessionAuth, async (req, res) => {
+    try {
+        const profile = await getCatalogManagerProfile(req);
+
+        if (!profile) {
+            return res.status(403).json({ success: false, message: 'Acesso negado. Apenas técnicos e administradores podem alterar itens.' });
+        }
+
+        const produto = await updateProduct(req.params.id, req.body);
+        return res.json({ success: true, message: 'Item atualizado com sucesso!', produto });
+    } catch (error) {
+        return sendProductError(res, error);
+    }
+});
+
+router.delete('/produtos/:id', verifySessionAuth, async (req, res) => {
+    try {
+        const profile = await getCatalogManagerProfile(req);
+
+        if (!profile) {
+            return res.status(403).json({ success: false, message: 'Acesso negado. Apenas técnicos e administradores podem remover itens.' });
+        }
+
+        const produto = await deleteProduct(req.params.id);
+        return res.json({ success: true, message: 'Item removido do catálogo.', produto });
+    } catch (error) {
+        return sendProductError(res, error);
+    }
+});
+
+router.get('/categorias', verifySessionAuth, async (req, res) => {
+    try {
+        const categorias = await getAllCategories();
+        return res.json({ success: true, categorias });
+    } catch (error) {
+        console.error('Erro ao listar categorias:', error);
+        return res.status(500).json({ success: false, message: 'Não foi possível listar as categorias.' });
     }
 });
 

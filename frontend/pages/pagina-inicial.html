@@ -18,7 +18,7 @@
         </div>
 
         <div class="search-bar">
-            <input type="text" placeholder="Pesquisar por cor, tipo, nome...">
+            <input id="catalogSearch" type="search" placeholder="Pesquisar por nome, categoria ou cor..." autocomplete="off">
         </div>
 
         <div class="nav-links">
@@ -63,23 +63,22 @@
         </section>
 
         <section class="inventory-header">
-            <h1>Itens em estoque</h1>
-            <p>Laboratório de Hardware - Campus Frederico Westphalen</p>
+            <div>
+                <h1>Catálogo do laboratório</h1>
+                <p>Itens disponíveis para empréstimo · Campus Frederico Westphalen</p>
+            </div>
+            <label class="catalog-filter" for="catalogCategory">
+                <span>Categoria</span>
+                <select id="catalogCategory">
+                    <option value="">Todas</option>
+                </select>
+            </label>
         </section>
 
         <hr class="divider">
 
-        <section class="grid-items">
-            <div class="card item-card">
-                <div class="item-image" style="background-image: url('imagem/exemplo.png');"></div>
-                <div class="item-info">
-                    <h3>Nome do Item</h3>
-                    <p>Quantidade disponível: 09</p>
-                    <p>Categoria: categoria</p>
-                    <p>Cor: cores</p>
-                    <button class="add-btn">+</button>
-                </div>
-            </div>
+        <section class="grid-items" id="catalogGrid" aria-live="polite">
+            <p class="catalog-empty">Carregando catálogo…</p>
         </section>
     </main>
 
@@ -163,6 +162,7 @@
     </footer>
 
     <script type="module" src="../js/header-avatar.js"></script>
+    <script type="module" src="../js/index.js"></script>
     <script>
         const modal = document.getElementById('modalPedido');
         function openModal() {

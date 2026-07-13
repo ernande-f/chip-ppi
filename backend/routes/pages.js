@@ -9,13 +9,32 @@ const __dirname = path.dirname(__filename);
 
 const router = express.Router();
 
+function hasTechnicalAccess(level) {
+    return level === 1 || level === 2 || level === 'tecnico' || level === 'adm' || level === 'administrador';
+}
+
+async function sendTechnicalPage(req, res, page) {
+    try {
+        const profile = await getProfileByAuthUserId(req.user.id);
+
+        if (!hasTechnicalAccess(profile?.nivel_acesso)) {
+            return res.redirect('/');
+        }
+
+        return res.sendFile(path.join(__dirname, '../../frontend/pages', page));
+    } catch (error) {
+        console.error('Erro ao carregar página técnica:', error);
+        return res.status(500).send('Erro ao carregar a página solicitada');
+    }
+}
+
 // Rota principal (Cai no login / index.html)
 router.get('/', verifySessionAuth, async (req, res) => {
 
     try {
         const user = await getProfileByAuthUserId(req.user.id);
 
-        if (user?.nivel_acesso === 1 || user?.nivel_acesso === 'tecnico' || user?.nivel_acesso === 'adm') {
+        if (hasTechnicalAccess(user?.nivel_acesso)) {
             return res.sendFile(path.join(__dirname, '../../frontend/pages/index-tec.html'));
         }
 
@@ -42,6 +61,16 @@ router.get('/redefinir-senha', (req, res) => {
 router.get('/nova-senha', (req, res) => {
     res.sendFile(path.join(__dirname, '../../frontend/pages/nova-senha.html'));
 });
+
+// Endereços curtos usados pelas telas técnicas. Os arquivos continuam em
+// frontend/pages, mas esses aliases evitam links quebrados na raiz da aplicação.
+router.get('/index-tec.html', verifySessionAuth, (req, res) => sendTechnicalPage(req, res, 'index-tec.html'));
+router.get('/cadastro-item.html', verifySessionAuth, (req, res) => sendTechnicalPage(req, res, 'cadastro-item.html'));
+router.get('/perfil-tec.html', verifySessionAuth, (req, res) => sendTechnicalPage(req, res, 'perfil.html'));
+router.get('/editar-perfil-tec.html', verifySessionAuth, (req, res) => sendTechnicalPage(req, res, 'editar-perfil-tec.html'));
+router.get('/pedidos.html', verifySessionAuth, (req, res) => sendTechnicalPage(req, res, 'pedidos.html'));
+
+// TODO: tem coisa bugada aqui, por exemplo, perfil-tec no momento é só um protótipo da tela, o real mesmo sempre funciona em perfil.html
 
 router.get('/perfil', verifySessionAuth, async (req, res) => {
     try {

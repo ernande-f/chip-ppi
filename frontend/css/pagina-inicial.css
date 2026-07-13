@@ -78,7 +78,9 @@ body {
 .green { color: #2ecc71; }
 .red { color: #e74c3c; }
 
-.inventory-header { display: flex; justify-content: space-between; align-items: baseline; }
+.inventory-header { display: flex; justify-content: space-between; align-items: baseline; gap: 24px; }
+.catalog-filter { display: grid; gap: 5px; color: #76542e; font-size: .78rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+.catalog-filter select { min-width: 180px; border: 1px solid #e2d6c7; border-radius: 8px; background: #fff; color: #3e2a16; padding: 9px 12px; font: inherit; text-transform: none; }
 .divider { border: 0.5px solid var(--border-gray); margin-bottom: 30px; }
 
 /* Grid de Itens */
@@ -86,10 +88,15 @@ body {
 .item-card { display: flex; padding: 0; overflow: hidden; cursor: default; }
 .item-card:hover { transform: none; box-shadow: var(--shadow); }
 
-.item-image { width: 40%; background-size: cover; background-position: center; border-radius: 15px 0 0 15px; background-color: #f4f4f4; }
+.item-image { width: 40%; border-radius: 15px 0 0 15px; background-color: #f4f4f4; overflow: hidden; }
+.item-image img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .item-info { padding: 20px; flex: 1; }
 .item-info h3 { margin: 0; color: var(--primary-orange); }
 .item-info p { font-size: 0.85rem; color: #666; margin: 5px 0; }
+.item-info .desc { min-height: 2.3em; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.catalog-empty { grid-column: 1 / -1; margin: 36px 0; color: #73572f; text-align: center; font-weight: 600; }
+.catalog-error { color: #a12c2c; }
+.add-btn:disabled { cursor: not-allowed; opacity: .5; }
 
 .add-btn { 
     background: var(--primary-orange); border: none; color: white; 
