@@ -23,3 +23,15 @@ SUPABASE_DISABLE_EMAIL_CONFIRMATION=true
 ```
 
 Com isso, a rota `/api/register` cria o usuário já confirmado via Admin API do Supabase, evitando bloqueio por rate limit de email.
+
+## Login institucional
+
+Além do login por e-mail e senha do Supabase, a tela de login oferece autenticação institucional por CPF. O backend encaminha os campos `user`, `pass` e `tipo` (`L` para LDAP e `S` para SIGAA) ao serviço do IFFar; a senha institucional não é salva nem registrada pelo CHIP.
+
+Antes de usar esse fluxo, configure `APP_SESSION_SECRET` no `.env` e aplique a migração:
+
+```bash
+node scripts/apply-migration.mjs supabase/migrations/20260712_000002_add_institutional_auth.sql
+```
+
+Essa migração remove a chave estrangeira para `auth.users`, necessária para que perfis LDAP/SIGAA existam mesmo sem uma conta no Supabase Auth. O serviço institucional deve retornar JSON com um status explícito de sucesso (`success`, `ok` ou `authenticated`).

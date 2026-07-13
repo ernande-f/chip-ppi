@@ -108,6 +108,7 @@
             justify-content: center;
             padding: 0 10%;
             position: relative;
+            overflow-y: auto;
         }
 
         .logo-iffar {
@@ -156,6 +157,85 @@
             cursor: pointer;
             margin-top: 20px;
             margin-bottom: 25px;
+        }
+
+        .auth-separator {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+            margin: 2px 0 14px 14px;
+            color: #777;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .auth-separator::before,
+        .auth-separator::after {
+            content: '';
+            height: 1px;
+            flex: 1;
+            background: #dedede;
+        }
+
+        .btn-institutional {
+            width: 100%;
+            padding: 13px 16px;
+            border-radius: 8px;
+            background: #fff;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color .2s ease, color .2s ease;
+        }
+
+        .btn-institutional:hover,
+        .btn-institutional[aria-expanded="true"] {
+            background: #1f5535;
+            color: #fff;
+        }
+
+        #formInstitutionalLogin {
+            margin-top: 16px;
+            padding: 18px;
+            border: 1px solid #dce7df;
+            border-radius: 8px;
+            background: #f8fbf8;
+        }
+
+        .institutional-helper {
+            margin-bottom: 15px;
+            color: #3c5143;
+            font-size: 12px;
+            line-height: 1.45;
+        }
+
+        .provider-label {
+            display: block;
+            margin: 0 0 7px 2px;
+            color: #3c5143;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        select {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid #cbd8cf;
+            border-radius: 8px;
+            background: #fff;
+            color: #24352b;
+            font-size: 15px;
+        }
+
+        .btn-institutional-submit {
+            width: 100%;
+            margin: 4px 0 0;
+            background: #1f5535;
+            color: #fff;
+            font-size: 16px;
         }
 
         .footer-links {
@@ -226,15 +306,46 @@
 
             <form id="formLogin">
                 <div class="input-group">
-                    <input id="email" type="email" placeholder="Email" required>
+                    <input id="email" type="email" placeholder="E-mail" autocomplete="email" required>
                 </div>
                 <div class="input-group">
-                    <input id="senha" type="password" placeholder="Senha" required>
+                    <input id="senha" type="password" placeholder="Senha" autocomplete="current-password" required>
                 </div>
                 <button type="submit" class="btn-entrar">Entrar</button>
             </form>
 
+            <div class="auth-separator" aria-hidden="true"><span>ou</span></div>
+
+            <button
+                type="button"
+                id="toggleInstitutionalLogin"
+                class="btn-institutional"
+                aria-expanded="false"
+                aria-controls="formInstitutionalLogin"
+            >
+                Entrar com conta institucional
+            </button>
+
+            <form id="formInstitutionalLogin" hidden>
+                <p class="institutional-helper">Use seu CPF e senha do IFFar. Sua senha não é armazenada pelo CHIP.</p>
+                <div class="input-group">
+                    <input id="cpf" type="text" inputmode="numeric" placeholder="CPF" autocomplete="username" required>
+                </div>
+                <div class="input-group">
+                    <input id="senhaInstitucional" type="password" placeholder="Senha institucional" autocomplete="current-password" required>
+                </div>
+                <div class="input-group">
+                    <label class="provider-label" for="tipoInstitucional">Método de autenticação</label>
+                    <select id="tipoInstitucional" required>
+                        <option value="L">LDAP</option>
+                        <option value="S">SIGAA</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-entrar btn-institutional-submit">Entrar com IFFar</button>
+            </form>
+
             <div class="footer-links">
+                <br>
                 Não tem conta? <a href="/register" class="btn-link">Cadastrar-se</a><br>
                 Esqueceu sua senha? <a href="/redefinir-senha" class="btn-link">Redefinir</a>
             </div>

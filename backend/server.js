@@ -6,9 +6,10 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 
 import apiRoutes from './routes/api.js';
-import { verifySupabaseAuth } from './middleware/authSupabase.js';
+import { verifySessionAuth } from './middleware/authSession.js';
 import pageRoutes from './routes/pages.js';
 import { getProfileByAuthUserId } from './services/userProfile.js';
+import { clearSessionCookie } from './services/sessionAuth.js';
 import cookieParser from 'cookie-parser';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -88,6 +89,7 @@ const authLimiter = rateLimit({
     message: { error: 'Muitas tentativas. Aguarde 15 minutos.' }
 });
 app.use('/api/login', authLimiter);
+app.use('/api/institutional-login', authLimiter);
 app.use('/api/register', authLimiter);
 
 // Middleware para processar JSON e Cookies
@@ -103,7 +105,7 @@ app.use((req, res, next) => {
         return next();
     }
 
-    return verifySupabaseAuth(req, res, async () => {
+    return verifySessionAuth(req, res, async () => {
         if (!TECH_ONLY_PAGE_PATHS.has(req.path)) {
             return next();
         }
@@ -135,10 +137,6 @@ app.listen(PORT, () => {
 });
 
 app.get('/logout', (req, res) => {
-    res.clearCookie('authcookie', {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'Strict'
-    });
+    clearSessionCookie(res);
     res.json({ success: true, message: 'Logout bem-sucedido' });
 });

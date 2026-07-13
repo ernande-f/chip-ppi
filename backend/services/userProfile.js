@@ -1,4 +1,5 @@
 import sql from '../db.js';
+import { randomUUID } from 'crypto';
 
 function normalizeEmail(email) {
     return email?.trim().toLowerCase() || null;
@@ -62,6 +63,23 @@ export async function getProfileByEmail(email) {
         SELECT id_usuario, auth_user_id, nome, email, cpf, nivel_acesso, status_conta
         FROM usuario
         WHERE lower(email) = ${normalizedEmail}
+        LIMIT 1
+    `;
+
+    return profile ?? null;
+}
+
+export async function getProfileByCpf(cpf) {
+    const normalizedCpf = normalizeCpf(cpf);
+
+    if (!normalizedCpf) {
+        return null;
+    }
+
+    const [profile] = await sql`
+        SELECT id_usuario, auth_user_id, nome, email, cpf, nivel_acesso, status_conta
+        FROM usuario
+        WHERE cpf = ${normalizedCpf}
         LIMIT 1
     `;
 
@@ -169,6 +187,66 @@ export async function upsertUserProfile({ authUserId, email, name, cpf }) {
     const [createdProfile] = await sql`
         INSERT INTO usuario (auth_user_id, nome, email, cpf, status_conta, nivel_acesso)
         VALUES (${authUserId}, ${normalizedName}, ${normalizedEmail}, ${normalizedCpf}, true, 0)
+        RETURNING id_usuario, auth_user_id, nome, email, cpf, nivel_acesso, status_conta
+    `;
+
+    return createdProfile;
+}
+
+export async function upsertInstitutionalUserProfile({ cpf, type, name, email }) {
+    const normalizedCpf = normalizeCpf(cpf);
+    const normalizedName = normalizeDisplayName(name) || 'Usuário institucional';
+    const normalizedEmail = normalizeEmail(email);
+    const provider = type === 'S' ? 'sigaa' : 'ldap';
+
+    if (!normalizedCpf || normalizedCpf.length !== 11) {
+        throw new Error('CPF institucional inválido.');
+    }
+
+    const existingProfile = await getProfileByCpf(normalizedCpf);
+
+    if (existingProfile) {
+        const authUserId = existingProfile.auth_user_id || randomUUID();
+        const [updatedProfile] = await sql`
+            UPDATE usuario
+            SET
+                auth_user_id = COALESCE(auth_user_id, ${authUserId}),
+                nome = CASE
+                    WHEN nome IS NULL OR nome = '' OR nome = 'Usuário institucional' THEN ${normalizedName}
+                    ELSE nome
+                END,
+                email = COALESCE(email, ${normalizedEmail}),
+                institutional_auth_type = ${type},
+                status_conta = COALESCE(status_conta, true)
+            WHERE id_usuario = ${existingProfile.id_usuario}
+            RETURNING id_usuario, auth_user_id, nome, email, cpf, nivel_acesso, status_conta
+        `;
+
+        return updatedProfile;
+    }
+
+    const authUserId = randomUUID();
+    const [createdProfile] = await sql`
+        INSERT INTO usuario (
+            auth_user_id,
+            nome,
+            email,
+            cpf,
+            status_conta,
+            nivel_acesso,
+            auth_provider,
+            institutional_auth_type
+        )
+        VALUES (
+            ${authUserId},
+            ${normalizedName},
+            ${normalizedEmail},
+            ${normalizedCpf},
+            true,
+            0,
+            ${provider},
+            ${type}
+        )
         RETURNING id_usuario, auth_user_id, nome, email, cpf, nivel_acesso, status_conta
     `;
 

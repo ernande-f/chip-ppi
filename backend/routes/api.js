@@ -1,13 +1,16 @@
 import express from 'express';
-import { verifySupabaseAuth } from '../middleware/authSupabase.js';
+import { verifySessionAuth, verifySessionOrSupabaseAuth } from '../middleware/authSession.js';
 import {
     getProfileSummaryByAuthUserId,
     updateProfileByAuthUserId,
     upsertUserProfile,
+    upsertInstitutionalUserProfile,
     getAccessLevelLabel
 } from '../services/userProfile.js';
 import { createProduct, getAllStatuses } from '../services/productService.js';
 import { supabaseAdmin, supabaseAuth } from '../supabase.js';
+import { authenticateInstitutional } from '../services/institutionalAuth.js';
+import { clearSessionCookie, setSessionCookie } from '../services/sessionAuth.js';
 
 const router = express.Router();
 
@@ -50,18 +53,17 @@ router.post('/login', async (req, res) => {
             return res.status(401).json({ success: false, message: 'Credenciais inválidas' });
         }
 
-        // Armazenar sessão no cookie
-        res.cookie('authcookie', data.session.access_token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'Strict',
-            maxAge: data.session.expires_in * 1000
-        });
-
         const profile = await upsertUserProfile({
             authUserId: data.user.id,
             email: data.user.email,
             name: data.user.user_metadata?.name
+        });
+
+        setSessionCookie(res, {
+            id: data.user.id,
+            email: data.user.email,
+            user_metadata: data.user.user_metadata,
+            auth_provider: 'supabase'
         });
 
         res.json({
@@ -76,6 +78,64 @@ router.post('/login', async (req, res) => {
     } catch (error) {
         console.error('Erro ao fazer login:', error);
         res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+});
+
+router.post('/institutional-login', async (req, res) => {
+    const { cpf, password, type } = req.body;
+
+    try {
+        const institutionalUser = await authenticateInstitutional({ cpf, password, type });
+
+        if (!institutionalUser) {
+            return res.status(401).json({
+                success: false,
+                message: 'CPF, senha ou método institucional inválido.'
+            });
+        }
+
+        const profile = await upsertInstitutionalUserProfile(institutionalUser);
+
+        if (!profile.status_conta) {
+            return res.status(403).json({
+                success: false,
+                message: 'Esta conta está bloqueada. Procure a administração do laboratório.'
+            });
+        }
+
+        const authProvider = institutionalUser.type === 'S' ? 'sigaa' : 'ldap';
+        setSessionCookie(res, {
+            id: profile.auth_user_id,
+            email: profile.email,
+            user_metadata: { name: profile.nome },
+            auth_provider: authProvider
+        });
+
+        return res.json({
+            success: true,
+            user: {
+                id: profile.auth_user_id,
+                email: profile.email,
+                user_metadata: { name: profile.nome },
+                auth_provider: authProvider
+            },
+            profile
+        });
+    } catch (error) {
+        const isValidationError = [
+            'Informe um CPF válido.',
+            'Informe a senha institucional.',
+            'Selecione LDAP ou SIGAA.'
+        ].includes(error.message);
+
+        if (!isValidationError) {
+            console.error('Erro no login institucional:', error.message);
+        }
+
+        return res.status(isValidationError ? 400 : 503).json({
+            success: false,
+            message: error.message || 'Não foi possível concluir o login institucional.'
+        });
     }
 });
 
@@ -169,13 +229,13 @@ router.get('/status', (req, res) => {
     res.json({ message: 'API do CHIP-PPI está funcionando!' });
 });
 
-router.get('/session', verifySupabaseAuth, async (req, res) => {
+router.get('/session', verifySessionAuth, async (req, res) => {
     try {
-        const profile = await upsertUserProfile({
-            authUserId: req.user.id,
-            email: req.user.email,
-            name: req.user.user_metadata?.name
-        });
+        const profile = await getProfileSummaryByAuthUserId(req.user.id);
+
+        if (!profile) {
+            return res.status(404).json({ success: false, message: 'Perfil não encontrado.' });
+        }
 
         res.json({
             success: true,
@@ -188,7 +248,7 @@ router.get('/session', verifySupabaseAuth, async (req, res) => {
     }
 });
 
-router.get('/profile', verifySupabaseAuth, async (req, res) => {
+router.get('/profile', verifySessionAuth, async (req, res) => {
     try {
         const profile = await getProfileSummaryByAuthUserId(req.user.id);
 
@@ -206,13 +266,13 @@ router.get('/profile', verifySupabaseAuth, async (req, res) => {
     }
 });
 
-router.patch('/profile', verifySupabaseAuth, async (req, res) => {
+router.patch('/profile', verifySessionAuth, async (req, res) => {
     const { name } = req.body;
 
     try {
         const normalizedName = name?.trim();
 
-        if (normalizedName) {
+        if (normalizedName && req.user.auth_provider === 'supabase') {
             const { error: authUpdateError } = await supabaseAdmin.auth.admin.updateUserById(req.user.id, {
                 user_metadata: {
                     ...(req.user.user_metadata || {}),
@@ -253,11 +313,18 @@ router.patch('/profile', verifySupabaseAuth, async (req, res) => {
     }
 });
 
-router.post('/update-password', verifySupabaseAuth, async (req, res) => {
+router.post('/update-password', verifySessionOrSupabaseAuth, async (req, res) => {
     const { password } = req.body;
 
     if (!password || password.length < 8) {
         return res.status(400).json({ success: false, message: 'A senha deve ter pelo menos 8 caracteres.' });
+    }
+
+    if (req.user.auth_provider !== 'supabase') {
+        return res.status(400).json({
+            success: false,
+            message: 'A senha da conta institucional deve ser alterada nos sistemas do IFFar.'
+        });
     }
 
     try {
@@ -279,11 +346,7 @@ router.post('/update-password', verifySupabaseAuth, async (req, res) => {
 
 router.post('/logout', async (req, res) => {
     try {
-        res.clearCookie('authcookie', {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'Strict'
-        });
+        clearSessionCookie(res);
         res.json({ success: true, message: 'Desconectado com sucesso' });
     } catch (error) {
         console.error('Erro ao fazer logout:', error);
@@ -293,7 +356,7 @@ router.post('/logout', async (req, res) => {
 
 
 // Rota: GET /api/produtos (requer sessão)
-router.get('/produtos', verifySupabaseAuth, async (req, res) => {
+router.get('/produtos', verifySessionAuth, async (req, res) => {
     try {
         const { data, error } = await supabaseAdmin
             .from('produto')
@@ -312,7 +375,7 @@ router.get('/produtos', verifySupabaseAuth, async (req, res) => {
     }
 });
 
-router.post('/produtos', verifySupabaseAuth, async (req, res) => {
+router.post('/produtos', verifySessionAuth, async (req, res) => {
     const { nome, estoque_total, cor, foto_produto, categorias } = req.body;
 
     try {

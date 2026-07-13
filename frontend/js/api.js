@@ -99,6 +99,13 @@ export async function login(payload) {
     });
 }
 
+export async function institutionalLogin(payload) {
+    return apiRequest('/api/institutional-login', {
+        method: 'POST',
+        body: payload
+    });
+}
+
 export async function register(payload) {
     return apiRequest('/api/register', {
         method: 'POST',

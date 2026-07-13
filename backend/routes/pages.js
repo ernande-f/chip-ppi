@@ -1,7 +1,7 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { verifySupabaseAuth } from '../middleware/authSupabase.js';
+import { verifySessionAuth } from '../middleware/authSession.js';
 import { getProfileByAuthUserId } from '../services/userProfile.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -10,7 +10,7 @@ const __dirname = path.dirname(__filename);
 const router = express.Router();
 
 // Rota principal (Cai no login / index.html)
-router.get('/', verifySupabaseAuth, async (req, res) => {
+router.get('/', verifySessionAuth, async (req, res) => {
 
     try {
         const user = await getProfileByAuthUserId(req.user.id);
@@ -43,7 +43,7 @@ router.get('/nova-senha', (req, res) => {
     res.sendFile(path.join(__dirname, '../../frontend/pages/nova-senha.html'));
 });
 
-router.get('/perfil', verifySupabaseAuth, async (req, res) => {
+router.get('/perfil', verifySessionAuth, async (req, res) => {
     try {
         return res.sendFile(path.join(__dirname, '../../frontend/pages/perfil.html'));
     } catch (error) {
@@ -52,7 +52,7 @@ router.get('/perfil', verifySupabaseAuth, async (req, res) => {
     }
 });
 
-router.get('/editar-perfil', verifySupabaseAuth, async (req, res) => {
+router.get('/editar-perfil', verifySessionAuth, async (req, res) => {
     try {
         return res.sendFile(path.join(__dirname, '../../frontend/pages/editar-perfil.html'));
     } catch (error) {
@@ -61,7 +61,7 @@ router.get('/editar-perfil', verifySupabaseAuth, async (req, res) => {
     }
 });
 
-router.get('/pedidos', verifySupabaseAuth, async (req, res) => {
+router.get('/pedidos', verifySessionAuth, async (req, res) => {
     try {
         return res.redirect('/pages/seus-pedidos.html');
     } catch (error) {
@@ -70,7 +70,7 @@ router.get('/pedidos', verifySupabaseAuth, async (req, res) => {
     }
 });
 
-router.get('/pesquisa', verifySupabaseAuth, async (req, res) => {
+router.get('/pesquisa', verifySessionAuth, async (req, res) => {
     try {
         return res.redirect('/pages/pesquisa.html');
     } catch (error) {

@@ -41,10 +41,13 @@ create table if not exists notificacao (
 -- Usuários do sistema
 create table if not exists usuario (
   id_usuario bigint generated always as identity primary key,
-  auth_user_id uuid unique references auth.users(id) on delete cascade,
+  -- Também é usado por contas LDAP/SIGAA; por isso não referencia auth.users.
+  auth_user_id uuid unique,
   nome varchar(60) not null,
   cpf text unique,
-  email varchar(60) not null unique,
+  email varchar(60) unique,
+  auth_provider varchar(20) not null default 'supabase',
+  institutional_auth_type varchar(1) check (institutional_auth_type is null or institutional_auth_type in ('L', 'S')),
   senha varchar(80),
   status_conta boolean not null default true,
   motivo_bloqueio text,
