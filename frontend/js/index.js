@@ -1,4 +1,11 @@
-import { getCategorias, getInitials, getProdutos, getSession } from './api.js';
+import {
+    addItemCarrinho,
+    getCategorias,
+    getInitials,
+    getPedidos,
+    getProdutos,
+    getSession
+} from './api.js';
 
 const FALLBACK_IMAGE = '../assets/electronic_components_1_1774913851066.png';
 
@@ -37,9 +44,23 @@ function createProductCard(product) {
     const addButton = document.createElement('button');
     addButton.className = 'add-btn';
     addButton.type = 'button';
-    addButton.disabled = true;
-    addButton.title = 'O carrinho será disponibilizado no próximo módulo.';
+    addButton.title = 'Adicionar ao carrinho';
     addButton.textContent = '+';
+    addButton.addEventListener('click', async () => {
+        addButton.disabled = true;
+
+        try {
+            await addItemCarrinho(product.id_produto, 1);
+            addButton.textContent = '✓';
+            setTimeout(() => {
+                addButton.textContent = '+';
+            }, 1200);
+        } catch (error) {
+            alert(error.message || 'Não foi possível adicionar o item ao carrinho.');
+        } finally {
+            addButton.disabled = false;
+        }
+    });
     info.appendChild(addButton);
 
     card.append(image, info);
@@ -60,10 +81,45 @@ function renderProducts(grid, products) {
     products.forEach((product) => grid.appendChild(createProductCard(product)));
 }
 
+function getStatusClass(status) {
+    if (status === 'Pendente') return 'yellow';
+    if (status === 'Negado' || status === 'Cancelado') return 'red';
+    return 'green';
+}
+
+function renderRecentOrders(container, orders) {
+    container.replaceChildren();
+
+    if (orders.length === 0) {
+        const empty = document.createElement('p');
+        empty.className = 'catalog-empty';
+        empty.textContent = 'Você ainda não fez nenhum pedido.';
+        container.appendChild(empty);
+        return;
+    }
+
+    orders.slice(0, 3).forEach((order) => {
+        const card = document.createElement('a');
+        card.className = 'card order-card';
+        card.href = '/pedidos';
+
+        const identifier = document.createElement('span');
+        identifier.className = 'order-id';
+        identifier.textContent = `Pedido #${order.id_pedido}`;
+
+        const status = document.createElement('span');
+        status.className = `status ${getStatusClass(order.status)}`;
+        status.textContent = order.status;
+        card.append(identifier, status);
+        container.appendChild(card);
+    });
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
     const searchInput = document.getElementById('catalogSearch');
     const categorySelect = document.getElementById('catalogCategory');
     const grid = document.getElementById('catalogGrid');
+    const recentOrders = document.getElementById('recentOrders');
     const headerAvatar = document.getElementById('headerAvatar');
     let debounce;
 
@@ -85,6 +141,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
+    async function loadRecentOrders() {
+        try {
+            renderRecentOrders(recentOrders, await getPedidos());
+        } catch (error) {
+            console.error('Erro ao carregar pedidos recentes:', error);
+            recentOrders.replaceChildren();
+            const message = document.createElement('p');
+            message.className = 'catalog-empty catalog-error';
+            message.textContent = 'Não foi possível carregar os pedidos recentes.';
+            recentOrders.appendChild(message);
+        }
+    }
+
     try {
         const [{ profile, user }, categories] = await Promise.all([getSession(), getCategorias()]);
         headerAvatar.textContent = getInitials(profile?.nome || user?.user_metadata?.name || user?.email);
@@ -96,7 +165,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             categorySelect.appendChild(option);
         });
 
-        await loadCatalog();
+        await Promise.all([loadCatalog(), loadRecentOrders()]);
     } catch (error) {
         console.error('Erro ao preparar catálogo:', error);
         window.location.href = '/login';

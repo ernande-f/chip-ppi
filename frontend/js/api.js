@@ -56,6 +56,64 @@ export async function deleteProduto(id) {
     });
 }
 
+export async function getCarrinho() {
+    const data = await apiRequest('/api/carrinho');
+    return data.itens || [];
+}
+
+export async function addItemCarrinho(productId, quantity = 1) {
+    return apiRequest('/api/carrinho/itens', {
+        method: 'POST',
+        body: { productId, quantity }
+    });
+}
+
+export async function updateItemCarrinho(productId, quantity) {
+    return apiRequest(`/api/carrinho/itens/${encodeURIComponent(productId)}`, {
+        method: 'PATCH',
+        body: { quantity }
+    });
+}
+
+export async function removeItemCarrinho(productId) {
+    return apiRequest(`/api/carrinho/itens/${encodeURIComponent(productId)}`, {
+        method: 'DELETE'
+    });
+}
+
+export async function checkoutCarrinho(durationDays, acceptedTerms) {
+    return apiRequest('/api/pedidos', {
+        method: 'POST',
+        body: { durationDays, acceptedTerms }
+    });
+}
+
+export async function getPedidos() {
+    const data = await apiRequest('/api/pedidos');
+    return data.pedidos || [];
+}
+
+export async function cancelPedido(id) {
+    return apiRequest(`/api/pedidos/${encodeURIComponent(id)}/cancelar`, {
+        method: 'POST'
+    });
+}
+
+export async function getPedidosGestao(status = '') {
+    const params = new URLSearchParams();
+    if (status) params.set('status', status);
+    const suffix = params.size > 0 ? `?${params.toString()}` : '';
+    const data = await apiRequest(`/api/gestao/pedidos${suffix}`);
+    return data.pedidos || [];
+}
+
+export async function transitionPedido(id, action, reason = null) {
+    return apiRequest(`/api/gestao/pedidos/${encodeURIComponent(id)}`, {
+        method: 'PATCH',
+        body: { action, reason }
+    });
+}
+
 export async function apiRequest(url, options = {}) {
     const config = {
         credentials: 'same-origin',
@@ -102,16 +160,27 @@ export function getInitials(name) {
 
 export function formatDate(dateString) {
     if (!dateString) {
-        return 'Nao informado';
+        return 'Não informado';
     }
 
-    return new Intl.DateTimeFormat('pt-BR').format(new Date(`${dateString}T00:00:00`));
+    const dateParts = typeof dateString === 'string'
+        ? dateString.match(/^(\d{4})-(\d{2})-(\d{2})(?:T|$)/)
+        : null;
+    const date = dateParts
+        ? new Date(Number(dateParts[1]), Number(dateParts[2]) - 1, Number(dateParts[3]))
+        : new Date(dateString);
+
+    if (Number.isNaN(date.getTime())) {
+        return 'Data inválida';
+    }
+
+    return new Intl.DateTimeFormat('pt-BR').format(date);
 }
 
 export function getStatusClass(status) {
     const normalizedStatus = (status || '').toLowerCase();
 
-    if (normalizedStatus.includes('neg')) {
+    if (normalizedStatus.includes('neg') || normalizedStatus.includes('cancel')) {
         return 'status-negado';
     }
 

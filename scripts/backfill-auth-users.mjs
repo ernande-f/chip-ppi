@@ -3,7 +3,7 @@ import postgres from 'postgres';
 import 'dotenv/config';
 import { supabaseAdmin } from '../backend/supabase.js';
 
-const sql = postgres(process.env.DATABASE_URL_POOLER, { max: 1 });
+const sql = postgres(process.env.DATABASE_URL_POOLER, { max: 1, prepare: false });
 
 function generateTemporaryPassword() {
     return crypto.randomBytes(24).toString('base64url');

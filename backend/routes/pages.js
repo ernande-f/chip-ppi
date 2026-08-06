@@ -2,7 +2,6 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { verifySessionAuth } from '../middleware/authSession.js';
-import { getProfileByAuthUserId } from '../services/userProfile.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -15,9 +14,7 @@ function hasTechnicalAccess(level) {
 
 async function sendTechnicalPage(req, res, page) {
     try {
-        const profile = await getProfileByAuthUserId(req.user.id);
-
-        if (!hasTechnicalAccess(profile?.nivel_acesso)) {
+        if (!hasTechnicalAccess(req.profile?.nivel_acesso)) {
             return res.redirect('/');
         }
 
@@ -32,7 +29,7 @@ async function sendTechnicalPage(req, res, page) {
 router.get('/', verifySessionAuth, async (req, res) => {
 
     try {
-        const user = await getProfileByAuthUserId(req.user.id);
+        const user = req.profile;
 
         if (hasTechnicalAccess(user?.nivel_acesso)) {
             return res.sendFile(path.join(__dirname, '../../frontend/pages/index-tec.html'));
@@ -67,10 +64,8 @@ router.get('/nova-senha', (req, res) => {
 router.get('/index-tec.html', verifySessionAuth, (req, res) => sendTechnicalPage(req, res, 'index-tec.html'));
 router.get('/cadastro-item.html', verifySessionAuth, (req, res) => sendTechnicalPage(req, res, 'cadastro-item.html'));
 router.get('/perfil-tec.html', verifySessionAuth, (req, res) => sendTechnicalPage(req, res, 'perfil.html'));
-router.get('/editar-perfil-tec.html', verifySessionAuth, (req, res) => sendTechnicalPage(req, res, 'editar-perfil-tec.html'));
+router.get('/editar-perfil-tec.html', verifySessionAuth, (req, res) => sendTechnicalPage(req, res, 'editar-perfil.html'));
 router.get('/pedidos.html', verifySessionAuth, (req, res) => sendTechnicalPage(req, res, 'pedidos.html'));
-
-// TODO: tem coisa bugada aqui, por exemplo, perfil-tec no momento é só um protótipo da tela, o real mesmo sempre funciona em perfil.html
 
 router.get('/perfil', verifySessionAuth, async (req, res) => {
     try {

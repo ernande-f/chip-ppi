@@ -8,8 +8,6 @@ import rateLimit from 'express-rate-limit';
 import apiRoutes from './routes/api.js';
 import { verifySessionAuth } from './middleware/authSession.js';
 import pageRoutes from './routes/pages.js';
-import { getProfileByAuthUserId } from './services/userProfile.js';
-import { clearSessionCookie } from './services/sessionAuth.js';
 import cookieParser from 'cookie-parser';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -17,6 +15,14 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+function getPositiveIntegerEnv(name, fallback) {
+    const value = Number.parseInt(process.env[name], 10);
+    return Number.isInteger(value) && value > 0 ? value : fallback;
+}
+
+const GLOBAL_RATE_LIMIT_MAX = getPositiveIntegerEnv('GLOBAL_RATE_LIMIT_MAX', 500);
+const AUTH_RATE_LIMIT_MAX = getPositiveIntegerEnv('AUTH_RATE_LIMIT_MAX', 20);
 const PUBLIC_PAGE_PATHS = new Set([
     '/login',
     '/register',
@@ -59,16 +65,26 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 // --- Segurança: Proteção CSRF via verificação de Origin ---
-const ALLOWED_ORIGINS = [
+const ALLOWED_ORIGINS = new Set([
     `http://localhost:${PORT}`,
     `http://127.0.0.1:${PORT}`,
     process.env.APP_URL // ex: https://chip-ppi.vercel.app
-].filter(Boolean);
+]
+    .filter(Boolean)
+    .map((value) => new URL(value).origin));
+
+function isAllowedRequestSource(source) {
+    try {
+        return ALLOWED_ORIGINS.has(new URL(source).origin);
+    } catch {
+        return false;
+    }
+}
 
 app.use((req, res, next) => {
     if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(req.method)) {
         const origin = req.headers['origin'] || req.headers['referer'];
-        if (!origin || !ALLOWED_ORIGINS.some(allowed => origin.startsWith(allowed))) {
+        if (!origin || !isAllowedRequestSource(origin)) {
             return res.status(403).json({ error: 'Requisição bloqueada (CSRF)' });
         }
     }
@@ -78,14 +94,14 @@ app.use((req, res, next) => {
 // --- Segurança: Rate Limiting global ---
 app.use(rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutos
-    max: 100,
+    max: GLOBAL_RATE_LIMIT_MAX,
     message: { error: 'Muitas requisições. Tente novamente em 15 minutos.' }
 }));
 
 // --- Segurança: Rate Limiting mais restritivo para autenticação ---
 const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 5,
+    max: AUTH_RATE_LIMIT_MAX,
     message: { error: 'Muitas tentativas. Aguarde 15 minutos.' }
 });
 app.use('/api/login', authLimiter);
@@ -111,20 +127,18 @@ app.use((req, res, next) => {
             return next();
         }
 
-        try {
-            const profile = await getProfileByAuthUserId(req.user.id);
-
-            if (!hasPrivilegedAccess(profile?.nivel_acesso)) {
-                return res.redirect('/');
-            }
-
-            return next();
-        } catch (error) {
-            console.error('Erro ao validar acesso da página:', error);
-            return res.status(500).send('Erro ao validar permissões de acesso');
+        if (!hasPrivilegedAccess(req.profile?.nivel_acesso)) {
+            return res.redirect('/');
         }
+
+        return next();
     });
 });
+
+// Redireciona protótipos antigos antes que o middleware estático os sirva.
+app.get('/index.html', (req, res) => res.redirect('/'));
+app.get('/pages/perfil-tec.html', (req, res) => res.redirect('/perfil-tec.html'));
+app.get('/pages/editar-perfil-tec.html', (req, res) => res.redirect('/editar-perfil-tec.html'));
 
 // Serve os arquivos estáticos da pasta "frontend"
 app.use(express.static(path.join(__dirname, '../frontend'), { index: false }));
@@ -146,9 +160,4 @@ app.use((error, req, res, next) => {
 
 app.listen(PORT, () => {
     console.log(`Servidor rodando em: http://localhost:${PORT}`);
-});
-
-app.get('/logout', (req, res) => {
-    clearSessionCookie(res);
-    res.json({ success: true, message: 'Logout bem-sucedido' });
 });

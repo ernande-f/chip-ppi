@@ -16,8 +16,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const newPassword = newPasswordInput.value;
         const confirmPassword = confirmPasswordInput.value;
 
-        if (!newPassword || newPassword.length < 8) {
-            alert('A nova senha precisa ter pelo menos 8 caracteres.');
+        if (!newPassword) {
+            alert('Informe a nova senha.');
             return;
         }
 
@@ -27,13 +27,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const recoveryToken = getRecoveryAccessToken();
-        const headers = {
-            'Content-Type': 'application/json'
-        };
 
-        if (recoveryToken) {
-            headers.Authorization = `Bearer ${recoveryToken}`;
+        if (!recoveryToken) {
+            alert('Este link de recuperação é inválido ou expirou. Solicite um novo link.');
+            return;
         }
+
+        const headers = {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${recoveryToken}`
+        };
 
         try {
             await updatePassword(newPassword, headers);

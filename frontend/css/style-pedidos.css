@@ -283,6 +283,27 @@ body {
 
 .disclaimer { font-size: 0.75rem; color: #999; line-height: 1.4; }
 
+.terms-row {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    text-align: left;
+    font-size: 0.85rem;
+    margin-bottom: 18px;
+}
+
+.finish-btn:disabled,
+.quantity-control button:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.empty-state {
+    color: #777;
+    padding: 28px;
+    text-align: center;
+}
+
 
 
 /* --- SEÇÃO: PEDIDOS EM ANDAMENTO --- */
@@ -294,6 +315,7 @@ body {
 .ongoing-grid { 
     display: flex; 
     gap: 30px; /* Um pouco mais de espaço entre eles */
+    flex-wrap: wrap;
 }
 
 button.ongoing-card { 
@@ -595,6 +617,25 @@ button.ongoing-card:hover {
     box-shadow: none; 
     margin-bottom: 20px;
     border: 1px solid #eee;
+}
+
+button.history-card {
+    width: 100%;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.history-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 24px;
 }
 
 /* O restante do código permanece igual */

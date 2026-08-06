@@ -13,6 +13,14 @@ document.addEventListener('DOMContentLoaded', function() {
     // Verifica se o botão existe para não dar erro
     if (btnAvancar) {
         btnAvancar.addEventListener('click', function() {
+            const invalidInput = [...passo1.querySelectorAll('input')]
+                .find((input) => !input.checkValidity());
+
+            if (invalidInput) {
+                invalidInput.reportValidity();
+                return;
+            }
+
             // Esconde a parte 1 e mostra a parte 2
             passo1.style.display = 'none';
             passo2.style.display = 'block';

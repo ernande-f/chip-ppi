@@ -1,5 +1,11 @@
-import { verifySessionToken } from '../services/sessionAuth.js';
+import {
+    clearSessionCookie,
+    getPasswordUpdateCredential,
+    verifySessionToken
+} from '../services/sessionAuth.js';
 import { supabaseAdmin } from '../supabase.js';
+import { getProfileByAuthUserId } from '../services/userProfile.js';
+import { AccountAccessError, assertAccountIsActive } from '../services/accountValidation.js';
 
 function handleUnauthorized(req, res, message) {
     const acceptsHtml = req.method === 'GET' && !req.originalUrl.startsWith('/api/');
@@ -11,7 +17,23 @@ function handleUnauthorized(req, res, message) {
     return res.status(401).json({ success: false, message });
 }
 
-export function verifySessionAuth(req, res, next) {
+function handleForbidden(req, res, message) {
+    clearSessionCookie(res);
+    const acceptsHtml = req.method === 'GET' && !req.originalUrl.startsWith('/api/');
+
+    if (acceptsHtml) {
+        return res.redirect('/login');
+    }
+
+    return res.status(403).json({ success: false, message });
+}
+
+async function attachActiveProfile(req) {
+    req.profile = await getProfileByAuthUserId(req.user.id);
+    assertAccountIsActive(req.profile);
+}
+
+export async function verifySessionAuth(req, res, next) {
     try {
         const token = req.cookies.authcookie || req.headers.authorization?.split(' ')[1];
 
@@ -20,8 +42,13 @@ export function verifySessionAuth(req, res, next) {
         }
 
         req.user = verifySessionToken(token);
+        await attachActiveProfile(req);
         return next();
     } catch (error) {
+        if (error instanceof AccountAccessError) {
+            return handleForbidden(req, res, error.message);
+        }
+
         if (error.name === 'TokenExpiredError' || error.name === 'JsonWebTokenError') {
             return handleUnauthorized(req, res, 'Sua sessão expirou. Entre novamente.');
         }
@@ -35,18 +62,15 @@ export function verifySessionAuth(req, res, next) {
 // Esta exceção mantém a recuperação das contas locais durante a transição para
 // a sessão do CHIP; as demais rotas aceitam somente a sessão assinada pelo CHIP.
 export async function verifySessionOrSupabaseAuth(req, res, next) {
-    const token = req.cookies.authcookie || req.headers.authorization?.split(' ')[1];
+    const credential = getPasswordUpdateCredential(req);
 
-    if (!token) {
+    if (!credential) {
         return handleUnauthorized(req, res, 'Sessão não fornecida.');
     }
 
     try {
-        req.user = verifySessionToken(token);
-        return next();
-    } catch (sessionError) {
-        try {
-            const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
+        if (credential.kind === 'supabase-recovery') {
+            const { data: { user }, error } = await supabaseAdmin.auth.getUser(credential.token);
 
             if (error || !user) {
                 return handleUnauthorized(req, res, 'Sessão inválida ou expirada.');
@@ -58,10 +82,23 @@ export async function verifySessionOrSupabaseAuth(req, res, next) {
                 user_metadata: user.user_metadata || {},
                 auth_provider: 'supabase'
             };
-            return next();
-        } catch (error) {
-            console.error('Erro ao validar token de recuperação:', error);
-            return res.status(500).json({ error: 'Erro interno do servidor' });
+            req.isPasswordRecovery = true;
+        } else {
+            req.user = verifySessionToken(credential.token);
         }
+
+        await attachActiveProfile(req);
+        return next();
+    } catch (error) {
+        if (error instanceof AccountAccessError) {
+            return handleForbidden(req, res, error.message);
+        }
+
+        if (error.name === 'TokenExpiredError' || error.name === 'JsonWebTokenError') {
+            return handleUnauthorized(req, res, 'Sua sessão expirou. Entre novamente.');
+        }
+
+        console.error('Erro ao validar token de recuperação:', error);
+        return res.status(500).json({ error: 'Erro interno do servidor' });
     }
 }

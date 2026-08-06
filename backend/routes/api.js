@@ -20,6 +20,27 @@ import {
 import { supabaseAdmin, supabaseAuth } from '../supabase.js';
 import { authenticateInstitutional } from '../services/institutionalAuth.js';
 import { clearSessionCookie, setSessionCookie } from '../services/sessionAuth.js';
+import {
+    AccountAccessError,
+    assertAccountIsActive,
+    isInstitutionalEmail,
+    isValidCpf,
+    validatePassword
+} from '../services/accountValidation.js';
+import {
+    OrderConflictError,
+    OrderNotFoundError,
+    addCartItem,
+    cancelUserOrder,
+    checkoutCart,
+    getCart,
+    listManagedOrders,
+    listUserOrders,
+    removeCartItem,
+    transitionOrder,
+    updateCartItem
+} from '../services/orderService.js';
+import { OrderValidationError } from '../services/orderRules.js';
 
 const router = express.Router();
 
@@ -38,13 +59,11 @@ function hasCatalogManagementAccess(level) {
 }
 
 async function getCatalogManagerProfile(req) {
-    const profile = await getProfileSummaryByAuthUserId(req.user.id);
-
-    if (!profile || !hasCatalogManagementAccess(profile.nivel_acesso)) {
+    if (!hasCatalogManagementAccess(req.profile?.nivel_acesso)) {
         return null;
     }
 
-    return profile;
+    return req.profile;
 }
 
 function sendProductError(res, error) {
@@ -62,6 +81,23 @@ function sendProductError(res, error) {
 
     console.error('Erro no catálogo:', error);
     return res.status(500).json({ success: false, message: 'Não foi possível concluir a operação no catálogo.' });
+}
+
+function sendOrderError(res, error) {
+    if (error instanceof OrderValidationError) {
+        return res.status(400).json({ success: false, message: error.message });
+    }
+
+    if (error instanceof OrderNotFoundError) {
+        return res.status(404).json({ success: false, message: error.message });
+    }
+
+    if (error instanceof OrderConflictError) {
+        return res.status(409).json({ success: false, message: error.message });
+    }
+
+    console.error('Erro no fluxo de pedidos:', error);
+    return res.status(500).json({ success: false, message: 'Não foi possível concluir a operação do pedido.' });
 }
 
 router.get('/test-db', async (req, res) => {
@@ -82,6 +118,10 @@ router.post('/login', async (req, res) => {
         return res.status(400).json({ success: false, message: 'Email e senha são obrigatórios' });
     }
 
+    if (!isInstitutionalEmail(email)) {
+        return res.status(401).json({ success: false, message: 'Credenciais inválidas' });
+    }
+
     try {
         const { data, error } = await supabaseAuth.auth.signInWithPassword({
             email,
@@ -98,6 +138,8 @@ router.post('/login', async (req, res) => {
             email: data.user.email,
             name: data.user.user_metadata?.name
         });
+
+        assertAccountIsActive(profile);
 
         setSessionCookie(res, {
             id: data.user.id,
@@ -116,6 +158,11 @@ router.post('/login', async (req, res) => {
             } 
         });
     } catch (error) {
+        if (error instanceof AccountAccessError) {
+            clearSessionCookie(res);
+            return res.status(403).json({ success: false, message: error.message });
+        }
+
         console.error('Erro ao fazer login:', error);
         res.status(500).json({ error: 'Erro interno do servidor' });
     }
@@ -136,12 +183,7 @@ router.post('/institutional-login', async (req, res) => {
 
         const profile = await upsertInstitutionalUserProfile(institutionalUser);
 
-        if (!profile.status_conta) {
-            return res.status(403).json({
-                success: false,
-                message: 'Esta conta está bloqueada. Procure a administração do laboratório.'
-            });
-        }
+        assertAccountIsActive(profile);
 
         const authProvider = institutionalUser.type === 'S' ? 'sigaa' : 'ldap';
         setSessionCookie(res, {
@@ -162,6 +204,11 @@ router.post('/institutional-login', async (req, res) => {
             profile
         });
     } catch (error) {
+        if (error instanceof AccountAccessError) {
+            clearSessionCookie(res);
+            return res.status(403).json({ success: false, message: error.message });
+        }
+
         const isValidationError = [
             'Informe um CPF válido.',
             'Informe a senha institucional.',
@@ -184,6 +231,20 @@ router.post('/register', async (req, res) => {
 
     if (!name || !email || !cpf || !password) {
         return res.status(400).json({ success: false, message: 'Todos os campos são obrigatórios' });
+    }
+
+    if (!isInstitutionalEmail(email)) {
+        return res.status(400).json({ success: false, message: 'Informe um e-mail institucional válido.' });
+    }
+
+    if (!isValidCpf(cpf)) {
+        return res.status(400).json({ success: false, message: 'Informe um CPF válido.' });
+    }
+
+    try {
+        validatePassword(password);
+    } catch (error) {
+        return res.status(400).json({ success: false, message: error.message });
     }
 
     try {
@@ -356,8 +417,10 @@ router.patch('/profile', verifySessionAuth, async (req, res) => {
 router.post('/update-password', verifySessionOrSupabaseAuth, async (req, res) => {
     const { password } = req.body;
 
-    if (!password || password.length < 8) {
-        return res.status(400).json({ success: false, message: 'A senha deve ter pelo menos 8 caracteres.' });
+    try {
+        validatePassword(password);
+    } catch (error) {
+        return res.status(400).json({ success: false, message: error.message });
     }
 
     if (req.user.auth_provider !== 'supabase') {
@@ -377,6 +440,10 @@ router.post('/update-password', verifySessionOrSupabaseAuth, async (req, res) =>
             return res.status(400).json({ success: false, message: error.message });
         }
 
+        if (req.isPasswordRecovery) {
+            clearSessionCookie(res);
+        }
+
         res.json({ success: true, message: 'Senha atualizada com sucesso.' });
     } catch (error) {
         console.error('Erro ao atualizar senha:', error);
@@ -391,6 +458,103 @@ router.post('/logout', async (req, res) => {
     } catch (error) {
         console.error('Erro ao fazer logout:', error);
         res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+});
+
+router.get('/carrinho', verifySessionAuth, async (req, res) => {
+    try {
+        const itens = await getCart(req.profile.id_usuario);
+        return res.json({ success: true, itens });
+    } catch (error) {
+        return sendOrderError(res, error);
+    }
+});
+
+router.post('/carrinho/itens', verifySessionAuth, async (req, res) => {
+    try {
+        const item = await addCartItem(req.profile.id_usuario, req.body.productId, req.body.quantity ?? 1);
+        return res.status(201).json({ success: true, message: 'Item adicionado ao carrinho.', item });
+    } catch (error) {
+        return sendOrderError(res, error);
+    }
+});
+
+router.patch('/carrinho/itens/:productId', verifySessionAuth, async (req, res) => {
+    try {
+        const item = await updateCartItem(req.profile.id_usuario, req.params.productId, req.body.quantity);
+        return res.json({ success: true, message: 'Quantidade atualizada.', item });
+    } catch (error) {
+        return sendOrderError(res, error);
+    }
+});
+
+router.delete('/carrinho/itens/:productId', verifySessionAuth, async (req, res) => {
+    try {
+        const item = await removeCartItem(req.profile.id_usuario, req.params.productId);
+        return res.json({ success: true, message: 'Item removido do carrinho.', item });
+    } catch (error) {
+        return sendOrderError(res, error);
+    }
+});
+
+router.get('/pedidos', verifySessionAuth, async (req, res) => {
+    try {
+        const pedidos = await listUserOrders(req.profile.id_usuario);
+        return res.json({ success: true, pedidos });
+    } catch (error) {
+        return sendOrderError(res, error);
+    }
+});
+
+router.post('/pedidos', verifySessionAuth, async (req, res) => {
+    try {
+        const pedido = await checkoutCart(req.profile.id_usuario, {
+            durationDays: req.body.durationDays,
+            acceptedTerms: req.body.acceptedTerms
+        });
+        return res.status(201).json({ success: true, message: 'Pedido enviado para aprovação.', pedido });
+    } catch (error) {
+        return sendOrderError(res, error);
+    }
+});
+
+router.post('/pedidos/:id/cancelar', verifySessionAuth, async (req, res) => {
+    try {
+        const pedido = await cancelUserOrder(req.profile.id_usuario, req.params.id, { ip: req.ip });
+        return res.json({ success: true, message: 'Pedido cancelado.', pedido });
+    } catch (error) {
+        return sendOrderError(res, error);
+    }
+});
+
+router.get('/gestao/pedidos', verifySessionAuth, async (req, res) => {
+    if (!hasCatalogManagementAccess(req.profile.nivel_acesso)) {
+        return res.status(403).json({ success: false, message: 'Acesso negado.' });
+    }
+
+    try {
+        const pedidos = await listManagedOrders(req.query.status);
+        return res.json({ success: true, pedidos });
+    } catch (error) {
+        return sendOrderError(res, error);
+    }
+});
+
+router.patch('/gestao/pedidos/:id', verifySessionAuth, async (req, res) => {
+    if (!hasCatalogManagementAccess(req.profile.nivel_acesso)) {
+        return res.status(403).json({ success: false, message: 'Acesso negado.' });
+    }
+
+    try {
+        const pedido = await transitionOrder(
+            req.profile.id_usuario,
+            req.params.id,
+            req.body.action,
+            { reason: req.body.reason, ip: req.ip }
+        );
+        return res.json({ success: true, message: 'Status do pedido atualizado.', pedido });
+    } catch (error) {
+        return sendOrderError(res, error);
     }
 });
 

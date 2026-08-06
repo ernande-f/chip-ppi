@@ -71,7 +71,7 @@ body {
 }
 
 .order-cards { display: flex; gap: 20px; margin-bottom: 50px; }
-.order-card { flex: 1; display: flex; justify-content: space-between; align-items: center; }
+.order-card { flex: 1; display: flex; justify-content: space-between; align-items: center; color: inherit; text-decoration: none; }
 
 .status { font-weight: bold; }
 .yellow { color: #d4a017; }

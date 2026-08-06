@@ -22,8 +22,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     const categoryList = document.getElementById('categorias-antigas');
     const photoInput = document.getElementById('foto');
     const photoLabel = document.getElementById('label-foto');
+    const cancelButton = document.getElementById('cancelProductRegistration');
     let categories = [];
     let photo = '';
+
+    cancelButton.addEventListener('click', () => window.history.back());
 
     function updateSaveState() {
         saveButton.disabled = !form.checkValidity() || categories.length === 0 || !photo;

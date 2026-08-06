@@ -52,6 +52,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const openPasswordModal = document.getElementById('openPasswordModal');
     const closePasswordModal = document.getElementById('closePasswordModal');
     const closeLogoutModal = document.getElementById('closeLogoutModal');
+    const selectAvatarButton = document.getElementById('selectAvatarButton');
 
     cancelEdit.addEventListener('click', () => {
         window.location.href = '/perfil';
@@ -59,6 +60,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     openPasswordModal.addEventListener('click', () => toggleModal('modal-redefinir', true));
     closePasswordModal.addEventListener('click', () => toggleModal('modal-redefinir', false));
+    selectAvatarButton.addEventListener('click', () => fileInput.click());
 
     logoutTrigger.addEventListener('click', () => toggleModal('logoutModal', true));
     closeLogoutModal.addEventListener('click', () => toggleModal('logoutModal', false));
@@ -107,11 +109,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         const newPassword = document.getElementById('newPassword').value;
         const confirmPassword = document.getElementById('confirmPassword').value;
 
-        if (newPassword.length < 8) {
-            alert('A nova senha precisa ter pelo menos 8 caracteres.');
-            return;
-        }
-
         if (newPassword !== confirmPassword) {
             alert('As senhas nao coincidem.');
             return;
@@ -136,7 +133,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         const reader = new FileReader();
         reader.onload = (loadEvent) => {
             const container = document.getElementById('avatar-container');
-            container.innerHTML = `<img src="${loadEvent.target.result}" alt="Avatar" style="width:100%; height:100%; object-fit:cover;">`;
+            const image = document.createElement('img');
+            image.src = loadEvent.target.result;
+            image.alt = 'Avatar';
+            image.style.width = '100%';
+            image.style.height = '100%';
+            image.style.objectFit = 'cover';
+            container.replaceChildren(image);
         };
         reader.readAsDataURL(this.files[0]);
     });

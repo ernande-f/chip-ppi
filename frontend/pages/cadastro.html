@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cadastro - IFFar</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
@@ -230,15 +230,15 @@
                     
                     <div id="passo1">
                         <div class="input-group">
-                            <input type="text" placeholder="Nome completo" id="nome">
+                            <input type="text" placeholder="Nome completo" id="nome" minlength="3" maxlength="60" autocomplete="name" required>
                         </div>
                         
                         <div class="input-group">
-                            <input type="email" placeholder="Email institucional" id="email">
+                            <input type="email" placeholder="Email institucional" id="email" maxlength="60" autocomplete="email" required>
                         </div>
 
                         <div class="input-group">
-                            <input type="text" placeholder="CPF" id="cpf">
+                            <input type="text" placeholder="CPF" id="cpf" inputmode="numeric" autocomplete="off" required>
                         </div>
                         
                         <div class="action-row">
@@ -249,11 +249,11 @@
 
                     <div id="passo2" style="display: none;">
                         <div class="input-group">
-                            <input type="password" placeholder="Senha" id="senha">
+                            <input type="password" placeholder="Senha" id="senha" minlength="6" maxlength="64" autocomplete="new-password" required>
                         </div>
                         
                         <div class="input-group">
-                            <input type="password" placeholder="Confirmar senha" id="confirmar-senha">
+                            <input type="password" placeholder="Confirmar senha" id="confirmar-senha" minlength="6" maxlength="64" autocomplete="new-password" required>
                         </div>
                         
                         <div class="action-row">

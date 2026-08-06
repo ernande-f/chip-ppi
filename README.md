@@ -45,3 +45,15 @@ Antes de usar fotos enviadas pelo formulário, aplique a migração do catálogo
 ```bash
 node scripts/apply-migration.mjs supabase/migrations/20260712_000003_catalog_management.sql
 ```
+
+## Carrinho e pedidos
+
+O módulo de agosto inclui carrinho, envio de solicitação por um a quinze dias, limite de três pedidos ativos, histórico do estudante e gestão técnica do fluxo até a devolução. A aprovação reserva o estoque e a devolução o repõe; todas as mudanças administrativas de status são auditadas.
+
+Antes de usar essas telas, configure o `.env` e aplique a migração:
+
+```bash
+node scripts/apply-migration.mjs supabase/migrations/20260803232819_add_cart_and_order_flow.sql
+```
+
+A aplicação acessa as tabelas pelo backend com `DATABASE_URL_POOLER`. A migration habilita RLS nas tabelas operacionais e remove o acesso direto dos papéis `anon` e `authenticated`; não exponha `SUPABASE_SERVICE_ROLE_KEY` no frontend.

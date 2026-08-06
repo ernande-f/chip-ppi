@@ -15,7 +15,7 @@ if (!migrationPath) {
 
 const absolutePath = path.resolve(__dirname, '..', migrationPath);
 const migrationSql = await fs.readFile(absolutePath, 'utf8');
-const sql = postgres(process.env.DATABASE_URL_POOLER, { max: 1 });
+const sql = postgres(process.env.DATABASE_URL_POOLER, { max: 1, prepare: false });
 
 try {
     await sql.unsafe(migrationSql);

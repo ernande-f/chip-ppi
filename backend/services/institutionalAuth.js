@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import { isValidCpf } from './accountValidation.js';
 
 const DEFAULT_AUTH_URL = 'https://www3.fw.iffarroupilha.edu.br/auth/index.php';
 const ALLOWED_TYPES = new Set(['L', 'S']);
@@ -54,7 +55,7 @@ export async function authenticateInstitutional({ cpf, password, type }, fetchIm
     const normalizedCpf = normalizeCpf(cpf);
     const normalizedType = normalizeType(type);
 
-    if (normalizedCpf.length !== 11) {
+    if (!isValidCpf(normalizedCpf)) {
         throw new Error('Informe um CPF válido.');
     }
 

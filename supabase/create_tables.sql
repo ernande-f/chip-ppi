@@ -63,7 +63,7 @@ create table if not exists produto (
   foto_produto text,
   descricao_produto text,
   nome varchar(50) not null,
-  estoque_total int not null default 0,
+  estoque_total int not null default 0 check (estoque_total >= 0),
   cor varchar(20),
   id_statusproduto bigint not null references status_produto(id_statusproduto)
 );
@@ -74,6 +74,7 @@ create table if not exists pedido (
   data_pedido date not null default current_date,
   data_retirada date,
   data_devolucao date,
+  duracao_dias smallint not null default 15 check (duracao_dias between 1 and 15),
   estado_termo boolean not null default false,
   timestamp_termo timestamptz,
   versao_termo int,
@@ -86,7 +87,7 @@ create table if not exists pedido (
 create table if not exists renovacao (
   id_renovacao bigint generated always as identity primary key,
   data_estendida date,
-  justificativa_estendimento int,
+  justificativa_estendimento text,
   data_solicitacao date not null default current_date,
   data_resposta date,
   motivo_recusa text
@@ -119,7 +120,7 @@ create table if not exists notificar (
 create table if not exists lista_de_desejos (
   id_produto bigint not null references produto(id_produto),
   id_usuario bigint not null references usuario(id_usuario),
-  quantidade int not null default 1,
+  quantidade int not null default 1 check (quantidade > 0),
   data_adicao date not null default current_date,
   primary key (id_produto, id_usuario)
 );
@@ -131,6 +132,11 @@ create table if not exists contem_lista (
   qnt_solicitada int not null default 1,
   qnt_devolvida int not null default 0,
   status_item text,
+  constraint contem_lista_quantidades_check check (
+    qnt_solicitada > 0
+    and qnt_devolvida >= 0
+    and qnt_devolvida <= qnt_solicitada
+  ),
   primary key (id_pedido, id_produto)
 );
 
@@ -190,30 +196,87 @@ where not exists (
   where lower(existing_status.status_produto) = lower(required_status)
 );
 
+-- Etapas do fluxo de empréstimo.
+insert into status_pedido (descricao_status)
+select required_status
+from (
+  values
+    ('Pendente'),
+    ('Aprovado'),
+    ('Em separação'),
+    ('Pronto para retirada'),
+    ('Retirado'),
+    ('Devolvido'),
+    ('Negado'),
+    ('Cancelado')
+) as statuses(required_status)
+where not exists (
+  select 1
+  from status_pedido existing_status
+  where lower(existing_status.descricao_status) = lower(required_status)
+);
+
+with duplicate_statuses as (
+  select
+    id_status,
+    min(id_status) over (partition by lower(descricao_status)) as canonical_id
+  from status_pedido
+)
+update pedido
+set id_status = duplicate_statuses.canonical_id
+from duplicate_statuses
+where pedido.id_status = duplicate_statuses.id_status
+  and duplicate_statuses.id_status <> duplicate_statuses.canonical_id;
+
+delete from status_pedido status
+using (
+  select
+    id_status,
+    min(id_status) over (partition by lower(descricao_status)) as canonical_id
+  from status_pedido
+) duplicate_statuses
+where status.id_status = duplicate_statuses.id_status
+  and duplicate_statuses.id_status <> duplicate_statuses.canonical_id;
+
+create unique index if not exists status_pedido_descricao_lower_key
+  on status_pedido (lower(descricao_status));
+
 -- ============================================================
--- 5. RLS BÁSICO PARA PERFIL
+-- 5. ACESSO SOMENTE PELO BACKEND
 -- ============================================================
 
 alter table public.usuario enable row level security;
+alter table public.categoria enable row level security;
+alter table public.status_produto enable row level security;
+alter table public.status_pedido enable row level security;
+alter table public.notificacao enable row level security;
+alter table public.produto enable row level security;
+alter table public.pedido enable row level security;
+alter table public.renovacao enable row level security;
+alter table public.log_auditoria enable row level security;
+alter table public.notificar enable row level security;
+alter table public.lista_de_desejos enable row level security;
+alter table public.contem_lista enable row level security;
+alter table public.categorizar enable row level security;
+alter table public.renovacao_pedido enable row level security;
 
 drop policy if exists "Users can view their own profile" on public.usuario;
-create policy "Users can view their own profile"
-  on public.usuario
-  for select
-  to authenticated
-  using (auth.uid() = auth_user_id);
-
 drop policy if exists "Users can update their own profile" on public.usuario;
-create policy "Users can update their own profile"
-  on public.usuario
-  for update
-  to authenticated
-  using (auth.uid() = auth_user_id)
-  with check (auth.uid() = auth_user_id);
-
 drop policy if exists "Users can create their own profile" on public.usuario;
-create policy "Users can create their own profile"
-  on public.usuario
-  for insert
-  to authenticated
-  with check (auth.uid() = auth_user_id);
+
+revoke all privileges on table
+  public.usuario,
+  public.categoria,
+  public.status_produto,
+  public.status_pedido,
+  public.notificacao,
+  public.produto,
+  public.pedido,
+  public.renovacao,
+  public.log_auditoria,
+  public.notificar,
+  public.lista_de_desejos,
+  public.contem_lista,
+  public.categorizar,
+  public.renovacao_pedido
+from anon, authenticated;

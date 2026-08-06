@@ -50,6 +50,23 @@ export function clearSessionCookie(res) {
     res.clearCookie(SESSION_COOKIE, options);
 }
 
+export function getPasswordUpdateCredential(req) {
+    const authorization = req.headers?.authorization?.trim();
+
+    if (authorization) {
+        const bearer = authorization.match(/^Bearer\s+(\S+)$/i);
+
+        return bearer
+            ? { token: bearer[1], kind: 'supabase-recovery' }
+            : null;
+    }
+
+    const sessionToken = req.cookies?.[SESSION_COOKIE];
+    return sessionToken
+        ? { token: sessionToken, kind: 'chip-session' }
+        : null;
+}
+
 export function verifySessionToken(token) {
     const payload = jwt.verify(token, getSessionSecret(), {
         issuer: 'chip-ppi',
