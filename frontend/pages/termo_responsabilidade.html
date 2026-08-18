@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Termo de Responsabilidade - CHIP</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/css-base.css">
+    <link rel="stylesheet" href="../css/termo.css">
+</head>
+<body>
+
+    <header class="navbar">
+        <div class="logo-container">
+            <a href="/">
+                <img src="../assets/logo.png" alt="Logo CHIP" class="logo-img">
+            </a>
+        </div>
+
+        <div class="search-bar">
+            <input type="text" placeholder="Pesquise itens no catálogo" readonly>
+        </div>
+
+        <div class="nav-links">
+            <a href="/pedidos" class="nav-link-item">
+                <img src="../assets/carrinho.png" alt="Carrinho" class="nav-cart-icon">
+                <span class="nav-text-bold">Seus pedidos</span>
+            </a>
+            
+            <div class="icon-notification">
+                <img src="../assets/sino.png" alt="Notificações" class="sino-img">
+            </div>
+
+            <a href="/perfil" class="nav-link-item">
+                <div class="profile-pic">
+                    <span id="headerAvatar">CH</span>
+                </div>
+            </a>
+        </div>
+    </header>
+
+    <main class="terms-container">
+        <div class="terms-header-box">
+            <h1 class="terms-title">Termo de Responsabilidade</h1>
+            <p class="terms-subtitle">CHIP — Controle de Hardware e Itens de Projeto · IFFar Campus Frederico Westphalen</p>
+            <hr class="terms-divider">
+        </div>
+
+        <section class="terms-intro-card">
+            <i class="fa-solid fa-file-shield terms-intro-icon"></i>
+            <p class="terms-intro-text">
+                Ao solicitar o empréstimo de um item de hardware, o(a) aluno(a) declara estar ciente das condições abaixo e assume a responsabilidade pelo item durante todo o período em que estiver sob sua posse.
+            </p>
+        </section>
+
+        <section class="terms-list">
+            <article class="term-card">
+                <div class="term-number">1</div>
+                <div class="term-content">
+                    <h2 class="term-heading">Finalidade Exclusivamente Acadêmica</h2>
+                    <p class="term-text">
+                        O item emprestado deverá ser utilizado exclusivamente para fins acadêmicos, relacionados às atividades, aulas, projetos ou trabalhos da instituição.
+                    </p>
+                </div>
+            </article>
+
+            <article class="term-card">
+                <div class="term-number">2</div>
+                <div class="term-content">
+                    <h2 class="term-heading">Cuidado, Manuseio e Conservação</h2>
+                    <p class="term-text">
+                        O(a) aluno(a) compromete-se a manusear o equipamento com cuidado, evitando quedas, impactos, contato com líquidos, alterações indevidas ou qualquer outra ação que possa causar danos ao componente.
+                    </p>
+                </div>
+            </article>
+
+            <article class="term-card">
+                <div class="term-number">3</div>
+                <div class="term-content">
+                    <h2 class="term-heading">Condições e Acessórios de Devolução</h2>
+                    <p class="term-text">
+                        O item deverá ser devolvido nas mesmas condições em que foi retirado, acompanhado de todos os componentes e acessórios fornecidos no momento do empréstimo.
+                    </p>
+                </div>
+            </article>
+
+            <article class="term-card">
+                <div class="term-number">4</div>
+                <div class="term-content">
+                    <h2 class="term-heading">Guarda Pessoal e Não Transferência</h2>
+                    <p class="term-text">
+                        O(a) aluno(a) é responsável pela guarda e conservação do item durante todo o período do empréstimo, não devendo transferi-lo a terceiros sem autorização do responsável pelo laboratório.
+                    </p>
+                </div>
+            </article>
+
+            <article class="term-card">
+                <div class="term-number">5</div>
+                <div class="term-content">
+                    <h2 class="term-heading">Comunicação e Responsabilidade por Danos ou Perdas</h2>
+                    <p class="term-text">
+                        Em caso de perda, dano decorrente de mau uso ou não devolução do item, o(a) aluno(a) deverá comunicar o responsável pelo laboratório e poderá ser responsabilizado conforme as normas da instituição.
+                    </p>
+                </div>
+            </article>
+
+            <article class="term-card">
+                <div class="term-number">6</div>
+                <div class="term-content">
+                    <h2 class="term-heading">Pontualidade e Renovação de Prazo</h2>
+                    <p class="term-text">
+                        O prazo de devolução deverá ser rigorosamente respeitado. Caso seja necessário permanecer com o item por mais tempo, o(a) aluno(a) deverá solicitar autorização ou renovação do empréstimo.
+                    </p>
+                </div>
+            </article>
+
+            <article class="term-card">
+                <div class="term-number">7</div>
+                <div class="term-content">
+                    <h2 class="term-heading">Declaração de Ciência e Concordância</h2>
+                    <p class="term-text">
+                        O(a) aluno(a) declara que leu e compreendeu este termo antes de realizar a solicitação do empréstimo, estando ciente de suas responsabilidades.
+                    </p>
+                </div>
+            </article>
+        </section>
+
+        <div class="terms-footer-actions">
+            <a href="/pedidos" class="btn-terms-back">
+                <i class="fa-solid fa-arrow-left"></i> Voltar aos pedidos
+            </a>
+            <button type="button" class="btn-terms-print" onclick="window.print()">
+                <i class="fa-solid fa-print"></i> Imprimir termo
+            </button>
+        </div>
+    </main>
+
+    <footer class="main-footer">
+        <div class="footer-container">
+            <div class="footer-col-icon">
+                <img src="../assets/processador.png" alt="Processador CPU" class="processor-img">
+            </div>
+
+            <div class="footer-col">
+                <p><strong>CHIP - Controle de Hardware e Itens de Projeto</strong></p>
+                <p>Prática Profissional Integrada - 2025/26</p>
+                <p>Instituto Federal Farroupilha - Campus Frederico Westphalen</p>
+            </div>
+
+            <div class="footer-col">
+                <p>Desenvolvedores:</p>
+                <p>Ariany Maísa Barros Kovalckoski</p>
+                <p>Ernande Facco</p>
+                <p>Luiza de Marchi Brombilla</p>
+                <p>Nicole Freddi</p>
+            </div>
+
+            <div class="footer-col">
+                <p>Curso técnico de informática integrado ao ensino médio</p>
+                <img src="../assets/logo_iffar.png" alt="Logo IFF" class="iff-logo">
+            </div>
+        </div>
+    </footer>
+
+    <script type="module" src="../js/header-avatar.js"></script>
+</body>
+</html>

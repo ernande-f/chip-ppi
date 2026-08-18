@@ -6,6 +6,7 @@
     <title>Nova Senha - IFFar</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/info-modal.css">
     
     <style>
         /* --- Reset Básico --- */
@@ -61,23 +62,31 @@
             letter-spacing: 0.5px;
         }
 
-        .left-header i {
-            font-size: 24px;
-            color: #000;
+        .info-button {
+            background: none;
+            border: none;
+            padding: 0;
             cursor: pointer;
+            outline: none;
+            transition: transform 0.2s ease;
         }
 
-        /* Detalhe geométrico no fundo esquerdo (Aproximação) */
-        .shape {
-            position: absolute;
-            bottom: -20px;
-            left: -20px;
-            width: 50%;
-            height: 70%;
-            background-color: #e4ae5d;
-            border-top: 15px solid #ebd094;
-            border-right: 15px solid #ebd094;
-            clip-path: polygon(0 25%, 35% 25%, 70% 50%, 70% 100%, 0 100%);
+        .info-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border: 2px solid #000;
+            border-radius: 50%;
+            font-family: serif;
+            font-weight: bold;
+            font-size: 20px;
+            color: #000;
+        }
+
+        .info-button:hover {
+            transform: scale(1.1);
         }
 
         /* ================================
@@ -202,7 +211,9 @@
         <section class="left-panel">
             <header class="left-header">
                 <h2>CHIP</h2>
-                <i class="fa-regular fa-circle-question"></i>
+                <button type="button" class="info-button" id="infoButton" title="Mais informações">
+                    <span class="info-icon">i</span>
+                </button>
             </header>
         </section>
 
@@ -236,5 +247,6 @@
     </main>
 
     <script type="module" src="../js/reset-password.js"></script>
+    <script type="module" src="../js/info-modal.js"></script>
 </body>
 </html>

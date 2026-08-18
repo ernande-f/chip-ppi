@@ -22,7 +22,7 @@ function renderOrders(orders) {
     const container = document.getElementById('ordersPreview');
 
     if (!orders?.length) {
-        container.innerHTML = '<p class="empty-state">Voce ainda nao possui pedidos registrados.</p>';
+        container.innerHTML = '<p class="empty-state">Você ainda não possui pedidos registrados.</p>';
         return;
     }
 
@@ -39,7 +39,7 @@ function renderOrders(orders) {
             </div>
 
             <p class="order-text">
-                ${order.motivo_recusa || 'Acompanhe seu perfil para consultar status, retirada e devolucao dos itens solicitados.'}
+                ${order.motivo_recusa || 'Acompanhe seu perfil para consultar status, retirada e devolução dos itens solicitados.'}
             </p>
         </article>
     `).join('');
@@ -49,9 +49,12 @@ async function loadProfile() {
     const { profile } = await getProfile();
     const initials = getInitials(profile.nome);
 
+    const role = profile.nivel_acesso_label || profile.nivel_acesso;
+    const roleLabel = (role === 'tecnico' || role === 'Tecnico' || role === 1) ? 'Técnico' : (profile.nivel_acesso_label || 'Usuário');
+
     document.getElementById('profileName').textContent = profile.nome;
     document.getElementById('profileEmail').textContent = profile.email;
-    document.getElementById('profileRole').textContent = profile.nivel_acesso_label || 'Usuario';
+    document.getElementById('profileRole').textContent = roleLabel;
     document.getElementById('profileAvatar').textContent = initials;
     document.getElementById('headerAvatar').textContent = initials;
 
@@ -78,7 +81,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             redirectToLogin();
         } catch (error) {
             console.error('Erro ao fazer logout:', error);
-            alert(error.message || 'Nao foi possivel encerrar a sessao.');
+            alert(error.message || 'Nao foi possivel encerrar a sessão.');
         }
     });
 

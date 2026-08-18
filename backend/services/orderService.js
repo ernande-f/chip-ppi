@@ -6,6 +6,7 @@ import {
     getNextOrderStatus,
     normalizeCartQuantity,
     normalizeLoanDuration,
+    normalizeOrderJustification,
     validateTransitionReason
 } from './orderRules.js';
 
@@ -71,6 +72,25 @@ async function getLockedOrderItems(db, orderId) {
     `;
 }
 
+async function restoreOrderItemsStock(db, orderId) {
+    const items = await getLockedOrderItems(db, orderId);
+    const availableStatusId = await getProductStatusId(db, 'Disponível');
+
+    for (const item of items) {
+        await db`
+            UPDATE produto
+            SET
+                estoque_total = estoque_total + ${item.qnt_solicitada},
+                id_statusproduto = ${item.status_produto === 'Arquivado'
+                    ? item.id_statusproduto
+                    : availableStatusId}
+            WHERE id_produto = ${item.id_produto}
+        `;
+    }
+
+    return items;
+}
+
 async function queryOrders(db, { orderId = null, userId = null, status = '' } = {}) {
     return db`
         SELECT
@@ -86,6 +106,7 @@ async function queryOrders(db, { orderId = null, userId = null, status = '' } = 
             pedido.duracao_dias,
             pedido.estado_termo,
             pedido.timestamp_termo,
+            pedido.justificativa,
             pedido.motivo_recusa,
             pedido.id_usuario,
             status_pedido.descricao_status AS status,
@@ -243,9 +264,10 @@ export async function removeCartItem(userId, productId) {
     return item;
 }
 
-export async function checkoutCart(userId, { durationDays, acceptedTerms }) {
+export async function checkoutCart(userId, { durationDays, acceptedTerms, justification }) {
     const normalizedUserId = normalizeId(userId, 'Usuário');
     const duration = normalizeLoanDuration(durationDays);
+    const normalizedJustification = normalizeOrderJustification(justification);
 
     if (acceptedTerms !== true) {
         throw new OrderValidationError('É necessário aceitar o termo de responsabilidade.');
@@ -306,7 +328,8 @@ export async function checkoutCart(userId, { durationDays, acceptedTerms }) {
                 duracao_dias,
                 estado_termo,
                 timestamp_termo,
-                versao_termo
+                versao_termo,
+                justificativa
             )
             VALUES (
                 ${normalizedUserId},
@@ -314,12 +337,25 @@ export async function checkoutCart(userId, { durationDays, acceptedTerms }) {
                 ${duration},
                 true,
                 now(),
-                1
+                1,
+                ${normalizedJustification}
             )
             RETURNING id_pedido
         `;
 
+        const availableStatusId = await getProductStatusId(db, 'Disponível');
+        const unavailableStatusId = await getProductStatusId(db, 'Indisponível');
+
         for (const item of cartItems) {
+            const nextStock = item.estoque_total - item.quantidade;
+            await db`
+                UPDATE produto
+                SET
+                    estoque_total = ${nextStock},
+                    id_statusproduto = ${nextStock > 0 ? availableStatusId : unavailableStatusId}
+                WHERE id_produto = ${item.id_produto}
+            `;
+
             await db`
                 INSERT INTO contem_lista (id_pedido, id_produto, qnt_solicitada, qnt_devolvida)
                 VALUES (${order.id_pedido}, ${item.id_produto}, ${item.quantidade}, 0)
@@ -356,6 +392,8 @@ export async function cancelUserOrder(userId, orderId, { ip } = {}) {
 
         const nextStatus = getNextOrderStatus(order.status, ORDER_ACTION.CANCEL);
         const nextStatusId = await getOrderStatusId(db, nextStatus);
+
+        await restoreOrderItemsStock(db, normalizedOrderId);
 
         await db`
             UPDATE pedido
@@ -433,41 +471,14 @@ export async function transitionOrder(actorUserId, orderId, action, { reason, ip
         const nextStatus = getNextOrderStatus(order.status, action);
         const nextStatusId = await getOrderStatusId(db, nextStatus);
 
-        if (action === ORDER_ACTION.APPROVE) {
-            const items = await getLockedOrderItems(db, normalizedOrderId);
-            const availableStatusId = await getProductStatusId(db, 'Disponível');
-            const unavailableStatusId = await getProductStatusId(db, 'Indisponível');
-
-            for (const item of items) {
-                if (item.status_produto !== 'Disponível' || item.estoque_total < item.qnt_solicitada) {
-                    throw new OrderConflictError(`Estoque insuficiente para o item "${item.nome}".`);
-                }
-
-                const nextStock = item.estoque_total - item.qnt_solicitada;
-                await db`
-                    UPDATE produto
-                    SET
-                        estoque_total = ${nextStock},
-                        id_statusproduto = ${nextStock > 0 ? availableStatusId : unavailableStatusId}
-                    WHERE id_produto = ${item.id_produto}
-                `;
-            }
+        if (action === ORDER_ACTION.DENY || action === ORDER_ACTION.CANCEL) {
+            await restoreOrderItemsStock(db, normalizedOrderId);
         }
 
         if (action === ORDER_ACTION.REGISTER_RETURN) {
-            const items = await getLockedOrderItems(db, normalizedOrderId);
-            const availableStatusId = await getProductStatusId(db, 'Disponível');
+            const items = await restoreOrderItemsStock(db, normalizedOrderId);
 
             for (const item of items) {
-                await db`
-                    UPDATE produto
-                    SET
-                        estoque_total = estoque_total + ${item.qnt_solicitada},
-                        id_statusproduto = ${item.status_produto === 'Arquivado'
-                            ? item.id_statusproduto
-                            : availableStatusId}
-                    WHERE id_produto = ${item.id_produto}
-                `;
                 await db`
                     UPDATE contem_lista
                     SET qnt_devolvida = qnt_solicitada, status_item = 'Devolvido'

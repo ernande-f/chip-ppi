@@ -49,7 +49,9 @@ body {
 }
 
 .nav-links { display: flex; align-items: center; gap: 30px; flex-shrink: 0; }
-.nav-link-item { text-decoration: none; color: inherit; display: flex; align-items: center; }
+.nav-link-item { text-decoration: none; color: inherit; display: flex; align-items: center; gap: 8px; transition: opacity 0.2s; }
+.nav-link-item:hover { opacity: 0.85; }
+.nav-cart-icon { height: 23px; width: auto; display: block; object-fit: contain; transform: translateY(-1px); }
 .nav-text-bold { font-weight: 700; color: var(--text-brown); font-size: 1.05rem; }
 .sino-img { width: 55px; height: auto; cursor: pointer; display: block; }
 

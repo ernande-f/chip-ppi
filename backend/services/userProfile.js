@@ -30,8 +30,8 @@ function normalizeDisplayName(name) {
 }
 
 export function getAccessLevelLabel(level) {
-    if (level === 1 || level === 'tecnico') {
-        return 'Tecnico';
+    if (level === 1 || level === 'tecnico' || level === 'técnico') {
+        return 'Técnico';
     }
 
     if (level === 2 || level === 'adm' || level === 'administrador') {

@@ -131,6 +131,18 @@ function openModal(order) {
     document.getElementById('modalUserEmail').textContent = order.usuario_email || 'E-mail não informado';
     document.getElementById('modalUserRole').textContent = getUserRole(order.usuario_email);
 
+    const justificationBox = document.getElementById('modalJustificationBox');
+    const justificationText = document.getElementById('modalJustificationText');
+    if (justificationBox && justificationText) {
+        if (order.justificativa) {
+            justificationText.textContent = order.justificativa;
+            justificationBox.style.display = 'block';
+        } else {
+            justificationText.textContent = '';
+            justificationBox.style.display = 'none';
+        }
+    }
+
     const itemsContainer = document.getElementById('modalItems');
     itemsContainer.replaceChildren();
     order.itens.forEach((item) => {

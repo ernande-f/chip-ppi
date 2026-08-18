@@ -19,7 +19,10 @@
             </div>
 
             <div class="nav-links">
-                <a href="/pedidos.html" class="nav-link-item">Pedidos</a>
+                <a href="/pedidos.html" class="nav-link-item">
+                    <img src="../assets/carrinho.png" alt="Carrinho" class="nav-cart-icon">
+                    <span>Pedidos</span>
+                </a>
                 <img src="../assets/sino.png" alt="Notificações" class="sino-img">
                 <a href="/perfil-tec.html" class="nav-link-item">
                     <div class="profile-pic">
@@ -72,6 +75,11 @@
                     <p class="user-email" id="modalUserEmail"></p>
                     <div class="user-role" id="modalUserRole"></div>
                 </div>
+            </div>
+
+            <div class="order-justification-box" id="modalJustificationBox" style="display: none;">
+                <p class="justification-heading">Motivo do pedido:</p>
+                <p class="justification-content" id="modalJustificationText"></p>
             </div>
 
             <div class="modal-actions" id="modalActions"></div>

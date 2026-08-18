@@ -27,17 +27,32 @@ function toggleModal(modalId, show) {
 
 function applyAvatar(name) {
     const initials = getInitials(name);
-    document.getElementById('profileAvatar').textContent = initials;
-    document.getElementById('headerAvatar').textContent = initials;
+    const profileAvatar = document.getElementById('profileAvatar');
+    const headerAvatar = document.getElementById('headerAvatar');
+
+    if (profileAvatar) {
+        profileAvatar.textContent = initials;
+    }
+    if (headerAvatar) {
+        headerAvatar.textContent = initials;
+    }
 }
 
 async function loadProfile() {
     const { profile } = await getProfile();
 
-    document.getElementById('profileNameInput').value = profile.nome || '';
-    document.getElementById('profileEmailInput').value = profile.email || '';
-    document.getElementById('profileCpfInput').value = maskCpf(profile.cpf);
-    document.getElementById('profileRole').textContent = profile.nivel_acesso_label || 'Usuario';
+    const role = profile.nivel_acesso_label || profile.nivel_acesso;
+    const roleLabel = (role === 'tecnico' || role === 'Tecnico' || role === 1) ? 'Técnico' : (profile.nivel_acesso_label || 'Usuário');
+
+    const nameInput = document.getElementById('profileNameInput');
+    const emailInput = document.getElementById('profileEmailInput');
+    const cpfInput = document.getElementById('profileCpfInput');
+    const roleSpan = document.getElementById('profileRole');
+
+    if (nameInput) nameInput.value = profile.nome || '';
+    if (emailInput) emailInput.value = profile.email || '';
+    if (cpfInput) cpfInput.value = maskCpf(profile.cpf);
+    if (roleSpan) roleSpan.textContent = roleLabel;
 
     applyAvatar(profile.nome);
 }
@@ -53,101 +68,128 @@ document.addEventListener('DOMContentLoaded', async () => {
     const closePasswordModal = document.getElementById('closePasswordModal');
     const closeLogoutModal = document.getElementById('closeLogoutModal');
     const selectAvatarButton = document.getElementById('selectAvatarButton');
+    const passwordModal = document.getElementById('modal-redefinir');
+    const logoutModal = document.getElementById('logoutModal');
 
-    cancelEdit.addEventListener('click', () => {
-        window.location.href = '/perfil';
-    });
-
-    openPasswordModal.addEventListener('click', () => toggleModal('modal-redefinir', true));
-    closePasswordModal.addEventListener('click', () => toggleModal('modal-redefinir', false));
-    selectAvatarButton.addEventListener('click', () => fileInput.click());
-
-    logoutTrigger.addEventListener('click', () => toggleModal('logoutModal', true));
-    closeLogoutModal.addEventListener('click', () => toggleModal('logoutModal', false));
-
-    document.getElementById('modal-redefinir').addEventListener('click', (event) => {
-        if (event.target.id === 'modal-redefinir') {
-            toggleModal('modal-redefinir', false);
-        }
-    });
-
-    document.getElementById('logoutModal').addEventListener('click', (event) => {
-        if (event.target.id === 'logoutModal') {
-            toggleModal('logoutModal', false);
-        }
-    });
-
-    confirmLogout.addEventListener('click', async () => {
-        try {
-            await logout();
-            redirectToLogin();
-        } catch (error) {
-            console.error('Erro ao fazer logout:', error);
-            alert(error.message || 'Nao foi possivel encerrar a sessao.');
-        }
-    });
-
-    profileForm.addEventListener('submit', async (event) => {
-        event.preventDefault();
-
-        const name = document.getElementById('profileNameInput').value.trim();
-
-        try {
-            await updateProfile({ name });
-            applyAvatar(name);
-            alert('Perfil atualizado com sucesso.');
+    if (cancelEdit) {
+        cancelEdit.addEventListener('click', () => {
             window.location.href = '/perfil';
-        } catch (error) {
-            console.error('Erro ao atualizar perfil:', error);
-            alert(error.message || 'Nao foi possivel salvar as alteracoes.');
-        }
-    });
+        });
+    }
 
-    passwordForm.addEventListener('submit', async (event) => {
-        event.preventDefault();
+    if (openPasswordModal) {
+        openPasswordModal.addEventListener('click', () => toggleModal('modal-redefinir', true));
+    }
+    if (closePasswordModal) {
+        closePasswordModal.addEventListener('click', () => toggleModal('modal-redefinir', false));
+    }
+    if (selectAvatarButton && fileInput) {
+        selectAvatarButton.addEventListener('click', () => fileInput.click());
+    }
 
-        const newPassword = document.getElementById('newPassword').value;
-        const confirmPassword = document.getElementById('confirmPassword').value;
+    if (logoutTrigger) {
+        logoutTrigger.addEventListener('click', () => toggleModal('logoutModal', true));
+    }
+    if (closeLogoutModal) {
+        closeLogoutModal.addEventListener('click', () => toggleModal('logoutModal', false));
+    }
 
-        if (newPassword !== confirmPassword) {
-            alert('As senhas nao coincidem.');
-            return;
-        }
+    if (passwordModal) {
+        passwordModal.addEventListener('click', (event) => {
+            if (event.target === passwordModal) {
+                toggleModal('modal-redefinir', false);
+            }
+        });
+    }
 
-        try {
-            await updatePassword(newPassword);
-            passwordForm.reset();
-            toggleModal('modal-redefinir', false);
-            alert('Senha atualizada com sucesso.');
-        } catch (error) {
-            console.error('Erro ao atualizar senha:', error);
-            alert(error.message || 'Nao foi possivel atualizar a senha.');
-        }
-    });
+    if (logoutModal) {
+        logoutModal.addEventListener('click', (event) => {
+            if (event.target === logoutModal) {
+                toggleModal('logoutModal', false);
+            }
+        });
+    }
 
-    fileInput.addEventListener('change', function handleAvatarPreview() {
-        if (!this.files?.[0]) {
-            return;
-        }
+    if (confirmLogout) {
+        confirmLogout.addEventListener('click', async () => {
+            try {
+                await logout();
+                redirectToLogin();
+            } catch (error) {
+                console.error('Erro ao fazer logout:', error);
+                alert(error.message || 'Não foi possível encerrar a sessão.');
+            }
+        });
+    }
 
-        const reader = new FileReader();
-        reader.onload = (loadEvent) => {
-            const container = document.getElementById('avatar-container');
-            const image = document.createElement('img');
-            image.src = loadEvent.target.result;
-            image.alt = 'Avatar';
-            image.style.width = '100%';
-            image.style.height = '100%';
-            image.style.objectFit = 'cover';
-            container.replaceChildren(image);
-        };
-        reader.readAsDataURL(this.files[0]);
-    });
+    if (profileForm) {
+        profileForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const name = document.getElementById('profileNameInput')?.value.trim();
+
+            try {
+                await updateProfile({ name });
+                applyAvatar(name);
+                alert('Perfil atualizado com sucesso.');
+                window.location.href = '/perfil';
+            } catch (error) {
+                console.error('Erro ao atualizar perfil:', error);
+                alert(error.message || 'Não foi possível salvar as alterações.');
+            }
+        });
+    }
+
+    if (passwordForm) {
+        passwordForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const newPassword = document.getElementById('newPassword')?.value;
+            const confirmPassword = document.getElementById('confirmPassword')?.value;
+
+            if (newPassword !== confirmPassword) {
+                alert('As senhas não coincidem.');
+                return;
+            }
+
+            try {
+                await updatePassword(newPassword);
+                passwordForm.reset();
+                toggleModal('modal-redefinir', false);
+                alert('Senha atualizada com sucesso.');
+            } catch (error) {
+                console.error('Erro ao atualizar senha:', error);
+                alert(error.message || 'Não foi possível atualizar a senha.');
+            }
+        });
+    }
+
+    if (fileInput) {
+        fileInput.addEventListener('change', function handleAvatarPreview() {
+            if (!this.files?.[0]) {
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (loadEvent) => {
+                const container = document.getElementById('avatar-container');
+                if (!container) return;
+                const image = document.createElement('img');
+                image.src = loadEvent.target.result;
+                image.alt = 'Avatar';
+                image.style.width = '100%';
+                image.style.height = '100%';
+                image.style.objectFit = 'cover';
+                container.replaceChildren(image);
+            };
+            reader.readAsDataURL(this.files[0]);
+        });
+    }
 
     try {
         await loadProfile();
     } catch (error) {
-        console.error('Erro ao carregar perfil para edicao:', error);
+        console.error('Erro ao carregar perfil para edição:', error);
         redirectToLogin();
     }
 });

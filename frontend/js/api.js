@@ -81,10 +81,10 @@ export async function removeItemCarrinho(productId) {
     });
 }
 
-export async function checkoutCarrinho(durationDays, acceptedTerms) {
+export async function checkoutCarrinho(durationDays, acceptedTerms, justification = null) {
     return apiRequest('/api/pedidos', {
         method: 'POST',
-        body: { durationDays, acceptedTerms }
+        body: { durationDays, acceptedTerms, justification }
     });
 }
 

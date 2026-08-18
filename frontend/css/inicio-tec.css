@@ -30,7 +30,9 @@ body {
 }
 .search-bar input:focus { border-color: #e0a33f; box-shadow: 0 0 0 3px rgba(242, 169, 51, 0.12); }
 .nav-links { display: flex; align-items: center; gap: 30px; flex-shrink: 0; }
-.nav-link-item { text-decoration: none; color: inherit; display: flex; align-items: center; }
+.nav-link-item { text-decoration: none; color: inherit; display: flex; align-items: center; gap: 8px; transition: opacity 0.2s; }
+.nav-link-item:hover { opacity: 0.85; }
+.nav-cart-icon { height: 23px; width: auto; display: block; object-fit: contain; transform: translateY(-1px); }
 .nav-text-bold { font-weight: 700; color: var(--text-brown); font-size: 1.05rem; }
 .sino-img { width: 55px; height: auto; cursor: pointer; display: block; }
 .profile-pic {
@@ -56,10 +58,11 @@ body {
 .btn-register-new:hover { background-color: var(--primary-orange-dark); transform: translateY(-2px); }
 
 .location-text { color: #888; font-size: 0.95rem; margin-top: 5px; }
-.management-subheader { display: flex; align-items: end; justify-content: space-between; gap: 18px; }
-.management-subheader .location-text { margin-bottom: 0; }
-.status-filter { display: grid; gap: 5px; color: var(--text-brown); font-size: .76rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
-.status-filter select { border: 1px solid #d7c5aa; border-radius: 8px; background: #fff; color: var(--text-brown); padding: 8px 10px; font: inherit; text-transform: none; }
+.management-subheader { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-top: 12px; }
+.management-subheader .location-text { margin-bottom: 0; margin-top: 0; }
+.status-filter { display: flex; align-items: center; gap: 10px; color: var(--text-brown); font-size: .78rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
+.status-filter select { border: 1px solid #d7c5aa; border-radius: 8px; background: #fff; color: var(--text-brown); padding: 8px 12px; font: inherit; text-transform: none; cursor: pointer; outline: none; }
+.status-filter select:focus { border-color: var(--primary-orange); box-shadow: 0 0 0 2px rgba(242, 169, 51, 0.2); }
 .header-line { border: none; border-top: 1.5px solid var(--border-gray); margin: 15px 0 35px 0; }
 
 /* --- GRID E CARDS (DESIGN ORIGINAL) --- */

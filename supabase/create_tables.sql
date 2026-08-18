@@ -78,6 +78,7 @@ create table if not exists pedido (
   estado_termo boolean not null default false,
   timestamp_termo timestamptz,
   versao_termo int,
+  justificativa text,
   motivo_recusa text,
   id_usuario bigint not null references usuario(id_usuario),
   id_status bigint not null references status_pedido(id_status)

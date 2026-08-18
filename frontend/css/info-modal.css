@@ -1,0 +1,167 @@
+/* =========================================================
+   MODAL DE INFORMAÇÕES (INFO MODAL CAROUSEL)
+   ========================================================= */
+
+.info-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 20px;
+    animation: fadeInModal 0.25s ease-out;
+}
+
+@keyframes fadeInModal {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.info-modal-card {
+    background: #ffffff;
+    border-radius: 24px;
+    width: min(370px, 92vw);
+    padding: 22px 26px 28px;
+    box-shadow: 0 15px 45px rgba(0, 0, 0, 0.18);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    box-sizing: border-box;
+    animation: scaleInModal 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes scaleInModal {
+    from { transform: scale(0.92); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.info-modal-top {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.info-modal-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border: 2px solid #000000;
+    border-radius: 50%;
+    font-family: serif;
+    font-weight: 700;
+    font-size: 16px;
+    color: #000000;
+    line-height: 1;
+    user-select: none;
+}
+
+.info-modal-close {
+    background: none;
+    border: none;
+    color: #e5c100;
+    font-size: 24px;
+    font-weight: 700;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0 4px;
+    transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.info-modal-close:hover {
+    color: #d4a700;
+    transform: scale(1.15);
+}
+
+.info-carousel-container {
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+    min-height: 310px;
+}
+
+.info-slide {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    width: 100%;
+    animation: fadeInSlide 0.3s ease-out;
+}
+
+.info-slide.active {
+    display: flex;
+}
+
+@keyframes fadeInSlide {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.info-slide-img-wrapper {
+    height: 155px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+}
+
+.info-slide-img {
+    max-height: 150px;
+    max-width: 175px;
+    object-fit: contain;
+    display: block;
+}
+
+.info-slide-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 0 0 10px 0;
+}
+
+.info-slide-text {
+    font-size: 0.86rem;
+    color: #666666;
+    line-height: 1.55;
+    margin: 0;
+    padding: 0 4px;
+}
+
+.info-slide-text strong {
+    color: #333333;
+    font-weight: 700;
+}
+
+.info-dots-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin-top: 24px;
+}
+
+.info-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: #d1d1d1;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.2s;
+}
+
+.info-dot.active {
+    background-color: #1a1a1a;
+    transform: scale(1.3);
+}
+
+.info-dot:hover:not(.active) {
+    background-color: #999999;
+}

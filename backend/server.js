@@ -28,10 +28,14 @@ const PUBLIC_PAGE_PATHS = new Set([
     '/register',
     '/redefinir-senha',
     '/nova-senha',
+    '/termo',
+    '/termo-de-responsabilidade',
+    '/termo_responsabilidade.html',
     '/pages/login.html',
     '/pages/cadastro.html',
     '/pages/redefinir-senha.html',
-    '/pages/nova-senha.html'
+    '/pages/nova-senha.html',
+    '/pages/termo_responsabilidade.html'
 ]);
 const TECH_ONLY_PAGE_PATHS = new Set([
     '/pages/index-tec.html',

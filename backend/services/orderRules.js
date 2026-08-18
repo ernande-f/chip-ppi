@@ -79,3 +79,25 @@ export function getNextOrderStatus(currentStatus, action) {
 
     return nextStatus;
 }
+
+export function normalizeOrderJustification(value) {
+    if (value === null || value === undefined) {
+        return null;
+    }
+
+    if (typeof value !== 'string') {
+        throw new OrderValidationError('O motivo do pedido deve ser um texto válido.');
+    }
+
+    const trimmed = value.trim();
+
+    if (!trimmed) {
+        return null;
+    }
+
+    if (trimmed.length > 500) {
+        throw new OrderValidationError('O motivo do pedido deve ter no máximo 500 caracteres.');
+    }
+
+    return trimmed;
+}

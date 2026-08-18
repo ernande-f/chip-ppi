@@ -510,7 +510,8 @@ router.post('/pedidos', verifySessionAuth, async (req, res) => {
     try {
         const pedido = await checkoutCart(req.profile.id_usuario, {
             durationDays: req.body.durationDays,
-            acceptedTerms: req.body.acceptedTerms
+            acceptedTerms: req.body.acceptedTerms,
+            justification: req.body.justification ?? req.body.justificativa
         });
         return res.status(201).json({ success: true, message: 'Pedido enviado para aprovação.', pedido });
     } catch (error) {

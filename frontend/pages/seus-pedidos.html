@@ -22,7 +22,8 @@
 
         <div class="nav-links">
             <a href="/pedidos" class="nav-link-item">
-                <span class="nav-text-bold">Seus pedidos</span>
+                <img src="../assets/carrinho.png" alt="Carrinho" class="nav-cart-icon">
+                <span class="nav-text-bold">Pedidos</span>
             </a>
             
             <div class="icon-notification">
@@ -39,7 +40,7 @@
 
     <main class="container">
         <section class="cart-section">
-            <h1 class="main-title">Seus pedidos</h1>
+            <h1 class="main-title">Seu carrinho</h1>
             <h2 class="sub-section-title">Itens no seu carrinho</h2>
 
             <div class="cart-container">
@@ -76,9 +77,13 @@
                             </select>
                         </div>
                     </div>
+                    <div class="justification-row">
+                        <label for="orderJustification">Motivo do pedido (opcional):</label>
+                        <textarea class="justification-input" id="orderJustification" maxlength="500" placeholder="Ex: Projeto da disciplina, protótipo em aula..."></textarea>
+                    </div>
                     <label class="terms-row">
                         <input type="checkbox" id="acceptTerms">
-                        <span>Li e aceito o termo de responsabilidade.</span>
+                        <span>Li e aceito o <a href="/termo_responsabilidade.html" target="_blank" class="terms-link">termo de responsabilidade</a>.</span>
                     </label>
                     <button class="finish-btn" id="checkoutButton" type="button">Concluir pedido</button>
                     <p class="disclaimer">*Você estará enviando uma solicitação que precisa ser aceita pelo administrador. Isso pode demorar um tempinho!</p>
@@ -112,6 +117,7 @@
                     <button class="close-modal" id="closeOrderModal" type="button" aria-label="Fechar">&times;</button>
                 </header>
                 <p class="modal-date">Data da solicitação: <span id="modalData"></span></p>
+                <p class="modal-justification" id="modalJustification" style="display: none;"></p>
                 <p class="modal-date" id="modalReason"></p>
                 <hr class="modal-divider">
                 <h3 class="modal-subtitle">Itens no pedido</h3>

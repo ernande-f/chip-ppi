@@ -162,8 +162,20 @@ function openOrderModal(order) {
     document.getElementById('modalNumPedido').textContent = `Pedido #${order.id_pedido}`;
     document.getElementById('modalStatus').textContent = order.status;
     document.getElementById('modalData').textContent = formatDate(order.data_pedido);
+    
+    const justificationEl = document.getElementById('modalJustification');
+    if (justificationEl) {
+        if (order.justificativa) {
+            justificationEl.textContent = `Motivo informado: ${order.justificativa}`;
+            justificationEl.style.display = 'block';
+        } else {
+            justificationEl.textContent = '';
+            justificationEl.style.display = 'none';
+        }
+    }
+
     document.getElementById('modalReason').textContent = order.motivo_recusa
-        ? `Justificativa: ${order.motivo_recusa}`
+        ? `Justificativa de recusa: ${order.motivo_recusa}`
         : '';
 
     const itemsContainer = document.getElementById('modalOrderItems');
@@ -216,11 +228,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         checkoutButton.disabled = true;
 
         try {
+            const justification = document.getElementById('orderJustification')?.value || null;
+
             await checkoutCarrinho(
                 document.getElementById('loanDuration').value,
-                document.getElementById('acceptTerms').checked
+                document.getElementById('acceptTerms').checked,
+                justification
             );
             document.getElementById('acceptTerms').checked = false;
+            const justificationInput = document.getElementById('orderJustification');
+            if (justificationInput) justificationInput.value = '';
+
             await Promise.all([loadCart(), loadOrders()]);
             alert('Pedido enviado para aprovação.');
         } catch (error) {

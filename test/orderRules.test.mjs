@@ -7,6 +7,7 @@ import {
     getNextOrderStatus,
     normalizeCartQuantity,
     normalizeLoanDuration,
+    normalizeOrderJustification,
     validateTransitionReason
 } from '../backend/services/orderRules.js';
 
@@ -58,3 +59,13 @@ test('exige justificativa ao negar um pedido', () => {
     assert.equal(validateTransitionReason(ORDER_ACTION.APPROVE, ''), null);
     assert.throws(() => validateTransitionReason(ORDER_ACTION.DENY, '  '), /justificativa/);
 });
+
+test('normaliza o motivo opcional do pedido', () => {
+    assert.equal(normalizeOrderJustification(null), null);
+    assert.equal(normalizeOrderJustification(undefined), null);
+    assert.equal(normalizeOrderJustification('   '), null);
+    assert.equal(normalizeOrderJustification('  Projeto de robótica  '), 'Projeto de robótica');
+    assert.throws(() => normalizeOrderJustification(123), /texto válido/);
+    assert.throws(() => normalizeOrderJustification('a'.repeat(501)), /máximo 500 caracteres/);
+});
+

@@ -103,4 +103,13 @@ router.get('/pesquisa', verifySessionAuth, async (req, res) => {
     }
 });
 
+router.get(['/termo', '/termo-de-responsabilidade', '/termo_responsabilidade.html'], (req, res) => {
+    try {
+        return res.sendFile(path.join(__dirname, '../../frontend/pages/termo_responsabilidade.html'));
+    } catch (error) {
+        console.error('Erro ao carregar termo de responsabilidade:', error);
+        return res.status(500).send('Erro ao carregar o termo de responsabilidade');
+    }
+});
+
 export default router;

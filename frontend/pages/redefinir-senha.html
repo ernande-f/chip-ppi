@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Redefinir Senha - CHIP IFFar</title>
+    <link rel="stylesheet" href="../css/info-modal.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
 
@@ -25,43 +26,48 @@
             width: 100vw;
         }
 
-         /* --- LADO ESQUERDO (AMARELO) --- */
-        .left-side {
-            background-color: #eeb04b;
-            width: 53%;
+        /* --- LADO ESQUERDO (AMARELO) --- */
+        .left-panel {
+            flex: 1;
+            width: 50%;
+            background-color: #d99c3e;
+            background-image: url('../assets/imagem_esquerda.png');
+            background-size: cover;
+            background-position: center;
             position: relative;
+            padding: 50px;
+            overflow: hidden;
             display: flex;
             flex-direction: column;
-            padding: 60px;
-            overflow: hidden; /* Garante que a forma geométrica não saia do limite */
         }
 
-        .fundo-img {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            z-index: 0;
-        }
-
-        .brand-name {
-            font-weight: 700;
-            font-size: 24px;
-            color: #000;
-            z-index: 10;
+        .left-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 2;
             position: relative;
+            width: 100%;
+        }
+
+        .left-header h2 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #000;
+            letter-spacing: 0.5px;
+            margin: 0;
         }
 
         .info-button {
-            position: absolute;
-            top: 60px;
-            right: 40px;
             background: none;
             border: none;
+            padding: 0;
             cursor: pointer;
-            z-index: 10;
+            outline: none;
+            transition: transform 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .info-icon {
@@ -72,20 +78,15 @@
             height: 32px;
             border: 2px solid #000;
             border-radius: 50%;
+            font-family: serif;
             font-weight: bold;
             font-size: 20px;
+            color: #000;
+            line-height: 1;
         }
 
-        .shape-overlay {
-            position: absolute;
-            bottom: -5px;
-            left: -5px;
-            width: 450px;
-            height: 750px;
-            background-color: rgba(255, 255, 255, 0.1);
-            clip-path: polygon(100% 100%, 100% 30%, 70% 0%, 0% 0%, 0% 100%);
-            z-index: 1;
-            border: 15px solid rgba(255, 255, 255, 0.1);
+        .info-button:hover {
+            transform: scale(1.1);
         }
 
         /* --- LADO DIREITO --- */
@@ -177,20 +178,22 @@
 
         @media (max-width: 768px) {
             .container { flex-direction: column; }
-            .left-side, .right-side { width: 100%; height: 50vh; }
+            .left-panel { display: none; }
+            .right-side { width: 100%; padding: 40px 20px; }
         }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <div class="left-side">
-            <img src="../assets/imagem_esquerda.png" alt="Foto de fundo" class="fundo-img">
-            <div class="brand-name">CHIP</div>
-             <button type="button" class="info-button" title="Mais informações">
-                <span class="info-icon">i</span>
-            </button>
-        </div>
+        <section class="left-panel">
+            <header class="left-header">
+                <h2>CHIP</h2>
+                <button type="button" class="info-button" id="infoButton" title="Mais informações">
+                    <span class="info-icon">i</span>
+                </button>
+            </header>
+        </section>
 
         <div class="right-side">
             <img src="../assets/logo.iffar.png" alt="Logo IFFar" class="logo-iffar">
@@ -213,5 +216,6 @@
     </div>
 
     <script type="module" src="../js/forgot-password.js"></script>
+    <script type="module" src="../js/info-modal.js"></script>
 </body>
 </html>

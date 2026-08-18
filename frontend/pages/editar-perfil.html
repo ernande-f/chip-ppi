@@ -10,6 +10,34 @@
     <link rel="stylesheet" href="../css/editar-perfil.css">
 </head>
 <body>
+    <header class="navbar">
+        <div class="logo-container">
+            <a href="/">
+                <img src="../assets/logo.png" alt="Logo CHIP" class="logo-img">
+            </a>
+        </div>
+
+        <div class="search-bar">
+            <input type="text" placeholder="Pesquisar por cor, tipo, nome..." readonly>
+        </div>
+
+        <div class="nav-links">
+            <a href="/pedidos" class="nav-link-item">
+                <img src="../assets/carrinho.png" alt="Carrinho" class="nav-cart-icon">
+                <span class="nav-text-bold">Seus pedidos</span>
+            </a>
+
+            <div class="icon-notification">
+                <img src="../assets/sino.png" alt="Notificações" class="sino-img">
+            </div>
+
+            <a href="/perfil" class="nav-link-item">
+                <div class="profile-pic">
+                    <span id="headerAvatar">CH</span>
+                </div>
+            </a>
+        </div>
+    </header>
     
     <div id="page-content">
         <main class="edit-container">
@@ -32,6 +60,9 @@
                 <div class="form-column">
                     <div class="form-header">
                         <span class="role-badge" id="profileRole">Usuário</span>
+                        <button type="button" class="logout-inline-btn" id="logoutTrigger">
+                            <i class="fa-solid fa-arrow-right-from-bracket"></i> Sair
+                        </button>
                     </div>
 
                     <form class="profile-form" id="profileForm">
