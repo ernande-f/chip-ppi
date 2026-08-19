@@ -25,6 +25,7 @@ function createItemCard(product, onEdit) {
     const image = document.createElement('img');
     image.src = product.foto_produto || FALLBACK_IMAGE;
     image.alt = product.nome;
+    image.loading = 'lazy';
     visual.appendChild(image);
 
     const details = createElement('div', 'item-data');
@@ -63,6 +64,25 @@ document.addEventListener('DOMContentLoaded', async () => {
     let activeCategories = [];
     let selectedPhoto = null;
     let debounce;
+
+    let currentPage = 1;
+    let hasMore = true;
+    let isLoading = false;
+    const PAGE_LIMIT = 20;
+
+    const sentinel = document.createElement('div');
+    sentinel.id = 'itemsSentinel';
+    sentinel.style.gridColumn = '1 / -1';
+    sentinel.style.height = '40px';
+    sentinel.style.display = 'flex';
+    sentinel.style.alignItems = 'center';
+    sentinel.style.justifyContent = 'center';
+
+    const observer = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && hasMore && !isLoading) {
+            loadProducts(false);
+        }
+    }, { rootMargin: '200px' });
 
     function closeModal() {
         modal.style.display = 'none';
@@ -104,21 +124,63 @@ document.addEventListener('DOMContentLoaded', async () => {
         const visible = status ? products.filter((product) => product.status_produto === status) : products;
         grid.replaceChildren();
 
-        if (visible.length === 0) {
+        if (visible.length === 0 && !isLoading) {
             grid.appendChild(createElement('p', 'catalog-empty', 'Nenhum item encontrado.'));
             return;
         }
 
         visible.forEach((product) => grid.appendChild(createItemCard(product, openEditModal)));
+
+        if (hasMore) {
+            grid.appendChild(sentinel);
+            observer.observe(sentinel);
+        }
     }
 
-    async function loadProducts() {
+    async function loadProducts(reset = true) {
+        if (isLoading) return;
+        if (!reset && !hasMore) return;
+
+        isLoading = true;
+
+        if (reset) {
+            currentPage = 1;
+            hasMore = true;
+            products = [];
+            grid.replaceChildren();
+        }
+
+        sentinel.textContent = 'Carregando itens...';
+        grid.appendChild(sentinel);
+
         try {
-            products = await getProdutos({ search: searchInput.value.trim(), includeArchived: true });
+            const newProducts = await getProdutos({
+                search: searchInput.value.trim(),
+                includeArchived: true,
+                page: currentPage,
+                limit: PAGE_LIMIT
+            });
+
+            sentinel.remove();
+
+            if (reset) {
+                products = [...newProducts];
+            } else {
+                products.push(...newProducts);
+            }
+
+            hasMore = newProducts.hasMore ?? (newProducts.length === PAGE_LIMIT);
+            currentPage++;
+
             renderProducts();
         } catch (error) {
             console.error('Erro ao carregar itens:', error);
-            grid.replaceChildren(createElement('p', 'catalog-empty catalog-error', error.message || 'Não foi possível carregar os itens.'));
+            sentinel.remove();
+            if (reset) {
+                grid.replaceChildren(createElement('p', 'catalog-empty catalog-error', error.message || 'Não foi possível carregar os itens.'));
+            }
+        } finally {
+            isLoading = false;
         }
     }
 

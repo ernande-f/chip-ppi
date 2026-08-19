@@ -34,6 +34,12 @@ async function attachActiveProfile(req) {
 }
 
 export async function verifySessionAuth(req, res, next) {
+    // Se o middleware global (server.js) já verificou a sessão neste request,
+    // reaproveita o resultado sem consultar o banco novamente.
+    if (req._authVerified && req.profile) {
+        return next();
+    }
+
     try {
         const token = req.cookies.authcookie || req.headers.authorization?.split(' ')[1];
 

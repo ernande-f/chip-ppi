@@ -23,7 +23,14 @@ export async function getProdutos(filters = {}) {
 
     const suffix = params.size > 0 ? `?${params.toString()}` : '';
     const data = await apiRequest(`/api/produtos${suffix}`);
-    return data.produtos || [];
+    const list = data.produtos || [];
+    list.total = data.total ?? list.length;
+    list.page = data.page ?? 1;
+    list.limit = data.limit ?? list.length;
+    list.totalPages = data.totalPages ?? 1;
+    list.hasMore = data.hasMore ?? false;
+    list.isCatalogManager = data.isCatalogManager ?? false;
+    return list;
 }
 
 export async function getProduto(id) {
@@ -196,8 +203,48 @@ export function getStatusClass(status) {
     return 'status-pendente';
 }
 
+export function isUserTechnical(profile) {
+    if (!profile) return false;
+    const level = profile.nivel_acesso;
+    const label = String(profile.nivel_acesso_label || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const strLevel = String(level || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+    return level === 1 || level === 2 ||
+           strLevel === '1' || strLevel === '2' ||
+           strLevel === 'tecnico' || strLevel === 'adm' || strLevel === 'administrador' ||
+           label === 'tecnico' || label === 'adm' || label === 'administrador';
+}
+
+export function updateNavbarForRole(profile) {
+    if (!profile) return;
+    const isTechnical = isUserTechnical(profile);
+
+    if (isTechnical) {
+        const cartIcons = document.querySelectorAll('.navbar .nav-cart-icon');
+        cartIcons.forEach((icon) => {
+            icon.style.display = 'none';
+        });
+
+        const navPedidosLinks = document.querySelectorAll('.nav-links a[href="/pedidos"], .nav-links a[href="/pedidos.html"]');
+        navPedidosLinks.forEach((link) => {
+            link.href = '/pedidos.html';
+            const textEl = link.querySelector('.nav-text-bold, span');
+            if (textEl) {
+                textEl.textContent = 'Pedidos';
+            }
+        });
+    }
+}
+
+let _sessionPromise = null;
+
 export async function getSession() {
-    return apiRequest('/api/session');
+    if (!_sessionPromise) {
+        _sessionPromise = apiRequest('/api/session');
+        // Limpar o cache após resolver, para que a próxima navegação busque dados frescos.
+        _sessionPromise.finally(() => { setTimeout(() => { _sessionPromise = null; }, 5000); });
+    }
+    return _sessionPromise;
 }
 
 export async function login(payload) {

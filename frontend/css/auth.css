@@ -1,0 +1,388 @@
+/* ==========================================================================
+   CHIP - Estilos Unificados para Páginas de Autenticação (Login, Cadastro, etc.)
+   ========================================================================== */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+}
+
+body,
+html {
+    height: 100%;
+    background-color: #f5f5f5;
+}
+
+.container {
+    display: flex;
+    width: 100vw;
+    height: 100vh;
+    background: #fff;
+}
+
+/* ==========================================================================
+   Painel Esquerdo (Amarelo / Ocre Institucional)
+   ========================================================================== */
+.left-panel {
+    flex: 1;
+    background-color: #d99c3e;
+    background-image: url('../assets/imagem_esquerda.png');
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    padding: 50px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.fundo-img {
+    display: none;
+}
+
+.left-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 2;
+    position: relative;
+    width: 100%;
+}
+
+.left-header h2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #000;
+    letter-spacing: 0.5px;
+    margin: 0;
+}
+
+.info-button {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    outline: none;
+    transition: transform 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.info-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: 2px solid #000;
+    border-radius: 50%;
+    font-family: serif;
+    font-weight: bold;
+    font-size: 20px;
+    color: #000;
+    line-height: 1;
+}
+
+.info-button:hover {
+    transform: scale(1.1);
+}
+
+/* ==========================================================================
+   Painel Direito (Formulário Branco)
+   ========================================================================== */
+.right-side,
+.right-panel {
+    flex: 1;
+    background-color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 50px 10%;
+    position: relative;
+    overflow-y: auto;
+}
+
+.logo-iffar {
+    position: absolute;
+    top: 40px;
+    right: 40px;
+    width: 100px;
+}
+
+.logo-container {
+    position: absolute;
+    top: 50px;
+    right: 50px;
+}
+
+.logo-container img {
+    height: 65px;
+}
+
+.back-arrow {
+    color: #eeb04b;
+    font-size: 24px;
+    text-decoration: none;
+    margin-bottom: 10px;
+    display: block;
+}
+
+.welcome-text {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.instruction-text {
+    font-size: 14px;
+    color: #555;
+    font-weight: 600;
+    margin-bottom: 30px;
+}
+
+.form-container {
+    max-width: 450px;
+    width: 100%;
+}
+
+.form-container h1 {
+    font-size: 22px;
+    color: #111;
+    margin-bottom: 12px;
+    font-weight: 700;
+}
+
+.form-container p {
+    font-size: 14px;
+    color: #5a4a3d;
+    line-height: 1.5;
+    margin-bottom: 30px;
+    font-weight: 600;
+}
+
+/* ==========================================================================
+   Inputs e Controles de Formulário
+   ========================================================================== */
+.input-group {
+    position: relative;
+    margin-bottom: 15px;
+}
+
+input {
+    width: 100%;
+    padding: 16px 20px;
+    background-color: #e9e9e9;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    color: #333;
+    font-weight: 600;
+    outline: none;
+}
+
+input::placeholder {
+    color: #888;
+    font-weight: 600;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #666;
+    cursor: pointer;
+    font-size: 18px;
+}
+
+select {
+    width: 100%;
+    padding: 14px 16px;
+    border: 1px solid #cbd8cf;
+    border-radius: 8px;
+    background: #fff;
+    color: #24352b;
+    font-size: 15px;
+}
+
+/* ==========================================================================
+   Botões e Ações
+   ========================================================================== */
+.btn-entrar,
+.btn-submit,
+.btn-enviar {
+    display: inline-block;
+    padding: 14px 45px;
+    background-color: #f7c36f;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 700;
+    color: #8d621f;
+    cursor: pointer;
+    margin-top: 15px;
+    margin-bottom: 20px;
+    transition: background-color 0.2s ease;
+}
+
+.btn-entrar:hover,
+.btn-submit:hover,
+.btn-enviar:hover {
+    background-color: #e5b055;
+}
+
+.action-row {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-top: 10px;
+    margin-bottom: 20px;
+}
+
+.step-indicator {
+    color: #d99c3e;
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.auth-separator {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    margin: 2px 0 14px;
+    color: #777;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.auth-separator::before,
+.auth-separator::after {
+    content: '';
+    height: 1px;
+    flex: 1;
+    background: #dedede;
+}
+
+.btn-institutional {
+    width: 100%;
+    padding: 13px 16px;
+    border-radius: 8px;
+    border: 1px solid #1f5535;
+    background: #fff;
+    color: #1f5535;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color .2s ease, color .2s ease;
+}
+
+.btn-institutional:hover,
+.btn-institutional[aria-expanded="true"] {
+    background: #1f5535;
+    color: #fff;
+}
+
+#formInstitutionalLogin {
+    margin-top: 16px;
+    padding: 18px;
+    border: 1px solid #dce7df;
+    border-radius: 8px;
+    background: #f8fbf8;
+}
+
+.institutional-helper {
+    margin-bottom: 15px;
+    color: #3c5143;
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+.provider-label {
+    display: block;
+    margin: 0 0 7px 2px;
+    color: #3c5143;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.btn-institutional-submit {
+    width: 100%;
+    margin: 12px 0 0;
+    padding: 13px;
+    background: #1f5535;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.footer-links,
+.footer-text,
+.login-link {
+    font-size: 14px;
+    font-weight: 600;
+    color: #000;
+    line-height: 1.8;
+}
+
+.footer-links a,
+.login-link a {
+    color: #4a3411;
+    text-decoration: underline;
+}
+
+.footer-links a:hover,
+.login-link a:hover {
+    color: #000;
+}
+
+.btn-link {
+    background: none;
+    border: none;
+    padding: 0;
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: 700;
+    color: #000;
+    text-decoration: underline;
+    cursor: pointer;
+    display: inline;
+}
+
+.btn-link:hover {
+    color: #555;
+}
+
+/* ==========================================================================
+   Responsividade
+   ========================================================================== */
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column;
+    }
+
+    .left-panel {
+        display: none;
+    }
+
+    .right-side,
+    .right-panel {
+        width: 100%;
+        padding: 40px 20px;
+    }
+
+    .logo-container,
+    .logo-iffar {
+        position: static;
+        margin-bottom: 40px;
+        text-align: right;
+    }
+}

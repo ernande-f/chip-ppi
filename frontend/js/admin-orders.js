@@ -73,6 +73,29 @@ function createAvatar(name) {
     return avatar;
 }
 
+function getStatusBadge(status) {
+    switch (status) {
+        case 'Pendente':
+            return { className: 'alert-badge status-pendente', symbol: '!' };
+        case 'Aprovado':
+            return { className: 'alert-badge status-aprovado', symbol: '✓' };
+        case 'Em separação':
+            return { className: 'alert-badge status-separando', symbol: '⟳' };
+        case 'Pronto para retirada':
+            return { className: 'alert-badge status-retirada', symbol: '✓' };
+        case 'Retirado':
+            return { className: 'alert-badge status-retirado', symbol: '⏱' };
+        case 'Devolvido':
+            return { className: 'alert-badge status-devolvido', symbol: '✓' };
+        case 'Negado':
+            return { className: 'alert-badge status-negado', symbol: '✕' };
+        case 'Cancelado':
+            return { className: 'alert-badge status-cancelado', symbol: '✕' };
+        default:
+            return { className: 'alert-badge status-pendente', symbol: '!' };
+    }
+}
+
 function renderOrders() {
     const config = TAB_CONFIG[activeTab];
     const search = document.querySelector('.search-bar input').value.trim().toLowerCase();
@@ -99,7 +122,8 @@ function renderOrders() {
             createElement('h3', 'order-title', `Pedido #${order.id_pedido}`),
             createElement('p', 'order-date', `${order.status} · ${formatDate(order.data_pedido)}`)
         );
-        top.append(heading, createElement('div', 'alert-badge', '!'));
+        const badgeInfo = getStatusBadge(order.status);
+        top.append(heading, createElement('div', badgeInfo.className, badgeInfo.symbol));
 
         const user = createElement('div', 'order-user');
         const userText = document.createElement('div');

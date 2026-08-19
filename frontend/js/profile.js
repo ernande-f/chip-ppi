@@ -3,7 +3,9 @@ import {
     getInitials,
     getProfile,
     getStatusClass,
-    logout
+    isUserTechnical,
+    logout,
+    updateNavbarForRole
 } from './api.js';
 
 function redirectToLogin() {
@@ -48,17 +50,32 @@ function renderOrders(orders) {
 async function loadProfile() {
     const { profile } = await getProfile();
     const initials = getInitials(profile.nome);
+    const isTechnical = isUserTechnical(profile);
 
-    const role = profile.nivel_acesso_label || profile.nivel_acesso;
-    const roleLabel = (role === 'tecnico' || role === 'Tecnico' || role === 1) ? 'Técnico' : (profile.nivel_acesso_label || 'Usuário');
+    const roleLabel = isTechnical
+        ? (profile.nivel_acesso === 2 || String(profile.nivel_acesso).toLowerCase().includes('adm') ? 'Administrador' : (profile.nivel_acesso_label || 'Técnico'))
+        : (profile.nivel_acesso_label || 'Usuário');
 
     document.getElementById('profileName').textContent = profile.nome;
     document.getElementById('profileEmail').textContent = profile.email;
     document.getElementById('profileRole').textContent = roleLabel;
     document.getElementById('profileAvatar').textContent = initials;
-    document.getElementById('headerAvatar').textContent = initials;
+    const headerAvatar = document.getElementById('headerAvatar');
+    if (headerAvatar) headerAvatar.textContent = initials;
 
-    renderOrders(profile.recentOrders);
+    updateNavbarForRole(profile);
+
+    const historyBanner = document.querySelector('.history-banner');
+    const historyContainer = document.querySelector('.content-container');
+
+    if (isTechnical) {
+        if (historyBanner) historyBanner.style.display = 'none';
+        if (historyContainer) historyContainer.style.display = 'none';
+    } else {
+        if (historyBanner) historyBanner.style.display = '';
+        if (historyContainer) historyContainer.style.display = '';
+        renderOrders(profile.recentOrders);
+    }
 }
 
 document.addEventListener('DOMContentLoaded', async () => {

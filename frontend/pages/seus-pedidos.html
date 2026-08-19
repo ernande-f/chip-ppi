@@ -4,8 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CHIP - Seus Pedidos</title>
-    <link rel="stylesheet" href="../css/style-pedidos.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/style-pedidos.css">
 </head>
 <body>
 
@@ -83,7 +86,7 @@
                     </div>
                     <label class="terms-row">
                         <input type="checkbox" id="acceptTerms">
-                        <span>Li e aceito o <a href="/termo_responsabilidade.html" target="_blank" class="terms-link">termo de responsabilidade</a>.</span>
+                        <span>Li e aceito o <a href="/termo_responsabilidade.html" class="terms-link" id="openTermsModal">termo de responsabilidade</a>.</span>
                     </label>
                     <button class="finish-btn" id="checkoutButton" type="button">Concluir pedido</button>
                     <p class="disclaimer">*Você estará enviando uma solicitação que precisa ser aceita pelo administrador. Isso pode demorar um tempinho!</p>
@@ -106,6 +109,93 @@
             </div>
             <div class="history-container history-grid" id="orderHistory" aria-live="polite"></div>
         </section>
+
+        <div id="modalTermos" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modalTermosTitle">
+            <div class="modal-content modal-terms-content">
+                <header class="modal-header">
+                    <div class="modal-title-group">
+                        <h2 id="modalTermosTitle">Termo de Responsabilidade</h2>
+                    </div>
+                    <button class="close-modal" id="closeTermsModal" type="button" aria-label="Fechar">&times;</button>
+                </header>
+                <p class="modal-date">CHIP — Controle de Hardware e Itens de Projeto · IFFar Campus Frederico Westphalen</p>
+                <hr class="modal-divider">
+
+                <div class="modal-terms-scrollable">
+                    <div class="terms-intro-card">
+                        <i class="fa-solid fa-file-shield terms-intro-icon"></i>
+                        <p class="terms-intro-text">
+                            Ao solicitar o empréstimo de um item de hardware, o(a) aluno(a) declara estar ciente das condições abaixo e assume a responsabilidade pelo item durante todo o período em que estiver sob sua posse.
+                        </p>
+                    </div>
+
+                    <div class="terms-list">
+                        <article class="term-card">
+                            <div class="term-number">1</div>
+                            <div class="term-content">
+                                <h3 class="term-heading">Finalidade Exclusivamente Acadêmica</h3>
+                                <p class="term-text">O item emprestado deverá ser utilizado exclusivamente para fins acadêmicos, relacionados às atividades, aulas, projetos ou trabalhos da instituição.</p>
+                            </div>
+                        </article>
+
+                        <article class="term-card">
+                            <div class="term-number">2</div>
+                            <div class="term-content">
+                                <h3 class="term-heading">Cuidado, Manuseio e Conservação</h3>
+                                <p class="term-text">O(a) aluno(a) compromete-se a manusear o equipamento com cuidado, evitando quedas, impactos, contato com líquidos, alterações indevidas ou qualquer outra ação que possa causar danos ao componente.</p>
+                            </div>
+                        </article>
+
+                        <article class="term-card">
+                            <div class="term-number">3</div>
+                            <div class="term-content">
+                                <h3 class="term-heading">Condições e Acessórios de Devolução</h3>
+                                <p class="term-text">O item deverá ser devolvido nas mesmas condições em que foi retirado, acompanhado de todos os componentes e acessórios fornecidos no momento do empréstimo.</p>
+                            </div>
+                        </article>
+
+                        <article class="term-card">
+                            <div class="term-number">4</div>
+                            <div class="term-content">
+                                <h3 class="term-heading">Guarda Pessoal e Não Transferência</h3>
+                                <p class="term-text">O(a) aluno(a) é responsável pela guarda e conservação do item durante todo o período do empréstimo, não devendo transferi-lo a terceiros sem autorização do responsável pelo laboratório.</p>
+                            </div>
+                        </article>
+
+                        <article class="term-card">
+                            <div class="term-number">5</div>
+                            <div class="term-content">
+                                <h3 class="term-heading">Comunicação e Responsabilidade por Danos ou Perdas</h3>
+                                <p class="term-text">Em caso de perda, dano decorrente de mau uso ou não devolução do item, o(a) aluno(a) deverá comunicar o responsável pelo laboratório e poderá ser responsabilizado conforme as normas da instituição.</p>
+                            </div>
+                        </article>
+
+                        <article class="term-card">
+                            <div class="term-number">6</div>
+                            <div class="term-content">
+                                <h3 class="term-heading">Pontualidade e Renovação de Prazo</h3>
+                                <p class="term-text">O prazo de devolução deverá ser rigorosamente respeitado. Caso seja necessário permanecer com o item por mais tempo, o(a) aluno(a) deverá solicitar autorização ou renovação do empréstimo.</p>
+                            </div>
+                        </article>
+
+                        <article class="term-card">
+                            <div class="term-number">7</div>
+                            <div class="term-content">
+                                <h3 class="term-heading">Declaração de Ciência e Concordância</h3>
+                                <p class="term-text">O(a) aluno(a) declara que leu e compreendeu este termo antes de realizar a solicitação do empréstimo, estando ciente de suas responsabilidades.</p>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+
+                <div class="modal-terms-actions">
+                    <button type="button" class="btn-terms-accept" id="btnAcceptTermsModal">
+                        <i class="fa-solid fa-check"></i> Entendi e concordo
+                    </button>
+                    <button type="button" class="btn-terms-close" id="btnCloseTermsModal">Fechar</button>
+                </div>
+            </div>
+        </div>
 
         <div id="modalPedido" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modalNumPedido">
             <div class="modal-content">

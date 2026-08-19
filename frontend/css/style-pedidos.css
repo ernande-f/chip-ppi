@@ -462,6 +462,18 @@ button.ongoing-card:hover {
     box-shadow: 0 4px 10px rgba(253, 224, 33, 0.2); /* Leve brilho amarelo */
 }
 
+.status-icon.green {
+    background: #16a34a;
+    color: white;
+    box-shadow: 0 4px 10px rgba(22, 163, 74, 0.2);
+}
+
+.status-icon.blue {
+    background: #0284c7;
+    color: white;
+    box-shadow: 0 4px 10px rgba(2, 132, 199, 0.2);
+}
+
 /* --- MODAL DIALOG BOX --- */
 
 /* Fundo escurecido (Overlay) */
@@ -752,6 +764,156 @@ button.history-card {
 
 .action-btn:hover {
     transform: translateY(-2px);
+}
+
+/* --- MODAL DO TERMO DE RESPONSABILIDADE --- */
+.modal-terms-content {
+    max-width: 820px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    padding: 35px 40px 25px;
+}
+
+.modal-terms-scrollable {
+    overflow-y: auto;
+    max-height: calc(90vh - 220px);
+    padding-right: 12px;
+    margin-bottom: 15px;
+}
+
+.modal-terms-scrollable::-webkit-scrollbar {
+    width: 6px;
+}
+
+.modal-terms-scrollable::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.modal-terms-scrollable::-webkit-scrollbar-thumb {
+    background: #d4a76a;
+    border-radius: 4px;
+}
+
+.modal-terms-scrollable .terms-intro-card {
+    background: #fff8ee;
+    border: 1px solid #fae2c1;
+    border-left: 5px solid var(--primary-orange);
+    border-radius: 12px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    margin-bottom: 18px;
+}
+
+.modal-terms-scrollable .terms-intro-icon {
+    color: var(--primary-orange);
+    font-size: 1.4rem;
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+.modal-terms-scrollable .terms-intro-text {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: var(--text-brown);
+    font-weight: 500;
+}
+
+.modal-terms-scrollable .terms-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.modal-terms-scrollable .term-card {
+    background: #ffffff;
+    border: 1px solid #eaeaea;
+    border-radius: 12px;
+    padding: 14px 18px;
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+}
+
+.modal-terms-scrollable .term-number {
+    width: 30px;
+    height: 30px;
+    background: var(--primary-orange);
+    color: var(--text-brown);
+    font-weight: 800;
+    font-size: 0.95rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.modal-terms-scrollable .term-content {
+    flex: 1;
+}
+
+.modal-terms-scrollable .term-heading {
+    margin: 0 0 4px 0;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #222;
+}
+
+.modal-terms-scrollable .term-text {
+    margin: 0;
+    font-size: 0.88rem;
+    color: #555;
+    line-height: 1.5;
+}
+
+.modal-terms-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 14px;
+    padding-top: 15px;
+    border-top: 1px solid #f0f0f0;
+}
+
+.btn-terms-accept {
+    background: var(--primary-orange);
+    color: var(--text-brown);
+    border: none;
+    border-radius: 10px;
+    padding: 12px 24px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: transform 0.2s, filter 0.2s;
+}
+
+.btn-terms-accept:hover {
+    filter: brightness(0.93);
+    transform: translateY(-1px);
+}
+
+.btn-terms-close {
+    background: #f0f0f0;
+    color: #555;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 12px 20px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-terms-close:hover {
+    background: #e4e4e4;
 }
 
 /* --- FOOTER --- */

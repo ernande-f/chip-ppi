@@ -1,4 +1,5 @@
 import sql from '../db.js';
+import { uploadProductImage, deleteProductImage, isBase64DataUrl } from './storageService.js';
 
 export class ProductValidationError extends Error {}
 export class ProductConflictError extends Error {}
@@ -9,6 +10,8 @@ const STATUS = {
     UNAVAILABLE: 'Indisponível',
     ARCHIVED: 'Arquivado'
 };
+
+let _statusCache = null;
 
 function normalizeText(value) {
     return typeof value === 'string' ? value.trim() : '';
@@ -88,8 +91,8 @@ function normalizeProductData(data, { partial = false } = {}) {
     }
 
     if (!partial || data.cor !== undefined) {
-        if (!cor || cor.length > 20) {
-            throw new ProductValidationError('Informe uma cor de até 20 caracteres.');
+        if (cor && cor.length > 20) {
+            throw new ProductValidationError('A cor deve ter no máximo 20 caracteres.');
         }
     }
 
@@ -121,7 +124,7 @@ function normalizeProductData(data, { partial = false } = {}) {
         nome,
         descricao_produto: descricaoProduto,
         estoque_total: data.estoque_total === undefined ? undefined : normalizeQuantity(data.estoque_total),
-        cor,
+        cor: cor || null,
         foto_produto: fotoProduto,
         categorias
     };
@@ -132,6 +135,8 @@ export function validateProductPayload(data, options) {
 }
 
 async function ensureStatuses(db) {
+    if (_statusCache) return _statusCache;
+
     for (const status of Object.values(STATUS)) {
         const [existing] = await db`
             SELECT id_statusproduto
@@ -144,9 +149,22 @@ async function ensureStatuses(db) {
             await db`INSERT INTO status_produto (status_produto) VALUES (${status})`;
         }
     }
+
+    const rows = await db`SELECT id_statusproduto, status_produto FROM status_produto`;
+    _statusCache = new Map(rows.map((r) => [r.status_produto.toLowerCase(), r.id_statusproduto]));
+    return _statusCache;
 }
 
 async function getStatusId(db, status) {
+    if (!_statusCache) {
+        await ensureStatuses(db);
+    }
+
+    const cachedId = _statusCache?.get(status.toLowerCase());
+    if (cachedId) {
+        return cachedId;
+    }
+
     const [row] = await db`
         SELECT id_statusproduto
         FROM status_produto
@@ -158,11 +176,16 @@ async function getStatusId(db, status) {
         throw new Error(`Status de produto não encontrado: ${status}`);
     }
 
+    _statusCache.set(status.toLowerCase(), row.id_statusproduto);
     return row.id_statusproduto;
 }
 
 async function replaceCategories(db, productId, categories) {
     await db`DELETE FROM categorizar WHERE id_produto = ${productId}`;
+
+    if (!categories || categories.length === 0) {
+        return;
+    }
 
     for (const categoryName of categories) {
         let [category] = await db`
@@ -200,8 +223,47 @@ function productQueryFilters(filters = {}) {
 
 export async function listProducts(filters = {}) {
     const { search, category, color, availableOnly, includeArchived } = productQueryFilters(filters);
+    const limit = Math.min(Math.max(Number.parseInt(filters.limit, 10) || 20, 1), 100);
+    const page = Math.max(Number.parseInt(filters.page, 10) || 1, 1);
+    const offset = (page - 1) * limit;
 
-    return sql`
+    const [countRow] = await sql`
+        SELECT count(DISTINCT p.id_produto)::int AS total
+        FROM produto p
+        INNER JOIN status_produto sp ON sp.id_statusproduto = p.id_statusproduto
+        WHERE
+            (${includeArchived} OR lower(sp.status_produto) <> lower(${STATUS.ARCHIVED}))
+            AND (NOT ${availableOnly} OR (lower(sp.status_produto) = lower(${STATUS.AVAILABLE}) AND p.estoque_total > 0))
+            AND (
+                ${search} = ''
+                OR p.nome ILIKE ${`%${search}%`}
+                OR p.cor ILIKE ${`%${search}%`}
+                OR EXISTS (
+                    SELECT 1
+                    FROM categorizar search_cz
+                    INNER JOIN categoria search_c ON search_c.id_categoria = search_cz.id_categoria
+                    WHERE search_cz.id_produto = p.id_produto
+                      AND search_c.nome_categoria ILIKE ${`%${search}%`}
+                )
+            )
+            AND (
+                ${category} = ''
+                OR EXISTS (
+                    SELECT 1
+                    FROM categorizar category_cz
+                    INNER JOIN categoria category_c ON category_c.id_categoria = category_cz.id_categoria
+                    WHERE category_cz.id_produto = p.id_produto
+                      AND category_c.nome_categoria ILIKE ${`%${category}%`}
+                )
+            )
+            AND (${color} = '' OR p.cor ILIKE ${`%${color}%`})
+    `;
+
+    const total = countRow?.total || 0;
+    const totalPages = Math.ceil(total / limit) || 1;
+    const hasMore = page < totalPages;
+
+    const produtos = await sql`
         SELECT
             p.id_produto,
             p.nome,
@@ -249,7 +311,17 @@ export async function listProducts(filters = {}) {
             )
             AND (${color} = '' OR p.cor ILIKE ${`%${color}%`})
         ORDER BY lower(p.nome), p.id_produto
+        LIMIT ${limit} OFFSET ${offset}
     `;
+
+    return {
+        produtos,
+        total,
+        page,
+        limit,
+        totalPages,
+        hasMore
+    };
 }
 
 export async function getProductById(id) {
@@ -276,6 +348,7 @@ export async function getProductById(id) {
             ) AS category_row
         ) AS categories ON true
         WHERE p.id_produto = ${productId}
+        LIMIT 1
     `;
 
     return products[0] || null;
@@ -283,6 +356,11 @@ export async function getProductById(id) {
 
 export async function createProduct(data) {
     const product = normalizeProductData(data);
+
+    let fotoProdutoUrl = product.foto_produto;
+    if (isBase64DataUrl(product.foto_produto)) {
+        fotoProdutoUrl = await uploadProductImage(product.foto_produto);
+    }
 
     return sql.begin(async (db) => {
         await ensureStatuses(db);
@@ -307,7 +385,7 @@ export async function createProduct(data) {
                 ${product.descricao_produto},
                 ${product.estoque_total},
                 ${product.cor},
-                ${product.foto_produto},
+                ${fotoProdutoUrl},
                 ${statusId}
             )
             RETURNING id_produto, nome, descricao_produto, estoque_total, cor, foto_produto
@@ -338,12 +416,24 @@ export async function updateProduct(id, data) {
             throw new ProductNotFoundError('Item não encontrado.');
         }
 
+        let fotoProdutoUrl = existing.foto_produto;
+        if (data.foto_produto !== undefined) {
+            if (isBase64DataUrl(updates.foto_produto)) {
+                fotoProdutoUrl = await uploadProductImage(updates.foto_produto);
+                if (existing.foto_produto && existing.foto_produto !== fotoProdutoUrl) {
+                    await deleteProductImage(existing.foto_produto);
+                }
+            } else {
+                fotoProdutoUrl = updates.foto_produto;
+            }
+        }
+
         const next = {
             nome: data.nome === undefined ? existing.nome : updates.nome,
             descricao_produto: data.descricao_produto === undefined ? existing.descricao_produto : updates.descricao_produto,
             estoque_total: data.estoque_total === undefined ? existing.estoque_total : updates.estoque_total,
             cor: data.cor === undefined ? existing.cor : updates.cor,
-            foto_produto: data.foto_produto === undefined ? existing.foto_produto : updates.foto_produto
+            foto_produto: fotoProdutoUrl
         };
 
         const [duplicate] = await db`
@@ -390,7 +480,7 @@ export async function deleteProduct(id) {
     try {
         return await sql.begin(async (db) => {
             const [existing] = await db`
-                SELECT id_produto, nome
+                SELECT id_produto, nome, foto_produto
                 FROM produto
                 WHERE id_produto = ${productId}
                 FOR UPDATE
@@ -406,6 +496,10 @@ export async function deleteProduct(id) {
                 WHERE id_produto = ${productId}
                 RETURNING id_produto, nome
             `;
+
+            if (existing.foto_produto) {
+                await deleteProductImage(existing.foto_produto);
+            }
 
             return deletedProduct;
         });

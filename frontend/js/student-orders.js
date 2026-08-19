@@ -92,6 +92,26 @@ async function changeQuantity(item, quantity) {
     }
 }
 
+function getStudentStatusBadge(status) {
+    switch (status) {
+        case 'Pendente':
+            return { className: 'status-icon yellow', symbol: '!' };
+        case 'Aprovado':
+        case 'Pronto para retirada':
+        case 'Devolvido':
+            return { className: 'status-icon green', symbol: '✓' };
+        case 'Em separação':
+            return { className: 'status-icon blue', symbol: '⟳' };
+        case 'Retirado':
+            return { className: 'status-icon blue', symbol: '⏱' };
+        case 'Negado':
+        case 'Cancelado':
+            return { className: 'status-icon red', symbol: '✕' };
+        default:
+            return { className: 'status-icon yellow', symbol: '!' };
+    }
+}
+
 function createOrderCard(order, compact = false) {
     const card = createElement('button', compact ? 'card ongoing-card' : 'card history-card');
     card.type = 'button';
@@ -104,7 +124,8 @@ function createOrderCard(order, compact = false) {
                 ? `Devolução prevista: ${formatDate(order.data_prevista_devolucao)}`
                 : `Status: ${order.status}`)
         );
-        card.append(info, createElement('div', 'status-icon yellow', '!'));
+        const badgeInfo = getStudentStatusBadge(order.status);
+        card.append(info, createElement('div', badgeInfo.className, badgeInfo.symbol));
     } else {
         const header = createElement('div', 'history-card-header');
         header.append(
@@ -220,9 +241,60 @@ async function cancelSelectedOrder() {
     }
 }
 
+function openTermsModal() {
+    const modal = document.getElementById('modalTermos');
+    if (modal) modal.style.display = 'flex';
+}
+
+function closeTermsModal() {
+    const modal = document.getElementById('modalTermos');
+    if (modal) modal.style.display = 'none';
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
     const checkoutButton = document.getElementById('checkoutButton');
     const modal = document.getElementById('modalPedido');
+    const termsModal = document.getElementById('modalTermos');
+    const openTermsLink = document.getElementById('openTermsModal');
+    const closeTermsModalBtn = document.getElementById('closeTermsModal');
+    const btnCloseTermsModal = document.getElementById('btnCloseTermsModal');
+    const btnAcceptTermsModal = document.getElementById('btnAcceptTermsModal');
+
+    if (openTermsLink) {
+        openTermsLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            openTermsModal();
+        });
+    }
+
+    if (closeTermsModalBtn) {
+        closeTermsModalBtn.addEventListener('click', closeTermsModal);
+    }
+
+    if (btnCloseTermsModal) {
+        btnCloseTermsModal.addEventListener('click', closeTermsModal);
+    }
+
+    if (btnAcceptTermsModal) {
+        btnAcceptTermsModal.addEventListener('click', () => {
+            const checkbox = document.getElementById('acceptTerms');
+            if (checkbox) checkbox.checked = true;
+            closeTermsModal();
+        });
+    }
+
+    if (termsModal) {
+        termsModal.addEventListener('click', (event) => {
+            if (event.target === termsModal) closeTermsModal();
+        });
+    }
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+            closeTermsModal();
+            closeOrderModal();
+        }
+    });
 
     checkoutButton.addEventListener('click', async () => {
         checkoutButton.disabled = true;

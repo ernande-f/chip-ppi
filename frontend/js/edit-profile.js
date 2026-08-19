@@ -1,8 +1,9 @@
 import {
     getInitials,
     getProfile,
-    logout,
+    isUserTechnical,
     maskCpf,
+    updateNavbarForRole,
     updatePassword,
     updateProfile
 } from './api.js';
@@ -40,9 +41,11 @@ function applyAvatar(name) {
 
 async function loadProfile() {
     const { profile } = await getProfile();
+    const isTechnical = isUserTechnical(profile);
 
-    const role = profile.nivel_acesso_label || profile.nivel_acesso;
-    const roleLabel = (role === 'tecnico' || role === 'Tecnico' || role === 1) ? 'Técnico' : (profile.nivel_acesso_label || 'Usuário');
+    const roleLabel = isTechnical
+        ? (profile.nivel_acesso === 2 || String(profile.nivel_acesso).toLowerCase().includes('adm') ? 'Administrador' : (profile.nivel_acesso_label || 'Técnico'))
+        : (profile.nivel_acesso_label || 'Usuário');
 
     const nameInput = document.getElementById('profileNameInput');
     const emailInput = document.getElementById('profileEmailInput');
@@ -55,21 +58,18 @@ async function loadProfile() {
     if (roleSpan) roleSpan.textContent = roleLabel;
 
     applyAvatar(profile.nome);
+    updateNavbarForRole(profile);
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
     const profileForm = document.getElementById('profileForm');
     const passwordForm = document.getElementById('passwordForm');
     const fileInput = document.getElementById('file-input');
-    const logoutTrigger = document.getElementById('logoutTrigger');
-    const confirmLogout = document.getElementById('confirmLogout');
     const cancelEdit = document.getElementById('cancelEdit');
     const openPasswordModal = document.getElementById('openPasswordModal');
     const closePasswordModal = document.getElementById('closePasswordModal');
-    const closeLogoutModal = document.getElementById('closeLogoutModal');
     const selectAvatarButton = document.getElementById('selectAvatarButton');
     const passwordModal = document.getElementById('modal-redefinir');
-    const logoutModal = document.getElementById('logoutModal');
 
     if (cancelEdit) {
         cancelEdit.addEventListener('click', () => {
@@ -87,13 +87,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         selectAvatarButton.addEventListener('click', () => fileInput.click());
     }
 
-    if (logoutTrigger) {
-        logoutTrigger.addEventListener('click', () => toggleModal('logoutModal', true));
-    }
-    if (closeLogoutModal) {
-        closeLogoutModal.addEventListener('click', () => toggleModal('logoutModal', false));
-    }
-
     if (passwordModal) {
         passwordModal.addEventListener('click', (event) => {
             if (event.target === passwordModal) {
@@ -102,25 +95,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    if (logoutModal) {
-        logoutModal.addEventListener('click', (event) => {
-            if (event.target === logoutModal) {
-                toggleModal('logoutModal', false);
-            }
-        });
-    }
-
-    if (confirmLogout) {
-        confirmLogout.addEventListener('click', async () => {
-            try {
-                await logout();
-                redirectToLogin();
-            } catch (error) {
-                console.error('Erro ao fazer logout:', error);
-                alert(error.message || 'Não foi possível encerrar a sessão.');
-            }
-        });
-    }
 
     if (profileForm) {
         profileForm.addEventListener('submit', async (event) => {

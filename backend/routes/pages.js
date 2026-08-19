@@ -87,6 +87,9 @@ router.get('/editar-perfil', verifySessionAuth, async (req, res) => {
 
 router.get('/pedidos', verifySessionAuth, async (req, res) => {
     try {
+        if (hasTechnicalAccess(req.profile?.nivel_acesso)) {
+            return res.redirect('/pedidos.html');
+        }
         return res.redirect('/pages/seus-pedidos.html');
     } catch (error) {
         console.error('Erro ao carregar pedidos:', error);

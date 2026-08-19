@@ -323,7 +323,7 @@ router.get('/status', (req, res) => {
 
 router.get('/session', verifySessionAuth, async (req, res) => {
     try {
-        const profile = await getProfileSummaryByAuthUserId(req.user.id);
+        const profile = await getProfileSummaryByAuthUserId(req.user.id, req.profile);
 
         if (!profile) {
             return res.status(404).json({ success: false, message: 'Perfil não encontrado.' });
@@ -342,7 +342,7 @@ router.get('/session', verifySessionAuth, async (req, res) => {
 
 router.get('/profile', verifySessionAuth, async (req, res) => {
     try {
-        const profile = await getProfileSummaryByAuthUserId(req.user.id);
+        const profile = await getProfileSummaryByAuthUserId(req.user.id, req.profile);
 
         if (!profile) {
             return res.status(404).json({ success: false, message: 'Perfil não encontrado.' });
@@ -463,6 +463,10 @@ router.get('/carrinho', verifySessionAuth, async (req, res) => {
 
 router.post('/carrinho/itens', verifySessionAuth, async (req, res) => {
     try {
+        if (hasCatalogManagementAccess(req.profile?.nivel_acesso)) {
+            return res.status(403).json({ success: false, message: 'Administradores e técnicos não utilizam carrinho de compras.' });
+        }
+
         const item = await addCartItem(req.profile.id_usuario, req.body.productId, req.body.quantity ?? 1);
         return res.status(201).json({ success: true, message: 'Item adicionado ao carrinho.', item });
     } catch (error) {
@@ -499,6 +503,10 @@ router.get('/pedidos', verifySessionAuth, async (req, res) => {
 
 router.post('/pedidos', verifySessionAuth, async (req, res) => {
     try {
+        if (hasCatalogManagementAccess(req.profile?.nivel_acesso)) {
+            return res.status(403).json({ success: false, message: 'Administradores e técnicos não realizam pedidos.' });
+        }
+
         const pedido = await checkoutCart(req.profile.id_usuario, {
             durationDays: req.body.durationDays,
             acceptedTerms: req.body.acceptedTerms,
@@ -555,13 +563,22 @@ router.patch('/gestao/pedidos/:id', verifySessionAuth, async (req, res) => {
 router.get('/produtos', verifySessionAuth, async (req, res) => {
     try {
         const managerProfile = await getCatalogManagerProfile(req);
-        const produtos = await listProducts({
+        const result = await listProducts({
             ...req.query,
             availableOnly: managerProfile ? req.query.availableOnly : true,
             includeArchived: managerProfile && req.query.includeArchived === 'true'
         });
 
-        return res.json({ success: true, produtos, isCatalogManager: Boolean(managerProfile) });
+        return res.json({
+            success: true,
+            produtos: result.produtos,
+            total: result.total,
+            page: result.page,
+            limit: result.limit,
+            totalPages: result.totalPages,
+            hasMore: result.hasMore,
+            isCatalogManager: Boolean(managerProfile)
+        });
     } catch (error) {
         console.error('Erro na rota /produtos:', error);
         res.status(500).json({ success: false, message: 'Erro interno ao buscar produtos.' });

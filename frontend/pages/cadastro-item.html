@@ -4,8 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CHIP - Cadastro de Item</title>
-    <link rel="stylesheet" href="../css/css-cadastro-item.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/css-cadastro-item.css">
 </head>
 <body>
 
@@ -22,7 +24,6 @@
 
         <div class="nav-links">
             <a href="/pedidos.html" class="nav-link-item">
-                <img src="../assets/carrinho.png" alt="Carrinho" class="nav-cart-icon">
                 <span class="nav-text-bold">Pedidos</span>
             </a>
             
@@ -71,8 +72,8 @@
 
                 <div class="form-row align-end">
                     <div class="form-group">
-                        <label for="cor">Cor:</label>
-                        <input type="text" id="cor" name="cor" required>
+                        <label for="cor">Cor (opcional):</label>
+                        <input type="text" id="cor" name="cor" maxlength="20" placeholder="Ex: Azul, Preto...">
                     </div>
                     <div class="form-group">
                         <label class="upload-label" for="foto" id="label-foto">Selecionar foto</label>

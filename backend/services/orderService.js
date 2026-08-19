@@ -23,7 +23,13 @@ function normalizeId(value, label) {
     return id;
 }
 
+const _orderStatusCache = new Map();
+const _productStatusCache = new Map();
+
 async function getOrderStatusId(db, status) {
+    const key = status.toLowerCase();
+    if (_orderStatusCache.has(key)) return _orderStatusCache.get(key);
+
     const [row] = await db`
         SELECT id_status
         FROM status_pedido
@@ -35,10 +41,14 @@ async function getOrderStatusId(db, status) {
         throw new Error(`Status de pedido não configurado: ${status}. Aplique a migration do fluxo de pedidos.`);
     }
 
+    _orderStatusCache.set(key, row.id_status);
     return row.id_status;
 }
 
 async function getProductStatusId(db, status) {
+    const key = status.toLowerCase();
+    if (_productStatusCache.has(key)) return _productStatusCache.get(key);
+
     const [row] = await db`
         SELECT id_statusproduto
         FROM status_produto
@@ -50,6 +60,7 @@ async function getProductStatusId(db, status) {
         throw new Error(`Status de produto não configurado: ${status}.`);
     }
 
+    _productStatusCache.set(key, row.id_statusproduto);
     return row.id_statusproduto;
 }
 
@@ -476,41 +487,41 @@ export async function transitionOrder(actorUserId, orderId, action, { reason, ip
         }
 
         if (action === ORDER_ACTION.REGISTER_RETURN) {
-            const items = await restoreOrderItemsStock(db, normalizedOrderId);
-
-            for (const item of items) {
-                await db`
-                    UPDATE contem_lista
-                    SET qnt_devolvida = qnt_solicitada, status_item = 'Devolvido'
-                    WHERE id_pedido = ${normalizedOrderId}
-                      AND id_produto = ${item.id_produto}
-                `;
-            }
+            await restoreOrderItemsStock(db, normalizedOrderId);
 
             await db`
-                UPDATE pedido
-                SET data_devolucao = current_date
+                UPDATE contem_lista
+                SET qnt_devolvida = qnt_solicitada, status_item = 'Devolvido'
                 WHERE id_pedido = ${normalizedOrderId}
             `;
-        }
 
-        if (action === ORDER_ACTION.CONFIRM_PICKUP) {
             await db`
                 UPDATE pedido
                 SET
+                    id_status = ${nextStatusId},
+                    motivo_recusa = ${normalizedReason},
+                    data_devolucao = current_date
+                WHERE id_pedido = ${normalizedOrderId}
+            `;
+        } else if (action === ORDER_ACTION.CONFIRM_PICKUP) {
+            await db`
+                UPDATE pedido
+                SET
+                    id_status = ${nextStatusId},
+                    motivo_recusa = ${normalizedReason},
                     data_retirada = current_date,
                     data_devolucao = NULL
                 WHERE id_pedido = ${normalizedOrderId}
             `;
+        } else {
+            await db`
+                UPDATE pedido
+                SET
+                    id_status = ${nextStatusId},
+                    motivo_recusa = ${normalizedReason}
+                WHERE id_pedido = ${normalizedOrderId}
+            `;
         }
-
-        await db`
-            UPDATE pedido
-            SET
-                id_status = ${nextStatusId},
-                motivo_recusa = ${normalizedReason}
-            WHERE id_pedido = ${normalizedOrderId}
-        `;
         await recordOrderAudit(db, {
             actorUserId: normalizedActorUserId,
             orderId: normalizedOrderId,

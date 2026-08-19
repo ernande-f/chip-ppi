@@ -86,14 +86,18 @@ export async function getProfileByCpf(cpf) {
     return profile ?? null;
 }
 
-export async function getProfileSummaryByAuthUserId(authUserId) {
-    const profile = await getProfileByAuthUserId(authUserId);
+export async function getProfileSummaryByAuthUserId(authUserId, existingProfile = null) {
+    const profile = existingProfile || await getProfileByAuthUserId(authUserId);
 
     if (!profile) {
         return null;
     }
 
-    const recentOrders = await sql`
+    const isTechnical = profile.nivel_acesso === 1 || profile.nivel_acesso === 2 ||
+                        profile.nivel_acesso === 'tecnico' || profile.nivel_acesso === 'adm' ||
+                        profile.nivel_acesso === 'administrador';
+
+    const recentOrders = isTechnical ? [] : await sql`
         SELECT
             p.id_pedido,
             p.data_pedido,
@@ -102,9 +106,8 @@ export async function getProfileSummaryByAuthUserId(authUserId) {
             p.motivo_recusa,
             COALESCE(sp.descricao_status, 'Pendente') AS status
         FROM pedido p
-        INNER JOIN usuario u ON u.id_usuario = p.id_usuario
         LEFT JOIN status_pedido sp ON sp.id_status = p.id_status
-        WHERE u.auth_user_id = ${authUserId}
+        WHERE p.id_usuario = ${profile.id_usuario}
         ORDER BY p.data_pedido DESC, p.id_pedido DESC
         LIMIT 5
     `;

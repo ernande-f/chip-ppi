@@ -44,3 +44,16 @@ test('rejeita estoque negativo e foto ausente', () => {
         ProductValidationError
     );
 });
+
+test('aceita produto sem informar cor e define cor como null', () => {
+    const product = validateProductPayload({
+        nome: 'Sensor de Temperatura',
+        descricao_produto: 'Sensor analógico LM35.',
+        estoque_total: 10,
+        foto_produto: 'data:image/png;base64,abc',
+        categorias: ['Sensores']
+    });
+
+    assert.equal(product.cor, null);
+    assert.equal(product.nome, 'Sensor de Temperatura');
+});

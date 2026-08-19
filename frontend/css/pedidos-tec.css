@@ -209,17 +209,49 @@ body {
 }
 
 .alert-badge {
-    width: 22px;
-    height: 22px;
+    width: 24px;
+    height: 24px;
     border-radius: 50%;
-    background: var(--danger);
+    background: #f59e0b;
     color: #fff;
     font-weight: 700;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.95rem;
+    font-size: 0.85rem;
     flex-shrink: 0;
+}
+
+.alert-badge.status-pendente {
+    background: #f59e0b;
+}
+
+.alert-badge.status-aprovado {
+    background: #16a34a;
+}
+
+.alert-badge.status-separando {
+    background: #0284c7;
+}
+
+.alert-badge.status-retirada {
+    background: #16a34a;
+}
+
+.alert-badge.status-retirado {
+    background: #6366f1;
+}
+
+.alert-badge.status-devolvido {
+    background: #16a34a;
+}
+
+.alert-badge.status-negado {
+    background: #dc2626;
+}
+
+.alert-badge.status-cancelado {
+    background: #6b7280;
 }
 
 .card-divider {

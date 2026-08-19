@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Editar Perfil - CHIP</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../css/css-base.css">
@@ -60,9 +62,6 @@
                 <div class="form-column">
                     <div class="form-header">
                         <span class="role-badge" id="profileRole">Usuário</span>
-                        <button type="button" class="logout-inline-btn" id="logoutTrigger">
-                            <i class="fa-solid fa-arrow-right-from-bracket"></i> Sair
-                        </button>
                     </div>
 
                     <form class="profile-form" id="profileForm">
@@ -116,17 +115,6 @@
         </div>
     </div>
 
-    <div id="logoutModal" class="modal-overlay">
-        <div class="modal-card">
-            <div class="modal-header">
-                <h2>Sair</h2>
-                <button type="button" class="close-modal" id="closeLogoutModal">&times;</button>
-            </div>
-            <p>Você tem certeza que deseja encerrar sua sessão?</p>
-            <button type="button" class="btn-save-modal" id="confirmLogout">Confirmar</button>
-        </div>
-    </div>
-
     <footer class="main-footer">
         <div class="footer-container">
             <div class="footer-col-icon">
@@ -154,6 +142,7 @@
         </div>
     </footer>
 
+    <script type="module" src="../js/header-avatar.js"></script>
     <script type="module" src="../js/edit-profile.js"></script>
 </body>
 </html>

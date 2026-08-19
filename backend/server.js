@@ -122,6 +122,14 @@ app.use((req, res, next) => {
     }
 
     return verifySessionAuth(req, res, async () => {
+        // Sinaliza que a autenticação já foi verificada neste request,
+        // evitando que o router de páginas execute verifySessionAuth novamente.
+        req._authVerified = true;
+
+        if (req.path === '/pages/seus-pedidos.html' && hasPrivilegedAccess(req.profile?.nivel_acesso)) {
+            return res.redirect('/pedidos.html');
+        }
+
         if (!TECH_ONLY_PAGE_PATHS.has(req.path)) {
             return next();
         }
@@ -139,8 +147,16 @@ app.get('/index.html', (req, res) => res.redirect('/'));
 app.get('/pages/perfil-tec.html', (req, res) => res.redirect('/perfil-tec.html'));
 app.get('/pages/editar-perfil-tec.html', (req, res) => res.redirect('/editar-perfil-tec.html'));
 
-// Serve os arquivos estáticos da pasta "frontend"
-app.use(express.static(path.join(__dirname, '../frontend'), { index: false }));
+// Serve os arquivos estáticos da pasta "frontend".
+// Imagens e fontes ficam em cache no browser por 30 dias.
+app.use(express.static(path.join(__dirname, '../frontend'), {
+    index: false,
+    setHeaders(res, filePath) {
+        if (/\.(png|jpg|jpeg|webp|avif|svg|woff2?|ico)$/i.test(filePath)) {
+            res.setHeader('Cache-Control', 'public, max-age=2592000, immutable');
+        }
+    }
+}));
 
 // Rotas da Aplicação
 app.use('/api', apiRoutes);

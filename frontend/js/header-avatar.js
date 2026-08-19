@@ -1,4 +1,4 @@
-import { getInitials, getSession } from './api.js';
+import { getInitials, getSession, updateNavbarForRole } from './api.js';
 
 function ensureHeaderAvatarElement() {
     const profilePic = document.querySelector('.profile-pic');
@@ -24,12 +24,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         const { profile, user } = await getSession();
         const headerAvatar = ensureHeaderAvatarElement();
 
-        if (!headerAvatar) {
-            return;
+        if (headerAvatar) {
+            const displayName = profile?.nome || user?.user_metadata?.name || user?.email || '';
+            headerAvatar.textContent = getInitials(displayName);
         }
 
-        const displayName = profile?.nome || user?.user_metadata?.name || user?.email || '';
-        headerAvatar.textContent = getInitials(displayName);
+        updateNavbarForRole(profile);
     } catch (error) {
         console.error('Erro ao validar sessão:', error);
         window.location.href = '/login';
