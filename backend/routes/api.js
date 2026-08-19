@@ -100,15 +100,6 @@ function sendOrderError(res, error) {
     return res.status(500).json({ success: false, message: 'Não foi possível concluir a operação do pedido.' });
 }
 
-router.get('/test-db', async (req, res) => {
-    try {
-        res.json({ success: true, message: 'Conexão deu certo' });
-    } catch (error) {
-        console.error('Erro ao acessar o banco de dados:', error);
-        res.status(500).json({ error: 'Erro interno do servidor' });
-    }
-});
-
 // ======SUPABASE AUTH=====
 
 router.post('/login', async (req, res) => {

@@ -1,8 +1,23 @@
-.env
+# Dependências
 node_modules/
-CHIP - Documento oficial (1).pdf
+
+# Variáveis de ambiente
+.env
+
+# Logs
+*.log
+
+# macOS
+.DS_Store
+
+# PDFs do documento oficial (guardar externamente)
+CHIP - Documento oficial*.pdf
 CHIP_Cronograma.xlsx
+
+# Tooling de IA
 .agents
 .claude
-modelos
+.codex
+.sb-pentest-*
 skills-lock.json
+modelos

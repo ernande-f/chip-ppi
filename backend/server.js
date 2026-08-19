@@ -50,11 +50,6 @@ function hasPrivilegedAccess(level) {
     return level === 1 || level === 2 || level === 'tecnico' || level === 'adm' || level === 'administrador';
 }
 
-// --- Auth and Cookies ---
-// const cookieParser = require("cookieParser");
-// const jwt = require("jsonwebtoken");
-// app.use(cookieParser());
-
 // --- Segurança: Helmet (headers HTTP seguros + HSTS) ---
 app.use(helmet());
 

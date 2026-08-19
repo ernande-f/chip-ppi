@@ -96,7 +96,7 @@ router.get('/pedidos', verifySessionAuth, async (req, res) => {
 
 router.get('/pesquisa', verifySessionAuth, async (req, res) => {
     try {
-        return res.redirect('/pages/pesquisa.html');
+        return res.redirect('/index-tec.html');
     } catch (error) {
         console.error('Erro ao carregar pesquisa:', error);
         return res.status(500).send('Erro ao carregar a página de pesquisa');
