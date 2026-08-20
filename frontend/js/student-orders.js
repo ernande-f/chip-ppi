@@ -8,7 +8,7 @@ import {
     updateItemCarrinho
 } from './api.js';
 
-const FALLBACK_IMAGE = '../assets/electronic_components_1_1774913851066.png';
+const FALLBACK_IMAGE = '/assets/electronic_components_1_1774913851066.png';
 const TERMINAL_STATUSES = new Set(['Devolvido', 'Negado', 'Cancelado']);
 let orders = [];
 let selectedOrder = null;
@@ -43,6 +43,11 @@ async function loadCart() {
         image.className = 'product-thumb';
         image.src = item.foto_produto || FALLBACK_IMAGE;
         image.alt = `Foto de ${item.nome}`;
+        image.referrerPolicy = 'no-referrer';
+        image.onerror = () => {
+            image.onerror = null;
+            image.src = FALLBACK_IMAGE;
+        };
 
         const details = createElement('div', 'product-details');
         details.append(
@@ -207,6 +212,10 @@ function openOrderModal(order) {
         const image = document.createElement('img');
         image.src = item.foto_produto || FALLBACK_IMAGE;
         image.alt = `Foto de ${item.nome}`;
+        image.onerror = () => {
+            image.onerror = null;
+            image.src = FALLBACK_IMAGE;
+        };
         const details = createElement('div', 'modal-prod-details');
         details.append(
             createElement('strong', null, item.nome),

@@ -6,7 +6,7 @@ import {
     updateProduto
 } from './api.js';
 
-const FALLBACK_IMAGE = '../assets/electronic_components_1_1774913851066.png';
+const FALLBACK_IMAGE = '/assets/electronic_components_1_1774913851066.png';
 
 function createElement(tag, className, text) {
     const element = document.createElement(tag);
@@ -26,6 +26,11 @@ function createItemCard(product, onEdit) {
     image.src = product.foto_produto || FALLBACK_IMAGE;
     image.alt = product.nome;
     image.loading = 'lazy';
+    image.referrerPolicy = 'no-referrer';
+    image.onerror = () => {
+        image.onerror = null;
+        image.src = FALLBACK_IMAGE;
+    };
     visual.appendChild(image);
 
     const details = createElement('div', 'item-data');
@@ -45,7 +50,12 @@ function createItemCard(product, onEdit) {
 }
 
 function setImagePreview(source) {
-    document.getElementById('itemImagePreview').src = source || FALLBACK_IMAGE;
+    const preview = document.getElementById('itemImagePreview');
+    preview.src = source || FALLBACK_IMAGE;
+    preview.onerror = () => {
+        preview.onerror = null;
+        preview.src = FALLBACK_IMAGE;
+    };
 }
 
 document.addEventListener('DOMContentLoaded', async () => {

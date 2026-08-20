@@ -1,6 +1,6 @@
 import { formatDate, getPedidosGestao, transitionPedido } from './api.js';
 
-const FALLBACK_IMAGE = '../assets/electronic_components_1_1774913851066.png';
+const FALLBACK_IMAGE = '/assets/electronic_components_1_1774913851066.png';
 const TAB_CONFIG = {
     solicitacoes: {
         statuses: ['Pendente'],
@@ -176,6 +176,11 @@ function openModal(order) {
         image.src = item.foto_produto || FALLBACK_IMAGE;
         image.alt = `Foto de ${item.nome}`;
         image.className = 'item-thumb';
+        image.referrerPolicy = 'no-referrer';
+        image.onerror = () => {
+            image.onerror = null;
+            image.src = FALLBACK_IMAGE;
+        };
         const details = document.createElement('div');
         details.append(
             createElement('p', 'item-name', item.nome),

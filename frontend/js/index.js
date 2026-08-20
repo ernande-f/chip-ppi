@@ -7,7 +7,7 @@ import {
     getSession
 } from './api.js';
 
-const FALLBACK_IMAGE = '../assets/electronic_components_1_1774913851066.png';
+const FALLBACK_IMAGE = '/assets/electronic_components_1_1774913851066.png';
 
 function createProductCard(product) {
     const card = document.createElement('article');
@@ -19,6 +19,11 @@ function createProductCard(product) {
     imageElement.src = product.foto_produto || FALLBACK_IMAGE;
     imageElement.alt = `Foto de ${product.nome}`;
     imageElement.loading = 'lazy';
+    imageElement.referrerPolicy = 'no-referrer';
+    imageElement.onerror = () => {
+        imageElement.onerror = null;
+        imageElement.src = FALLBACK_IMAGE;
+    };
     image.appendChild(imageElement);
 
     const info = document.createElement('div');

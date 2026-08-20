@@ -51,7 +51,22 @@ function hasPrivilegedAccess(level) {
 }
 
 // --- Segurança: Helmet (headers HTTP seguros + HSTS) ---
-app.use(helmet());
+// Configurado para permitir imagens externas (HTTPS), Supabase Storage e Google Fonts.
+app.use(
+    helmet({
+        contentSecurityPolicy: {
+            directives: {
+                defaultSrc: ["'self'"],
+                scriptSrc: ["'self'", "'unsafe-inline'"],
+                styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com', 'https://cdnjs.cloudflare.com'],
+                fontSrc: ["'self'", 'https://fonts.gstatic.com', 'https://cdnjs.cloudflare.com'],
+                imgSrc: ["'self'", 'data:', 'blob:', 'https:', 'http:'],
+                connectSrc: ["'self'", 'https:', 'http:', 'ws:', 'wss:']
+            }
+        },
+        crossOriginResourcePolicy: { policy: 'cross-origin' }
+    })
+);
 
 // --- Segurança: Redirecionar HTTP → HTTPS em produção ---
 if (process.env.NODE_ENV === 'production') {
