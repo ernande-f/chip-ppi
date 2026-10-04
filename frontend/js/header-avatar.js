@@ -22,6 +22,7 @@ function ensureHeaderAvatarElement() {
 document.addEventListener('DOMContentLoaded', async () => {
     try {
         const { profile, user } = await getSession();
+        if (!user) return;
         const headerAvatar = ensureHeaderAvatarElement();
 
         if (headerAvatar) {

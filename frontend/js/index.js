@@ -7,6 +7,8 @@ import {
     getSession
 } from './api.js';
 
+let signedIn = false;
+
 const FALLBACK_IMAGE = '/assets/electronic_components_1_1774913851066.png';
 
 function createProductCard(product) {
@@ -50,9 +52,14 @@ function createProductCard(product) {
     const addButton = document.createElement('button');
     addButton.className = 'add-btn';
     addButton.type = 'button';
-    addButton.title = 'Adicionar ao carrinho';
+    addButton.title = signedIn ? 'Adicionar ao carrinho' : 'Entre para solicitar este item';
+    addButton.setAttribute('aria-label', addButton.title);
     addButton.textContent = '+';
     addButton.addEventListener('click', async () => {
+        if (!signedIn) {
+            window.location.href = '/login';
+            return;
+        }
         addButton.disabled = true;
 
         try {
@@ -212,6 +219,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     try {
         const [{ profile, user }, categories] = await Promise.all([getSession(), getCategorias()]);
+        signedIn = Boolean(user);
+        if (!signedIn) {
+            document.querySelector('.orders-section').hidden = true;
+            const profileLink = headerAvatar.closest('a');
+            profileLink.href = '/login';
+            profileLink.textContent = 'Entrar';
+        }
         headerAvatar.textContent = getInitials(profile?.nome || user?.user_metadata?.name || user?.email);
 
         categories.forEach((category) => {
@@ -221,10 +235,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             categorySelect.appendChild(option);
         });
 
-        await Promise.all([loadCatalog(true), loadRecentOrders(profile)]);
+        await Promise.all([loadCatalog(true), signedIn ? loadRecentOrders(profile) : Promise.resolve()]);
     } catch (error) {
         console.error('Erro ao preparar catálogo:', error);
-        window.location.href = '/login';
+        grid.textContent = 'Não foi possível carregar o catálogo. Tente novamente.';
         return;
     }
 

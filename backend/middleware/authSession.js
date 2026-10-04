@@ -1,9 +1,7 @@
 import {
     clearSessionCookie,
-    getPasswordUpdateCredential,
     verifySessionToken
 } from '../services/sessionAuth.js';
-import { supabaseAdmin } from '../supabase.js';
 import { getProfileByAuthUserId } from '../services/userProfile.js';
 import { AccountAccessError, assertAccountIsActive } from '../services/accountValidation.js';
 
@@ -29,8 +27,27 @@ function handleForbidden(req, res, message) {
 }
 
 async function attachActiveProfile(req) {
+    if (req.user.auth_provider !== 'google') throw new AccountAccessError('Entre novamente com Google.');
     req.profile = await getProfileByAuthUserId(req.user.id);
     assertAccountIsActive(req.profile);
+}
+
+export async function optionalSessionAuth(req, res, next) {
+    const token = req.cookies?.authcookie || req.headers.authorization?.split(' ')[1];
+    if (!token) return next();
+    try {
+        req.user = verifySessionToken(token);
+        await attachActiveProfile(req);
+        return next();
+    } catch (error) {
+        if (error instanceof AccountAccessError || ['TokenExpiredError', 'JsonWebTokenError', 'NotBeforeError'].includes(error.name)) {
+            clearSessionCookie(res);
+            req.user = null;
+            req.profile = null;
+            return next();
+        }
+        return next(error);
+    }
 }
 
 export async function verifySessionAuth(req, res, next) {
@@ -60,51 +77,6 @@ export async function verifySessionAuth(req, res, next) {
         }
 
         console.error('Erro ao verificar sessão:', error);
-        return res.status(500).json({ error: 'Erro interno do servidor' });
-    }
-}
-
-// Links de recuperação de senha do Supabase carregam um access token próprio.
-// Esta exceção mantém a recuperação das contas locais durante a transição para
-// a sessão do CHIP; as demais rotas aceitam somente a sessão assinada pelo CHIP.
-export async function verifySessionOrSupabaseAuth(req, res, next) {
-    const credential = getPasswordUpdateCredential(req);
-
-    if (!credential) {
-        return handleUnauthorized(req, res, 'Sessão não fornecida.');
-    }
-
-    try {
-        if (credential.kind === 'supabase-recovery') {
-            const { data: { user }, error } = await supabaseAdmin.auth.getUser(credential.token);
-
-            if (error || !user) {
-                return handleUnauthorized(req, res, 'Sessão inválida ou expirada.');
-            }
-
-            req.user = {
-                id: user.id,
-                email: user.email,
-                user_metadata: user.user_metadata || {},
-                auth_provider: 'supabase'
-            };
-            req.isPasswordRecovery = true;
-        } else {
-            req.user = verifySessionToken(credential.token);
-        }
-
-        await attachActiveProfile(req);
-        return next();
-    } catch (error) {
-        if (error instanceof AccountAccessError) {
-            return handleForbidden(req, res, error.message);
-        }
-
-        if (error.name === 'TokenExpiredError' || error.name === 'JsonWebTokenError') {
-            return handleUnauthorized(req, res, 'Sua sessão expirou. Entre novamente.');
-        }
-
-        console.error('Erro ao validar token de recuperação:', error);
         return res.status(500).json({ error: 'Erro interno do servidor' });
     }
 }

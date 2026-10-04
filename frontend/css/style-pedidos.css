@@ -942,3 +942,7 @@ button.history-card {
     .search-bar { order: 3; width: 100%; justify-content: stretch; }
     .search-bar input { width: 100%; }
 }
+
+.reservation-fields { margin: 16px 0; padding: 12px; border: 1px solid #ccc; border-radius: 8px; }
+.reservation-fields label, .reservation-fields input { display: block; width: 100%; margin: 8px 0; }
+.reservation-fields p { font-size: 13px; line-height: 1.5; }

@@ -1,50 +1,35 @@
 import { formatDate, getPedidosGestao, transitionPedido } from './api.js';
 
 const FALLBACK_IMAGE = '/assets/electronic_components_1_1774913851066.png';
-const TAB_CONFIG = {
-    solicitacoes: {
-        statuses: ['Pendente'],
-        note: 'Pedidos aguardando aprovação ou negação.'
-    },
-    separacao: {
-        statuses: ['Aprovado', 'Em separação'],
-        note: 'Pedidos aprovados que precisam ser separados.'
-    },
-    retirada: {
-        statuses: ['Pronto para retirada'],
-        note: 'Pedidos prontos para confirmação da retirada.'
-    },
-    devolucao: {
-        statuses: ['Retirado'],
-        note: 'Empréstimos aguardando devolução.'
-    },
-    historico: {
-        statuses: ['Devolvido', 'Negado', 'Cancelado'],
-        note: 'Pedidos encerrados, negados ou cancelados.'
-    }
-};
 const ACTIONS_BY_STATUS = {
     Pendente: [
-        { action: 'approve', label: 'Aprovar pedido', className: 'btn-approve' },
-        { action: 'deny', label: 'Negar pedido', className: 'btn-deny' }
+        { action: 'approve', target: 'Aprovado', label: 'Aprovar pedido', className: 'btn-approve' },
+        { action: 'deny', target: 'Negado', label: 'Negar pedido', className: 'btn-deny' }
     ],
     Aprovado: [
-        { action: 'start_separation', label: 'Iniciar separação', className: 'btn-approve' }
+        { action: 'start_separation', target: 'Em separação', label: 'Iniciar separação', className: 'btn-approve' }
     ],
     'Em separação': [
-        { action: 'mark_ready', label: 'Marcar para retirada', className: 'btn-approve' }
+        { action: 'mark_ready', target: 'Pronto para retirada', label: 'Marcar para retirada', className: 'btn-approve' }
     ],
     'Pronto para retirada': [
-        { action: 'confirm_pickup', label: 'Confirmar retirada', className: 'btn-approve' }
+        { action: 'confirm_pickup', target: 'Retirado', label: 'Confirmar retirada', className: 'btn-approve' }
     ],
     Retirado: [
-        { action: 'register_return', label: 'Registrar devolução', className: 'btn-approve' }
+        { action: 'register_return', target: 'Devolvido', label: 'Registrar devolução', className: 'btn-approve' }
     ]
 };
 
+for (const status of ['Pendente', 'Aprovado', 'Em separação', 'Pronto para retirada']) {
+    ACTIONS_BY_STATUS[status].push({ action: 'cancel', target: 'Cancelado', label: 'Cancelar pedido', className: 'btn-deny' });
+}
+
 let orders = [];
-let activeTab = 'solicitacoes';
+let busy = false;
+let draggedOrder = null;
+const STATUSES = ['Pendente', 'Aprovado', 'Em separação', 'Pronto para retirada', 'Retirado', 'Devolvido', 'Negado', 'Cancelado'];
 let selectedOrder = null;
+let previousFocus = null;
 
 function createElement(tag, className, text) {
     const element = document.createElement(tag);
@@ -97,25 +82,53 @@ function getStatusBadge(status) {
 }
 
 function renderOrders() {
-    const config = TAB_CONFIG[activeTab];
     const search = document.querySelector('.search-bar input').value.trim().toLowerCase();
     const visibleOrders = orders.filter((order) => {
-        const matchesStatus = config.statuses.includes(order.status);
         const searchable = `${order.id_pedido} ${order.usuario_nome} ${order.usuario_email}`.toLowerCase();
-        return matchesStatus && (!search || searchable.includes(search));
+        return !search || searchable.includes(search);
     });
     const grid = document.getElementById('ordersGrid');
-    document.getElementById('tabNote').textContent = config.note;
     grid.replaceChildren();
 
-    if (visibleOrders.length === 0) {
-        grid.appendChild(createElement('p', 'empty-state', 'Nenhum pedido nesta etapa.'));
-        return;
-    }
+    const columns = new Map();
+    STATUSES.forEach((status) => {
+        const column = createElement('section', 'kanban-column');
+        column.setAttribute('aria-label', status);
+        column.appendChild(createElement('h2', 'kanban-heading', `${status} (${visibleOrders.filter(order => order.status === status).length})`));
+        column.addEventListener('dragover', (event) => {
+            if (!busy && (ACTIONS_BY_STATUS[draggedOrder?.status] || []).some(action => action.target === status)) {
+                event.preventDefault();
+                event.dataTransfer.dropEffect = 'move';
+                column.classList.add('drop-target');
+            }
+        });
+        column.addEventListener('dragleave', () => column.classList.remove('drop-target'));
+        column.addEventListener('drop', (event) => {
+            event.preventDefault();
+            column.classList.remove('drop-target');
+            const action = (ACTIONS_BY_STATUS[draggedOrder?.status] || []).find(action => action.target === status);
+            if (action && !busy) runAction(action.action, draggedOrder);
+            draggedOrder = null;
+        });
+        grid.appendChild(column);
+        columns.set(status, column);
+    });
 
     visibleOrders.forEach((order) => {
         const card = createElement('article', 'order-card');
         card.tabIndex = 0;
+        card.setAttribute('role', 'button');
+        card.setAttribute('aria-label', `Pedido #${order.id_pedido}, ${order.status}. Abrir detalhes e ações`);
+        card.draggable = !busy && Boolean(ACTIONS_BY_STATUS[order.status]?.length);
+        card.addEventListener('dragstart', (event) => {
+            draggedOrder = order;
+            event.dataTransfer.setData('text/plain', String(order.id_pedido));
+            event.dataTransfer.effectAllowed = 'move';
+        });
+        card.addEventListener('dragend', () => {
+            draggedOrder = null;
+            document.querySelectorAll('.drop-target').forEach(column => column.classList.remove('drop-target'));
+        });
         const top = createElement('div', 'order-top');
         const heading = document.createElement('div');
         heading.append(
@@ -133,24 +146,31 @@ function renderOrders() {
         );
         user.append(createAvatar(order.usuario_nome), userText);
         card.append(top, document.createElement('hr'), user);
+        if (order.retirada_prevista) card.appendChild(createElement('p', 'order-date', `Reserva: ${formatDate(order.retirada_prevista)} a ${formatDate(order.devolucao_prevista)}`));
         card.querySelector('hr').className = 'card-divider';
         card.addEventListener('click', () => openModal(order));
         card.addEventListener('keydown', (event) => {
-            if (event.key === 'Enter' || event.key === ' ') openModal(order);
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                openModal(order);
+            }
         });
-        grid.appendChild(card);
+        columns.get(order.status)?.appendChild(card);
     });
 }
 
 function closeModal() {
     document.getElementById('orderModal').style.display = 'none';
     selectedOrder = null;
+    previousFocus?.focus();
 }
 
 function openModal(order) {
+    if (busy) return;
+    previousFocus = document.activeElement;
     selectedOrder = order;
     document.getElementById('modalTitle').textContent = `Pedido #${order.id_pedido}`;
-    document.getElementById('modalSubtitle').textContent = `${order.status} · solicitação em ${formatDate(order.data_pedido)}`;
+    document.getElementById('modalSubtitle').textContent = `${order.status} · solicitação em ${formatDate(order.data_pedido)}` + (order.retirada_prevista ? ` · Reserva: ${formatDate(order.retirada_prevista)} a ${formatDate(order.devolucao_prevista)}` : '');
     document.getElementById('modalUserName').textContent = order.usuario_nome;
     document.getElementById('modalUserEmail').textContent = order.usuario_email || 'E-mail não informado';
     document.getElementById('modalUserRole').textContent = getUserRole(order.usuario_email);
@@ -200,10 +220,11 @@ function openModal(order) {
         actions.appendChild(button);
     });
     document.getElementById('orderModal').style.display = 'flex';
+    document.getElementById('modalClose').focus();
 }
 
-async function runAction(action) {
-    if (!selectedOrder) return;
+async function runAction(action, order = selectedOrder) {
+    if (!order || busy) return;
 
     let reason = null;
     if (action === 'deny') {
@@ -218,12 +239,18 @@ async function runAction(action) {
         return;
     }
 
+    busy = true;
+    document.getElementById('ordersGrid').setAttribute('aria-busy', 'true');
     try {
-        await transitionPedido(selectedOrder.id_pedido, action, reason);
+        await transitionPedido(order.id_pedido, action, reason);
         closeModal();
         await loadOrders();
     } catch (error) {
         alert(error.message || 'Não foi possível atualizar o pedido.');
+    } finally {
+        busy = false;
+        document.getElementById('ordersGrid').setAttribute('aria-busy', 'false');
+        renderOrders();
     }
 }
 
@@ -233,15 +260,15 @@ async function loadOrders() {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
-    document.querySelectorAll('.tab-button').forEach((button) => {
-        button.addEventListener('click', () => {
-            document.querySelectorAll('.tab-button').forEach((tab) => tab.classList.remove('active'));
-            button.classList.add('active');
-            activeTab = button.dataset.tab;
-            renderOrders();
-        });
+    document.getElementById('orderModal').addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') closeModal();
+        if (event.key === 'Tab') {
+            const buttons = [...document.querySelectorAll('#orderModal button:not(:disabled)')];
+            const first = buttons[0], last = buttons.at(-1);
+            if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+            else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+        }
     });
-
     document.querySelector('.search-bar input').addEventListener('input', renderOrders);
     document.getElementById('modalClose').addEventListener('click', closeModal);
     document.getElementById('orderModal').addEventListener('click', (event) => {

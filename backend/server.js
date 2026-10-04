@@ -24,6 +24,9 @@ function getPositiveIntegerEnv(name, fallback) {
 const GLOBAL_RATE_LIMIT_MAX = getPositiveIntegerEnv('GLOBAL_RATE_LIMIT_MAX', 500);
 const AUTH_RATE_LIMIT_MAX = getPositiveIntegerEnv('AUTH_RATE_LIMIT_MAX', 20);
 const PUBLIC_PAGE_PATHS = new Set([
+    '/',
+    '/index.html',
+    '/pages/pagina-inicial.html',
     '/login',
     '/register',
     '/redefinir-senha',
@@ -118,9 +121,13 @@ const authLimiter = rateLimit({
     max: AUTH_RATE_LIMIT_MAX,
     message: { error: 'Muitas tentativas. Aguarde 15 minutos.' }
 });
+app.use('/api/auth/google', authLimiter);
 app.use('/api/login', authLimiter);
 app.use('/api/institutional-login', authLimiter);
 app.use('/api/register', authLimiter);
+
+// URLs antigas de cadastro e senha deixam de oferecer autenticação paralela.
+app.get(['/register', '/redefinir-senha', '/nova-senha', '/pages/cadastro.html', '/pages/redefinir-senha.html', '/pages/nova-senha.html'], (req, res) => res.redirect('/login'));
 
 // Middleware para processar JSON e Cookies. Fotos do catálogo são aceitas até 2 MB
 // no navegador; o limite considera a expansão do Base64.
@@ -188,6 +195,6 @@ app.use((error, req, res, next) => {
     return next(error);
 });
 
-app.listen(PORT, () => {
-    console.log(`Servidor rodando em: http://localhost:${PORT}`);
+const server = app.listen(PORT, () => {
+    console.log(`Servidor rodando em: http://localhost:${server.address().port}`);
 });

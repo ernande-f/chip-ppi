@@ -1,5 +1,4 @@
 import sql from '../db.js';
-import { uploadProductImage, deleteProductImage, isBase64DataUrl } from './storageService.js';
 
 export class ProductValidationError extends Error {}
 export class ProductConflictError extends Error {}
@@ -357,11 +356,6 @@ export async function getProductById(id) {
 export async function createProduct(data) {
     const product = normalizeProductData(data);
 
-    let fotoProdutoUrl = product.foto_produto;
-    if (isBase64DataUrl(product.foto_produto)) {
-        fotoProdutoUrl = await uploadProductImage(product.foto_produto);
-    }
-
     return sql.begin(async (db) => {
         await ensureStatuses(db);
 
@@ -385,7 +379,7 @@ export async function createProduct(data) {
                 ${product.descricao_produto},
                 ${product.estoque_total},
                 ${product.cor},
-                ${fotoProdutoUrl},
+                ${product.foto_produto},
                 ${statusId}
             )
             RETURNING id_produto, nome, descricao_produto, estoque_total, cor, foto_produto
@@ -416,24 +410,12 @@ export async function updateProduct(id, data) {
             throw new ProductNotFoundError('Item não encontrado.');
         }
 
-        let fotoProdutoUrl = existing.foto_produto;
-        if (data.foto_produto !== undefined) {
-            if (isBase64DataUrl(updates.foto_produto)) {
-                fotoProdutoUrl = await uploadProductImage(updates.foto_produto);
-                if (existing.foto_produto && existing.foto_produto !== fotoProdutoUrl) {
-                    await deleteProductImage(existing.foto_produto);
-                }
-            } else {
-                fotoProdutoUrl = updates.foto_produto;
-            }
-        }
-
         const next = {
             nome: data.nome === undefined ? existing.nome : updates.nome,
             descricao_produto: data.descricao_produto === undefined ? existing.descricao_produto : updates.descricao_produto,
             estoque_total: data.estoque_total === undefined ? existing.estoque_total : updates.estoque_total,
             cor: data.cor === undefined ? existing.cor : updates.cor,
-            foto_produto: fotoProdutoUrl
+            foto_produto: data.foto_produto === undefined ? existing.foto_produto : updates.foto_produto
         };
 
         const [duplicate] = await db`
@@ -497,9 +479,6 @@ export async function deleteProduct(id) {
                 RETURNING id_produto, nome
             `;
 
-            if (existing.foto_produto) {
-                await deleteProductImage(existing.foto_produto);
-            }
 
             return deletedProduct;
         });

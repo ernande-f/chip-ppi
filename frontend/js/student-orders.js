@@ -188,6 +188,8 @@ function openOrderModal(order) {
     document.getElementById('modalNumPedido').textContent = `Pedido #${order.id_pedido}`;
     document.getElementById('modalStatus').textContent = order.status;
     document.getElementById('modalData').textContent = formatDate(order.data_pedido);
+    document.getElementById('modalReservation').textContent = order.retirada_prevista
+        ? `Reserva: ${formatDate(order.retirada_prevista)} a ${formatDate(order.devolucao_prevista)}` : '';
     
     const justificationEl = document.getElementById('modalJustification');
     if (justificationEl) {
@@ -228,7 +230,7 @@ function openOrderModal(order) {
 
     const actions = document.getElementById('studentOrderActions');
     actions.replaceChildren();
-    if (order.status === 'Pendente') {
+    if (['Pendente', 'Aprovado', 'Em separação', 'Pronto para retirada'].includes(order.status)) {
         const cancel = createElement('button', 'action-btn', 'Cancelar solicitação');
         cancel.type = 'button';
         cancel.addEventListener('click', cancelSelectedOrder);
@@ -314,9 +316,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             await checkoutCarrinho(
                 document.getElementById('loanDuration').value,
                 document.getElementById('acceptTerms').checked,
-                justification
+                justification,
+                document.getElementById('reservationStart').value || null,
+                document.getElementById('reservationEnd').value || null
             );
             document.getElementById('acceptTerms').checked = false;
+            document.getElementById('reservationStart').value = '';
+            document.getElementById('reservationEnd').value = '';
             const justificationInput = document.getElementById('orderJustification');
             if (justificationInput) justificationInput.value = '';
 

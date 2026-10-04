@@ -43,9 +43,10 @@ create table if not exists usuario (
   id_usuario bigint generated always as identity primary key,
   -- Também é usado por contas LDAP/SIGAA; por isso não referencia auth.users.
   auth_user_id uuid unique,
+  google_sub text unique,
   nome varchar(60) not null,
   cpf text unique,
-  email varchar(60) unique,
+  email varchar(320) unique,
   auth_provider varchar(20) not null default 'supabase',
   institutional_auth_type varchar(1) check (institutional_auth_type is null or institutional_auth_type in ('L', 'S')),
   senha varchar(80),
@@ -265,19 +266,13 @@ drop policy if exists "Users can view their own profile" on public.usuario;
 drop policy if exists "Users can update their own profile" on public.usuario;
 drop policy if exists "Users can create their own profile" on public.usuario;
 
-revoke all privileges on table
-  public.usuario,
-  public.categoria,
-  public.status_produto,
-  public.status_pedido,
-  public.notificacao,
-  public.produto,
-  public.pedido,
-  public.renovacao,
-  public.log_auditoria,
-  public.notificar,
-  public.lista_de_desejos,
-  public.contem_lista,
-  public.categorizar,
-  public.renovacao_pedido
-from anon, authenticated;
+-- Os papéis da Data API só existem em instalações Supabase.
+DO $$
+DECLARE api_role text;
+BEGIN
+  FOREACH api_role IN ARRAY ARRAY['anon', 'authenticated'] LOOP
+    IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = api_role) THEN
+      EXECUTE format('REVOKE ALL PRIVILEGES ON TABLE public.usuario, public.categoria, public.status_produto, public.status_pedido, public.notificacao, public.produto, public.pedido, public.renovacao, public.log_auditoria, public.notificar, public.lista_de_desejos, public.contem_lista, public.categorizar, public.renovacao_pedido FROM %I', api_role);
+    END IF;
+  END LOOP;
+END $$;

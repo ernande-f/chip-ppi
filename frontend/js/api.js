@@ -88,10 +88,10 @@ export async function removeItemCarrinho(productId) {
     });
 }
 
-export async function checkoutCarrinho(durationDays, acceptedTerms, justification = null) {
+export async function checkoutCarrinho(durationDays, acceptedTerms, justification = null, reservationStart = null, reservationEnd = null) {
     return apiRequest('/api/pedidos', {
         method: 'POST',
-        body: { durationDays, acceptedTerms, justification }
+        body: { durationDays, acceptedTerms, justification, reservationStart, reservationEnd }
     });
 }
 
@@ -242,7 +242,8 @@ export async function getSession() {
     if (!_sessionPromise) {
         _sessionPromise = apiRequest('/api/session');
         // Limpar o cache após resolver, para que a próxima navegação busque dados frescos.
-        _sessionPromise.finally(() => { setTimeout(() => { _sessionPromise = null; }, 5000); });
+        const clearCache = () => { setTimeout(() => { _sessionPromise = null; }, 5000); };
+        _sessionPromise.then(clearCache, clearCache);
     }
     return _sessionPromise;
 }

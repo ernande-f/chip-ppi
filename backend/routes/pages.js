@@ -1,7 +1,7 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { verifySessionAuth } from '../middleware/authSession.js';
+import { verifySessionAuth, optionalSessionAuth } from '../middleware/authSession.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -26,7 +26,7 @@ async function sendTechnicalPage(req, res, page) {
 }
 
 // Rota principal (Cai no login / index.html)
-router.get('/', verifySessionAuth, async (req, res) => {
+router.get('/', optionalSessionAuth, async (req, res) => {
 
     try {
         const user = req.profile;

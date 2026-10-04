@@ -80,6 +80,14 @@
                             </select>
                         </div>
                     </div>
+                    <fieldset class="reservation-fields">
+                        <legend>Reserva para retirada futura (opcional)</legend>
+                        <label for="reservationStart">Retirada prevista</label>
+                        <input type="date" id="reservationStart">
+                        <label for="reservationEnd">Devolução prevista</label>
+                        <input type="date" id="reservationEnd">
+                        <p>Preencha ambas as datas para reservar de 1 a 15 dias. Os itens ficam separados desde a solicitação. Sem datas, vale a duração acima a partir da retirada.</p>
+                    </fieldset>
                     <div class="justification-row">
                         <label for="orderJustification">Motivo do pedido (opcional):</label>
                         <textarea class="justification-input" id="orderJustification" maxlength="500" placeholder="Ex: Projeto da disciplina, protótipo em aula..."></textarea>
@@ -208,6 +216,7 @@
                 </header>
                 <p class="modal-date">Data da solicitação: <span id="modalData"></span></p>
                 <p class="modal-justification" id="modalJustification" style="display: none;"></p>
+                <p class="modal-date" id="modalReservation"></p>
                 <p class="modal-date" id="modalReason"></p>
                 <hr class="modal-divider">
                 <h3 class="modal-subtitle">Itens no pedido</h3>

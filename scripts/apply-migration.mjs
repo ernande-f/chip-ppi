@@ -7,19 +7,20 @@ import 'dotenv/config';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const migrationPath = process.argv[2];
+const migrationPaths = process.argv.slice(2);
 
-if (!migrationPath) {
+if (!migrationPaths.length) {
     throw new Error('Informe o caminho do arquivo SQL da migração.');
 }
 
-const absolutePath = path.resolve(__dirname, '..', migrationPath);
-const migrationSql = await fs.readFile(absolutePath, 'utf8');
-const sql = postgres(process.env.DATABASE_URL_POOLER, { max: 1, prepare: false });
+const sql = postgres(process.env.DATABASE_URL || process.env.DATABASE_URL_POOLER, { max: 1, prepare: false });
 
 try {
-    await sql.unsafe(migrationSql);
-    console.log(`Migração aplicada com sucesso: ${migrationPath}`);
+    for (const migrationPath of migrationPaths) {
+        const migrationSql = await fs.readFile(path.resolve(__dirname, '..', migrationPath), 'utf8');
+        await sql.unsafe(migrationSql);
+        console.log(`Migração aplicada com sucesso: ${migrationPath}`);
+    }
 } finally {
     await sql.end();
 }

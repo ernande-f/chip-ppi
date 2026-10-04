@@ -503,3 +503,12 @@ body {
         max-width: none;
     }
 }
+
+/* Quadro com rolagem horizontal; as ações do modal também atendem teclado e toque. */
+.orders-grid.kanban-board { display: flex; gap: 16px; overflow-x: auto; align-items: flex-start; padding-bottom: 24px; }
+.kanban-column { flex: 0 0 290px; min-height: 320px; padding: 12px; background: #f2f4f7; border: 2px solid transparent; border-radius: 12px; }
+.kanban-heading { font-size: 16px; margin: 0 0 16px; }
+.kanban-column .order-card { margin-bottom: 12px; }
+.kanban-column .order-card[draggable="true"] { cursor: grab; }
+.kanban-column.drop-target { border-color: #166534; background: #e5f5e9; }
+.kanban-column .order-card:focus-visible { outline: 3px solid #166534; outline-offset: 2px; }

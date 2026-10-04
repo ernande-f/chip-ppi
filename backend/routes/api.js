@@ -1,10 +1,9 @@
 import express from 'express';
-import { verifySessionAuth, verifySessionOrSupabaseAuth } from '../middleware/authSession.js';
+import { verifySessionAuth, optionalSessionAuth } from '../middleware/authSession.js';
 import {
     getProfileSummaryByAuthUserId,
     updateProfileByAuthUserId,
-    upsertUserProfile,
-    upsertInstitutionalUserProfile
+    upsertGoogleUserProfile
 } from '../services/userProfile.js';
 import {
     ProductConflictError,
@@ -17,15 +16,10 @@ import {
     listProducts,
     updateProduct
 } from '../services/productService.js';
-import { supabaseAdmin, supabaseAuth } from '../supabase.js';
-import { authenticateInstitutional } from '../services/institutionalAuth.js';
+import { startGoogleLogin, completeGoogleLogin } from '../services/googleAuth.js';
 import { clearSessionCookie, setSessionCookie } from '../services/sessionAuth.js';
 import {
-    AccountAccessError,
-    assertAccountIsActive,
-    isInstitutionalEmail,
-    isValidCpf,
-    validatePassword
+    assertAccountIsActive
 } from '../services/accountValidation.js';
 import {
     OrderConflictError,
@@ -43,16 +37,6 @@ import {
 import { OrderValidationError } from '../services/orderRules.js';
 
 const router = express.Router();
-
-function getAppUrl(req) {
-    return process.env.APP_URL || `${req.protocol}://${req.get('host')}`;
-}
-
-function isEmailConfirmationDisabled() {
-    return ['true', '1', 'yes', 'on'].includes(
-        (process.env.SUPABASE_DISABLE_EMAIL_CONFIRMATION || '').toLowerCase()
-    );
-}
 
 function hasCatalogManagementAccess(level) {
     return level === 1 || level === 2 || level === 'tecnico' || level === 'adm' || level === 'administrador';
@@ -100,228 +84,45 @@ function sendOrderError(res, error) {
     return res.status(500).json({ success: false, message: 'Não foi possível concluir a operação do pedido.' });
 }
 
-// ======SUPABASE AUTH=====
-
-router.post('/login', async (req, res) => {
-    const { email, password } = req.body;
-
-    if (!email || !password) {
-        return res.status(400).json({ success: false, message: 'Email e senha são obrigatórios' });
-    }
-
-    if (!isInstitutionalEmail(email)) {
-        return res.status(401).json({ success: false, message: 'Credenciais inválidas' });
-    }
-
+router.get('/auth/google', (req, res) => {
     try {
-        const { data, error } = await supabaseAuth.auth.signInWithPassword({
-            email,
-            password
-        });
-
-        if (error) {
-            console.error('Erro no login:', error);
-            return res.status(401).json({ success: false, message: 'Credenciais inválidas' });
-        }
-
-        const profile = await upsertUserProfile({
-            authUserId: data.user.id,
-            email: data.user.email,
-            name: data.user.user_metadata?.name
-        });
-
-        assertAccountIsActive(profile);
-
-        setSessionCookie(res, {
-            id: data.user.id,
-            email: data.user.email,
-            user_metadata: data.user.user_metadata,
-            auth_provider: 'supabase'
-        });
-
-        res.json({
-            success: true,
-            user: {
-                id: data.user.id,
-                email: data.user.email,
-                user_metadata: data.user.user_metadata,
-                profile
-            } 
-        });
-    } catch (error) {
-        if (error instanceof AccountAccessError) {
-            clearSessionCookie(res);
-            return res.status(403).json({ success: false, message: error.message });
-        }
-
-        console.error('Erro ao fazer login:', error);
-        res.status(500).json({ error: 'Erro interno do servidor' });
+        startGoogleLogin(res);
+    } catch {
+        res.status(503).send('Login Google não configurado. Consulte a administração.');
     }
 });
 
-router.post('/institutional-login', async (req, res) => {
-    const { cpf, password, type } = req.body;
-
+router.get('/auth/google/callback', async (req, res) => {
+    res.set('Cache-Control', 'no-store');
     try {
-        const institutionalUser = await authenticateInstitutional({ cpf, password, type });
-
-        if (!institutionalUser) {
-            return res.status(401).json({
-                success: false,
-                message: 'CPF, senha ou método institucional inválido.'
-            });
-        }
-
-        const profile = await upsertInstitutionalUserProfile(institutionalUser);
-
+        const identity = await completeGoogleLogin(req, res);
+        const profile = await upsertGoogleUserProfile(identity);
         assertAccountIsActive(profile);
-
-        const authProvider = institutionalUser.type === 'S' ? 'sigaa' : 'ldap';
         setSessionCookie(res, {
             id: profile.auth_user_id,
             email: profile.email,
             user_metadata: { name: profile.nome },
-            auth_provider: authProvider
+            auth_provider: 'google'
         });
-
-        return res.json({
-            success: true,
-            user: {
-                id: profile.auth_user_id,
-                email: profile.email,
-                user_metadata: { name: profile.nome },
-                auth_provider: authProvider
-            },
-            profile
-        });
+        return res.redirect('/');
     } catch (error) {
-        if (error instanceof AccountAccessError) {
-            clearSessionCookie(res);
-            return res.status(403).json({ success: false, message: error.message });
-        }
-
-        const isValidationError = [
-            'Informe um CPF válido.',
-            'Informe a senha institucional.',
-            'Selecione LDAP ou SIGAA.'
-        ].includes(error.message);
-
-        if (!isValidationError) {
-            console.error('Erro no login institucional:', error.message);
-        }
-
-        return res.status(isValidationError ? 400 : 503).json({
-            success: false,
-            message: error.message || 'Não foi possível concluir o login institucional.'
-        });
+        console.error('Falha no login Google:', error.name);
+        return res.redirect('/login?error=google');
     }
 });
 
-router.post('/register', async (req, res) => {
-    const { name, email, cpf, password } = req.body;
-
-    if (!name || !email || !cpf || !password) {
-        return res.status(400).json({ success: false, message: 'Todos os campos são obrigatórios' });
-    }
-
-    if (!isInstitutionalEmail(email)) {
-        return res.status(400).json({ success: false, message: 'Informe um e-mail institucional válido.' });
-    }
-
-    if (!isValidCpf(cpf)) {
-        return res.status(400).json({ success: false, message: 'Informe um CPF válido.' });
-    }
-
-    try {
-        validatePassword(password);
-    } catch (error) {
-        return res.status(400).json({ success: false, message: error.message });
-    }
-
-    try {
-        let data;
-        let error;
-
-        if (isEmailConfirmationDisabled()) {
-            ({ data, error } = await supabaseAdmin.auth.admin.createUser({
-                email,
-                password,
-                email_confirm: true,
-                user_metadata: {
-                    name,
-                    created_without_email_confirmation: true
-                }
-            }));
-        } else {
-            ({ data, error } = await supabaseAuth.auth.signUp({
-                email,
-                password,
-                options: {
-                    data: {
-                        name
-                    }
-                },
-            }));
-        }
-
-        if (error) {
-            console.error('Erro no registro:', error);
-            return res.status(400).json({ success: false, message: error.message });
-        }
-
-        const profile = await upsertUserProfile({
-            authUserId: data.user.id,
-            email,
-            name,
-            cpf
-        });
-
-        res.json({
-            success: true,
-            user: {
-                id: data.user.id,
-                email: data.user.email,
-                name: data.user.user_metadata?.name,
-                profile
-            },
-            requiresEmailConfirmation: !isEmailConfirmationDisabled() && !data.session
-        });
-    } catch (error) {
-        console.error('Erro ao registrar:', error);
-        res.status(500).json({ error: 'Erro interno do servidor' });
-    }
+// Endpoints antigos não podem contornar a restrição institucional do Google.
+router.post(['/login', '/institutional-login', '/register', '/forgot-password', '/update-password'], (req, res) => {
+    res.status(410).json({ success: false, message: 'Use Entrar com Google com sua conta institucional.' });
 });
 
-router.post('/forgot-password', async (req, res) => {
-    const { email } = req.body;
-
-    if (!email) {
-        return res.status(400).json({ success: false, message: 'Informe um email válido.' });
-    }
-
-    try {
-        const { error } = await supabaseAuth.auth.resetPasswordForEmail(email, {
-            redirectTo: `${getAppUrl(req)}/nova-senha`
-        });
-
-        if (error) {
-            console.error('Erro ao enviar email de redefinição:', error);
-            return res.status(500).json({ error: 'Erro interno do servidor' });
-        }
-
-        res.json({ success: true, message: 'Email de redefinição de senha enviado com sucesso' });
-    } catch (error) {
-        console.error('Erro ao redefinir senha:', error);
-        res.status(500).json({ error: 'Erro interno do servidor' });
-    }
-});
-
-// Exemplo de rota da API para o futuro
 router.get('/status', (req, res) => {
     res.json({ message: 'API do CHIP-PPI está funcionando!' });
 });
 
-router.get('/session', verifySessionAuth, async (req, res) => {
+router.get('/session', optionalSessionAuth, async (req, res) => {
+    res.set('Cache-Control', 'no-store');
+    if (!req.user) return res.json({ success: true, user: null, profile: null });
     try {
         const profile = await getProfileSummaryByAuthUserId(req.user.id, req.profile);
 
@@ -362,25 +163,6 @@ router.patch('/profile', verifySessionAuth, async (req, res) => {
     const { name } = req.body;
 
     try {
-        const normalizedName = name?.trim();
-
-        if (normalizedName && req.user.auth_provider === 'supabase') {
-            const { error: authUpdateError } = await supabaseAdmin.auth.admin.updateUserById(req.user.id, {
-                user_metadata: {
-                    ...(req.user.user_metadata || {}),
-                    name: normalizedName
-                }
-            });
-
-            if (authUpdateError) {
-                console.error('Erro ao sincronizar nome no auth:', authUpdateError);
-                return res.status(400).json({
-                    success: false,
-                    message: authUpdateError.message || 'Erro ao sincronizar o nome do perfil.'
-                });
-            }
-        }
-
         const profile = await updateProfileByAuthUserId(req.user.id, { name });
 
         if (!profile) {
@@ -402,43 +184,6 @@ router.patch('/profile', verifySessionAuth, async (req, res) => {
             success: false,
             message: isValidationError ? error.message : 'Erro ao atualizar perfil.'
         });
-    }
-});
-
-router.post('/update-password', verifySessionOrSupabaseAuth, async (req, res) => {
-    const { password } = req.body;
-
-    try {
-        validatePassword(password);
-    } catch (error) {
-        return res.status(400).json({ success: false, message: error.message });
-    }
-
-    if (req.user.auth_provider !== 'supabase') {
-        return res.status(400).json({
-            success: false,
-            message: 'A senha da conta institucional deve ser alterada nos sistemas do IFFar.'
-        });
-    }
-
-    try {
-        const { error } = await supabaseAdmin.auth.admin.updateUserById(req.user.id, {
-            password
-        });
-
-        if (error) {
-            console.error('Erro ao atualizar senha:', error);
-            return res.status(400).json({ success: false, message: error.message });
-        }
-
-        if (req.isPasswordRecovery) {
-            clearSessionCookie(res);
-        }
-
-        res.json({ success: true, message: 'Senha atualizada com sucesso.' });
-    } catch (error) {
-        console.error('Erro ao atualizar senha:', error);
-        res.status(500).json({ success: false, message: 'Erro ao atualizar senha.' });
     }
 });
 
@@ -510,7 +255,9 @@ router.post('/pedidos', verifySessionAuth, async (req, res) => {
         const pedido = await checkoutCart(req.profile.id_usuario, {
             durationDays: req.body.durationDays,
             acceptedTerms: req.body.acceptedTerms,
-            justification: req.body.justification ?? req.body.justificativa
+            justification: req.body.justification ?? req.body.justificativa,
+            reservationStart: req.body.reservationStart,
+            reservationEnd: req.body.reservationEnd
         });
         return res.status(201).json({ success: true, message: 'Pedido enviado para aprovação.', pedido });
     } catch (error) {
@@ -559,8 +306,8 @@ router.patch('/gestao/pedidos/:id', verifySessionAuth, async (req, res) => {
 });
 
 
-// Rota: GET /api/produtos (requer sessão)
-router.get('/produtos', verifySessionAuth, async (req, res) => {
+// Consulta pública; itens arquivados continuam restritos à gestão.
+router.get('/produtos', optionalSessionAuth, async (req, res) => {
     try {
         const managerProfile = await getCatalogManagerProfile(req);
         const result = await listProducts({
@@ -601,7 +348,7 @@ router.post('/produtos', verifySessionAuth, async (req, res) => {
     }
 });
 
-router.get('/produtos/:id', verifySessionAuth, async (req, res) => {
+router.get('/produtos/:id', optionalSessionAuth, async (req, res) => {
     try {
         const produto = await getProductById(req.params.id);
 
@@ -650,7 +397,7 @@ router.delete('/produtos/:id', verifySessionAuth, async (req, res) => {
     }
 });
 
-router.get('/categorias', verifySessionAuth, async (req, res) => {
+router.get('/categorias', optionalSessionAuth, async (req, res) => {
     try {
         const categorias = await getAllCategories();
         return res.json({ success: true, categorias });

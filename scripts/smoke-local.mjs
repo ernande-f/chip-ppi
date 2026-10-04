@@ -1,0 +1,165 @@
+import assert from 'node:assert/strict';
+import { readFile, mkdir } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { randomUUID } from 'node:crypto';
+import { spawn } from 'node:child_process';
+import { once } from 'node:events';
+import { createServer } from 'node:net';
+import postgres from 'postgres';
+
+// Cria e remove apenas bancos temporários de nomes aleatórios em um PostgreSQL local.
+const adminUrl = process.env.TEST_DATABASE_URL;
+if (!adminUrl || !['localhost', '127.0.0.1'].includes(new URL(adminUrl).hostname)) throw new Error('Defina TEST_DATABASE_URL para um PostgreSQL local de testes.');
+const admin = postgres(adminUrl, { max: 1, onnotice() {} });
+const suffix = randomUUID().replaceAll('-', '');
+const names = [`chip_smoke_${suffix}`, `chip_copy_${suffix}`];
+const urls = names.map(name => { const url = new URL(adminUrl); url.pathname = `/${name}`; return url.href; });
+const created = [];
+let db, target, child, browser;
+const run = async (file, env) => {
+    const process = spawn(globalThis.process.execPath, [file], { env: { ...globalThis.process.env, ...env }, stdio: ['ignore', 'pipe', 'pipe'] });
+    let output = '';
+    process.stdout.on('data', data => { output += data; });
+    process.stderr.on('data', data => { output += data; });
+    const [code] = await once(process, 'exit');
+    if (code) throw new Error(output);
+};
+try {
+    for (const name of names) { await admin`CREATE DATABASE ${admin(name)}`; created.push(name); }
+    process.env.DATABASE_URL = urls[0];
+    process.env.APP_SESSION_SECRET = 'temporary-smoke-secret-at-least-32-characters';
+    db = (await import('../backend/db.js')).default;
+    target = postgres(urls[1], { max: 1, onnotice() {} });
+    const schema = await readFile('supabase/create_tables.sql', 'utf8');
+    for (const connection of [db, target]) {
+        const setup = await connection.reserve();
+        try {
+            await setup.unsafe(schema);
+            for (const file of ['google_login', 'reservations']) await setup.unsafe(await readFile(`database/migrations/${file}.sql`, 'utf8'));
+        } finally { await setup.release(); }
+    }
+    const { upsertGoogleUserProfile } = await import('../backend/services/userProfile.js');
+    const { createSessionToken } = await import('../backend/services/sessionAuth.js');
+    const student = await upsertGoogleUserProfile({ sub: 'student', email: 'student@aluno.iffar.edu.br', name: 'Estudante Teste' });
+    let tech = await upsertGoogleUserProfile({ sub: 'tech', email: 'tech@iffarroupilha.edu.br', name: 'Técnico Teste' });
+    await db`UPDATE usuario SET nivel_acesso = 1 WHERE id_usuario = ${tech.id_usuario}`;
+    tech = await upsertGoogleUserProfile({ sub: 'tech', email: 'tech@iffarroupilha.edu.br', name: 'Outro Nome' });
+    assert.equal(tech.nivel_acesso, 1);
+    assert.equal(tech.nome, 'Técnico Teste');
+    const legacyId = randomUUID();
+    await db`INSERT INTO usuario (auth_user_id, nome, email, nivel_acesso, status_conta) VALUES (${legacyId}, 'Legado', 'legacy@iffarroupilha.edu.br', 2, false)`;
+    const linked = await upsertGoogleUserProfile({ sub: 'legacy', email: 'legacy@iffarroupilha.edu.br', name: 'Google' });
+    assert.equal(linked.auth_user_id, legacyId);
+    assert.equal(linked.status_conta, false);
+    assert.equal(linked.nivel_acesso, 2);
+    await assert.rejects(upsertGoogleUserProfile({ sub: 'other', email: 'legacy@iffarroupilha.edu.br', name: 'Outro' }));
+    const { createProduct } = await import('../backend/services/productService.js');
+    const product = await createProduct({ nome: 'Arduino de teste', descricao_produto: 'Placa para testar reservas', estoque_total: 4, foto_produto: 'https://example.invalid/photo.png', categorias: ['Eletrônica'] });
+    const archived = await createProduct({ nome: 'Item arquivado', descricao_produto: 'Não deve aparecer', estoque_total: 2, foto_produto: 'https://example.invalid/photo.png', categorias: ['Eletrônica'] });
+    const { updateProduct } = await import('../backend/services/productService.js');
+    await updateProduct(archived.id_produto, { archived: true });
+    const { addCartItem, checkoutCart, transitionOrder, cancelUserOrder } = await import('../backend/services/orderService.js');
+    const [{ start, end }] = await db`SELECT (current_date + 2)::text AS start, (current_date + 9)::text AS end`;
+    await addCartItem(student.id_usuario, product.id_produto, 1);
+    const reserved = await checkoutCart(student.id_usuario, { durationDays: 7, acceptedTerms: true, reservationStart: start, reservationEnd: end });
+    assert.equal(reserved.duracao_dias, 7);
+    for (const action of ['approve', 'start_separation', 'mark_ready']) await transitionOrder(tech.id_usuario, reserved.id_pedido, action);
+    await assert.rejects(transitionOrder(tech.id_usuario, reserved.id_pedido, 'confirm_pickup'), /período reservado/);
+    await cancelUserOrder(student.id_usuario, reserved.id_pedido);
+    assert.equal((await db`SELECT estoque_total FROM produto WHERE id_produto = ${product.id_produto}`)[0].estoque_total, 4);
+    await assert.rejects(cancelUserOrder(student.id_usuario, reserved.id_pedido));
+    await addCartItem(student.id_usuario, product.id_produto, 1);
+    const order = await checkoutCart(student.id_usuario, { durationDays: 7, acceptedTerms: true });
+
+    const probe = createServer().listen(0, '127.0.0.1');
+    await once(probe, 'listening');
+    const port = probe.address().port;
+    await new Promise((resolve, reject) => probe.close(error => error ? reject(error) : resolve()));
+    child = spawn(process.execPath, ['backend/server.js'], { env: { ...process.env, NODE_ENV: 'test', PORT: String(port), APP_URL: `http://localhost:${port}` }, stdio: ['ignore', 'pipe', 'pipe'] });
+    const base = await new Promise((resolve, reject) => {
+        child.once('error', reject);
+        child.once('exit', code => reject(new Error(`Servidor terminou: ${code}`)));
+        child.stdout.on('data', data => { const match = String(data).match(/http:\/\/localhost:\d+/); if (match) resolve(match[0]); });
+    });
+    const { chromium } = await import(process.env.PLAYWRIGHT_MODULE || 'playwright');
+    browser = await chromium.launch({ headless: true, ...(process.env.PLAYWRIGHT_EXECUTABLE ? { executablePath: process.env.PLAYWRIGHT_EXECUTABLE } : {}) });
+    const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
+    context.setDefaultTimeout(15_000);
+    const errors = [];
+    const page = await context.newPage();
+    page.on('pageerror', error => errors.push(error.message));
+    await page.route('https://**/*', route => route.abort());
+    await page.goto(base);
+    await page.getByRole('heading', { name: 'Arduino de teste' }).waitFor();
+    assert.equal(await page.getByText('Item arquivado', { exact: true }).count(), 0);
+    assert.equal(await page.locator('.orders-section').isVisible(), false);
+    await page.getByRole('button', { name: 'Entre para solicitar este item' }).click();
+    await page.waitForURL('**/login');
+    await page.getByRole('link', { name: 'Entrar com Google' }).waitFor();
+    const cookieFor = profile => ({ name: 'authcookie', value: createSessionToken({ id: profile.auth_user_id, email: profile.email, auth_provider: 'google' }), url: base });
+    await context.addCookies([cookieFor(student)]);
+    await page.goto(`${base}/pedidos.html`);
+    await page.waitForURL(`${base}/pages/pagina-inicial.html`);
+    await page.goto(`${base}/pedidos`);
+    await page.locator('#reservationStart').waitFor();
+    await page.goto(`${base}/pages/pagina-inicial.html`);
+    const added = page.waitForResponse(response => response.url().endsWith('/api/carrinho/itens') && response.request().method() === 'POST');
+    await page.getByRole('button', { name: 'Adicionar ao carrinho' }).click();
+    const addedResponse = await added;
+    assert.equal(addedResponse.status(), 201, await addedResponse.text());
+    await page.goto(`${base}/pedidos`);
+    await page.locator('#reservationStart').fill(start);
+    await page.locator('#reservationEnd').fill(end);
+    await page.locator('#acceptTerms').check();
+    const checkoutNotice = page.waitForEvent('dialog').then(async dialog => {
+        const message = dialog.message();
+        await dialog.accept();
+        assert.equal(message, 'Pedido enviado para aprovação.');
+    });
+    const checkout = page.waitForResponse(response => response.url().endsWith('/api/pedidos') && response.request().method() === 'POST');
+    await page.locator('#checkoutButton').click();
+    assert.equal((await checkout).status(), 201);
+    await checkoutNotice;
+    page.on('dialog', dialog => dialog.accept().catch(error => errors.push(error.message)));
+    await context.addCookies([cookieFor(tech)]);
+    await page.goto(`${base}/pedidos.html`);
+    const card = () => page.getByRole('button', { name: new RegExp(`Pedido #${order.id_pedido},`) });
+    await card().waitFor();
+    const approved = page.getByRole('region', { name: 'Aprovado', exact: true });
+    const moved = page.waitForResponse(response => response.url().endsWith(`/api/gestao/pedidos/${order.id_pedido}`) && response.request().method() === 'PATCH');
+    await card().dragTo(approved);
+    assert.equal((await moved).status(), 200);
+    await approved.getByRole('button', { name: new RegExp(`Pedido #${order.id_pedido}, Aprovado`) }).waitFor();
+    await card().focus();
+    await page.keyboard.press('Enter');
+    await page.getByRole('button', { name: 'Iniciar separação' }).waitFor();
+    const separated = page.waitForResponse(response => response.url().endsWith(`/api/gestao/pedidos/${order.id_pedido}`) && response.request().method() === 'PATCH');
+    await page.getByRole('button', { name: 'Iniciar separação' }).click();
+    assert.equal((await separated).status(), 200);
+    await page.getByRole('button', { name: new RegExp(`Pedido #${order.id_pedido}, Em separação`) }).waitFor();
+    assert.equal((await db`SELECT estoque_total FROM produto WHERE id_produto = ${product.id_produto}`)[0].estoque_total, 2);
+    assert.ok((await db`SELECT count(*)::int AS n FROM log_auditoria WHERE acao = 'pedido:approve'`)[0].n >= 2);
+    const artifacts = join(tmpdir(), 'chip-smoke-artifacts');
+    await mkdir(artifacts, { recursive: true });
+    console.log(`Capturas: ${artifacts}`);
+    await page.screenshot({ path: join(artifacts, 'kanban.png'), fullPage: true });
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.screenshot({ path: join(artifacts, 'kanban-mobile.png'), fullPage: true });
+    await page.getByRole('button', { name: /Pedido #3, Pendente/ }).click();
+    await page.getByRole('button', { name: 'Aprovar pedido' }).waitFor();
+    await page.getByRole('button', { name: 'Fechar', exact: true }).click();
+    assert.deepEqual(errors, []);
+    await run('scripts/copy-local-database.mjs', { SOURCE_DATABASE_URL: urls[0], DATABASE_URL: urls[1] });
+    assert.equal((await target`SELECT count(*)::int AS n FROM pedido`)[0].n, 3);
+    assert.equal((await target`SELECT estoque_total FROM produto WHERE id_produto = ${product.id_produto}`)[0].estoque_total, 2);
+    await assert.rejects(run('scripts/copy-local-database.mjs', { SOURCE_DATABASE_URL: urls[0], DATABASE_URL: urls[1] }), /Destino não está vazio/);
+    console.log('OK: schema, migrações, vínculo Google, reserva/cancelamento/estoque, catálogo público, permissões, checkout, Kanban por arraste e teclado, cópia de dados.');
+} finally {
+    if (browser) await browser.close();
+    if (child && child.exitCode === null) { child.kill(); await once(child, 'exit'); }
+    if (db) await db.end();
+    if (target) await target.end();
+    for (const name of created.reverse()) await admin`DROP DATABASE ${admin(name)}`;
+    await admin.end();
+}

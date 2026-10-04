@@ -5,7 +5,11 @@
   "scripts": {
     "start": "node backend/server.js",
     "dev": "node --watch backend/server.js",
-    "test": "node --test"
+    "test": "node --test",
+    "dev:local": "node --env-file=.env.local --watch backend/server.js",
+    "db:setup": "node scripts/apply-migration.mjs supabase/create_tables.sql database/migrations/google_login.sql database/migrations/reservations.sql",
+    "db:setup:local": "node --env-file=.env.local scripts/apply-migration.mjs supabase/create_tables.sql database/migrations/google_login.sql database/migrations/reservations.sql",
+    "test:local": "node scripts/smoke-local.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.103.0",
@@ -18,5 +22,8 @@
     "jsonwebtoken": "^9.0.3",
     "postgres": "^3.4.8",
     "skills": "^1.4.6"
+  },
+  "allowScripts": {
+    "bcrypt": false
   }
 }

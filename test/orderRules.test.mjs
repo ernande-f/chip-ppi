@@ -7,6 +7,7 @@ import {
     getNextOrderStatus,
     normalizeCartQuantity,
     normalizeLoanDuration,
+    normalizeReservationDates,
     normalizeOrderJustification,
     validateTransitionReason
 } from '../backend/services/orderRules.js';
@@ -38,11 +39,11 @@ test('nega transições fora de ordem', () => {
     );
 });
 
-test('permite negar ou cancelar somente um pedido pendente', () => {
+test('permite negar pendente e cancelar antes da retirada', () => {
     assert.equal(getNextOrderStatus(ORDER_STATUS.PENDING, ORDER_ACTION.DENY), ORDER_STATUS.DENIED);
     assert.equal(getNextOrderStatus(ORDER_STATUS.PENDING, ORDER_ACTION.CANCEL), ORDER_STATUS.CANCELLED);
     assert.throws(
-        () => getNextOrderStatus(ORDER_STATUS.APPROVED, ORDER_ACTION.CANCEL),
+        () => getNextOrderStatus(ORDER_STATUS.PICKED_UP, ORDER_ACTION.CANCEL),
         /não permitida/
     );
 });
@@ -69,3 +70,15 @@ test('normaliza o motivo opcional do pedido', () => {
     assert.throws(() => normalizeOrderJustification('a'.repeat(501)), /máximo 500 caracteres/);
 });
 
+
+
+test('valida reservas futuras e preserva pedidos sem agendamento', () => {
+    assert.equal(normalizeReservationDates(null, null, '2026-09-17'), null);
+    assert.deepEqual(normalizeReservationDates('2026-09-20', '2026-09-27', '2026-09-17'), { start: '2026-09-20', end: '2026-09-27', duration: 7 });
+    for (const [start, end] of [['2026-09-16', '2026-09-20'], ['2026-02-30', '2026-03-05'], ['2026-09-20', null], ['2026-09-20', '2026-09-20'], ['2026-09-20', '2026-10-06'], [false, null]]) {
+        assert.throws(() => normalizeReservationDates(start, end, '2026-09-17'));
+    }
+    for (const status of [ORDER_STATUS.APPROVED, ORDER_STATUS.SEPARATING, ORDER_STATUS.READY]) {
+        assert.equal(getNextOrderStatus(status, ORDER_ACTION.CANCEL), ORDER_STATUS.CANCELLED);
+    }
+});

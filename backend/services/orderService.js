@@ -6,6 +6,7 @@ import {
     getNextOrderStatus,
     normalizeCartQuantity,
     normalizeLoanDuration,
+    normalizeReservationDates,
     normalizeOrderJustification,
     validateTransitionReason
 } from './orderRules.js';
@@ -107,9 +108,12 @@ async function queryOrders(db, { orderId = null, userId = null, status = '' } = 
         SELECT
             pedido.id_pedido,
             pedido.data_pedido,
+            pedido.retirada_prevista,
+            pedido.devolucao_prevista,
             pedido.data_retirada,
             pedido.data_devolucao,
             CASE
+                WHEN pedido.devolucao_prevista IS NOT NULL THEN pedido.devolucao_prevista
                 WHEN pedido.data_retirada IS NOT NULL
                 THEN pedido.data_retirada + pedido.duracao_dias
                 ELSE NULL
@@ -275,9 +279,9 @@ export async function removeCartItem(userId, productId) {
     return item;
 }
 
-export async function checkoutCart(userId, { durationDays, acceptedTerms, justification }) {
+export async function checkoutCart(userId, { durationDays, acceptedTerms, justification, reservationStart, reservationEnd }) {
     const normalizedUserId = normalizeId(userId, 'Usuário');
-    const duration = normalizeLoanDuration(durationDays);
+    let duration = normalizeLoanDuration(durationDays);
     const normalizedJustification = normalizeOrderJustification(justification);
 
     if (acceptedTerms !== true) {
@@ -285,6 +289,11 @@ export async function checkoutCart(userId, { durationDays, acceptedTerms, justif
     }
 
     return sql.begin(async (db) => {
+        const [{ today }] = await db`SELECT current_date::text AS today`;
+        const reservation = normalizeReservationDates(reservationStart, reservationEnd, today);
+        if (reservation) duration = reservation.duration;
+        // ponytail: reserva separa estoque imediatamente; disponibilidade por intervalo se houver necessidade de reutilizar itens antes da retirada.
+
         await db`
             SELECT id_usuario
             FROM usuario
@@ -340,7 +349,9 @@ export async function checkoutCart(userId, { durationDays, acceptedTerms, justif
                 estado_termo,
                 timestamp_termo,
                 versao_termo,
-                justificativa
+                justificativa,
+                retirada_prevista,
+                devolucao_prevista
             )
             VALUES (
                 ${normalizedUserId},
@@ -349,7 +360,9 @@ export async function checkoutCart(userId, { durationDays, acceptedTerms, justif
                 true,
                 now(),
                 1,
-                ${normalizedJustification}
+                ${normalizedJustification},
+                ${reservation?.start || null},
+                ${reservation?.end || null}
             )
             RETURNING id_pedido
         `;
@@ -468,6 +481,9 @@ export async function transitionOrder(actorUserId, orderId, action, { reason, ip
                 pedido.id_pedido,
                 pedido.id_status,
                 pedido.duracao_dias,
+                pedido.retirada_prevista::text,
+                pedido.devolucao_prevista::text,
+                current_date::text AS today,
                 status_pedido.descricao_status AS status
             FROM pedido
             INNER JOIN status_pedido ON status_pedido.id_status = pedido.id_status
@@ -477,6 +493,11 @@ export async function transitionOrder(actorUserId, orderId, action, { reason, ip
 
         if (!order) {
             throw new OrderNotFoundError('Pedido não encontrado.');
+        }
+
+        if (action === ORDER_ACTION.CONFIRM_PICKUP && order.retirada_prevista &&
+            (order.today < order.retirada_prevista || order.today >= order.devolucao_prevista)) {
+            throw new OrderValidationError('A retirada deve ocorrer no período reservado, antes da data de devolução.');
         }
 
         const nextStatus = getNextOrderStatus(order.status, action);

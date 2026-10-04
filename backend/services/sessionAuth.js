@@ -4,11 +4,11 @@ import 'dotenv/config';
 const SESSION_COOKIE = 'authcookie';
 const SESSION_DURATION_SECONDS = 2 * 24 * 60 * 60;
 
-function getSessionSecret() {
-    const secret = process.env.APP_SESSION_SECRET || process.env.ACCESS_TOKEN || process.env.CRYPTO_KEY;
+export function getSessionSecret() {
+    const secret = process.env.APP_SESSION_SECRET;
 
-    if (!secret) {
-        throw new Error('Defina APP_SESSION_SECRET para assinar as sessões do CHIP.');
+    if (!secret || secret.length < 32) {
+        throw new Error('Defina APP_SESSION_SECRET com pelo menos 32 caracteres para assinar as sessões do CHIP.');
     }
 
     return secret;
@@ -18,7 +18,7 @@ function getCookieOptions() {
     return {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'Strict',
+        sameSite: 'Lax',
         path: '/',
         maxAge: SESSION_DURATION_SECONDS * 1000
     };
@@ -70,7 +70,8 @@ export function getPasswordUpdateCredential(req) {
 export function verifySessionToken(token) {
     const payload = jwt.verify(token, getSessionSecret(), {
         issuer: 'chip-ppi',
-        audience: 'chip-ppi'
+        audience: 'chip-ppi',
+        algorithms: ['HS256']
     });
 
     return {

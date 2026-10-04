@@ -40,16 +40,8 @@
 
         <hr class="header-divider">
 
-        <section class="tabs-row">
-            <button class="tab-button active" data-tab="solicitacoes">Solicitações de empréstimo</button>
-            <button class="tab-button" data-tab="separacao">Para separação</button>
-            <button class="tab-button" data-tab="retirada">Para retirada</button>
-            <button class="tab-button" data-tab="devolucao">Para devolução</button>
-            <button class="tab-button" data-tab="historico">Histórico</button>
-        </section>
-
-        <p class="tab-note" id="tabNote"></p>
-        <section class="orders-grid" id="ordersGrid"></section>
+        <p class="tab-note" id="tabNote">Role o quadro na horizontal para ver todas as etapas. Arraste o cartão ou abra o pedido para usar os botões. Para negar, informe uma justificativa.</p>
+        <section class="orders-grid kanban-board" id="ordersGrid" aria-label="Quadro de pedidos"></section>
     </div>
 
     <div class="modal-overlay" id="orderModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">

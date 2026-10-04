@@ -1,6 +1,32 @@
 import sql from '../db.js';
 import { randomUUID } from 'crypto';
 
+export async function upsertGoogleUserProfile({ sub, email, name }) {
+    return sql.begin(async (db) => {
+        // Serializa primeiros logins da mesma conta; preserva perfil e permissões existentes.
+        await db`SELECT pg_advisory_xact_lock(hashtext(${sub}))`;
+        const [existing] = await db`
+            SELECT * FROM usuario WHERE google_sub = ${sub} OR lower(email) = ${email}
+            ORDER BY (google_sub = ${sub}) DESC NULLS LAST FOR UPDATE
+        `;
+        if (existing) {
+            if (existing.google_sub && existing.google_sub !== sub) throw new Error('Conta Google já vinculada.');
+            const [profile] = await db`
+                UPDATE usuario SET google_sub = ${sub}, auth_provider = 'google',
+                    auth_user_id = COALESCE(auth_user_id, ${randomUUID()}), email = ${email}
+                WHERE id_usuario = ${existing.id_usuario} RETURNING *
+            `;
+            return profile;
+        }
+        const [profile] = await db`
+            INSERT INTO usuario (google_sub, auth_user_id, auth_provider, nome, email, nivel_acesso, status_conta)
+            VALUES (${sub}, ${randomUUID()}, 'google', ${name || 'Usuário'}, ${email}, 0, true)
+            RETURNING *
+        `;
+        return profile;
+    });
+}
+
 function normalizeEmail(email) {
     return email?.trim().toLowerCase() || null;
 }
