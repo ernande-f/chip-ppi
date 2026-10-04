@@ -4,10 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Editar Perfil - CHIP</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/vendor/fontawesome/css/fontawesome.min.css">
+    <link rel="stylesheet" href="/vendor/fontawesome/css/solid.min.css">
+    <link rel="stylesheet" href="/vendor/inter/inter.css">
     <link rel="stylesheet" href="../css/css-base.css">
     <link rel="stylesheet" href="../css/editar-perfil.css">
 </head>
@@ -70,12 +69,6 @@
                             <input type="text" id="profileNameInput" autocomplete="name" required>
                         </div>
                         <div class="form-group">
-                            <label>Senha:</label>
-                            <div class="input-with-button">
-                                <input type="password" value="********" readonly tabindex="-1" class="readonly-input">
-                            </div>
-                        </div>
-                        <div class="form-group">
                             <label for="profileEmailInput">*Email:</label>
                             <input type="email" id="profileEmailInput" readonly tabindex="-1" class="readonly-input">
                         </div>
@@ -92,26 +85,6 @@
                 </div>
             </div>
         </main>
-    </div>
-
-    <div id="modal-redefinir" class="modal-overlay">
-        <div class="modal-card">
-            <div class="modal-header">
-                <h2>Redefinir senha</h2>
-                <button type="button" class="close-modal" id="closePasswordModal">&times;</button>
-            </div>
-            <form class="modal-form" id="passwordForm">
-                <div class="modal-input-group">
-                    <label for="newPassword">Nova senha:</label>
-                    <input type="password" id="newPassword" minlength="6" maxlength="64" required>
-                </div>
-                <div class="modal-input-group">
-                    <label for="confirmPassword">Confirmar senha:</label>
-                    <input type="password" id="confirmPassword" minlength="6" maxlength="64" required>
-                </div>
-                <button type="submit" class="btn-save-modal">Salvar</button>
-            </form>
-        </div>
     </div>
 
     <footer class="main-footer">

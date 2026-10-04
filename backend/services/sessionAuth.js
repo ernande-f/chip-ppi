@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import 'dotenv/config';
+import '../config.js';
 
 const SESSION_COOKIE = 'authcookie';
 const SESSION_DURATION_SECONDS = 2 * 24 * 60 * 60;
@@ -7,7 +7,7 @@ const SESSION_DURATION_SECONDS = 2 * 24 * 60 * 60;
 export function getSessionSecret() {
     const secret = process.env.APP_SESSION_SECRET;
 
-    if (!secret || secret.length < 32) {
+    if (!secret || secret.length < 32 || /USE_UMA_|CHANGE_ME|YOUR_/.test(secret)) {
         throw new Error('Defina APP_SESSION_SECRET com pelo menos 32 caracteres para assinar as sessões do CHIP.');
     }
 
@@ -25,6 +25,10 @@ function getCookieOptions() {
 }
 
 export function createSessionToken(user) {
+    if (user.auth_provider !== 'google' || typeof user.id !== 'string' || !user.id) {
+        throw new Error('A sessão exige uma conta autenticada com Google.');
+    }
+
     return jwt.sign(
         {
             email: user.email || null,
@@ -50,23 +54,6 @@ export function clearSessionCookie(res) {
     res.clearCookie(SESSION_COOKIE, options);
 }
 
-export function getPasswordUpdateCredential(req) {
-    const authorization = req.headers?.authorization?.trim();
-
-    if (authorization) {
-        const bearer = authorization.match(/^Bearer\s+(\S+)$/i);
-
-        return bearer
-            ? { token: bearer[1], kind: 'supabase-recovery' }
-            : null;
-    }
-
-    const sessionToken = req.cookies?.[SESSION_COOKIE];
-    return sessionToken
-        ? { token: sessionToken, kind: 'chip-session' }
-        : null;
-}
-
 export function verifySessionToken(token) {
     const payload = jwt.verify(token, getSessionSecret(), {
         issuer: 'chip-ppi',
@@ -74,10 +61,14 @@ export function verifySessionToken(token) {
         algorithms: ['HS256']
     });
 
+    if (typeof payload.sub !== 'string' || !payload.sub || payload.auth_provider !== 'google') {
+        throw new jwt.JsonWebTokenError('Entre novamente com Google.');
+    }
+
     return {
         id: payload.sub,
         email: payload.email || null,
         user_metadata: payload.user_metadata || {},
-        auth_provider: payload.auth_provider || 'supabase'
+        auth_provider: 'google'
     };
 }

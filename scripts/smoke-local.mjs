@@ -17,8 +17,8 @@ const names = [`chip_smoke_${suffix}`, `chip_copy_${suffix}`];
 const urls = names.map(name => { const url = new URL(adminUrl); url.pathname = `/${name}`; return url.href; });
 const created = [];
 let db, target, child, browser;
-const run = async (file, env) => {
-    const process = spawn(globalThis.process.execPath, [file], { env: { ...globalThis.process.env, ...env }, stdio: ['ignore', 'pipe', 'pipe'] });
+const run = async (file, env, args = []) => {
+    const process = spawn(globalThis.process.execPath, [file, ...args], { env: { ...globalThis.process.env, ...env }, stdio: ['ignore', 'pipe', 'pipe'] });
     let output = '';
     process.stdout.on('data', data => { output += data; });
     process.stderr.on('data', data => { output += data; });
@@ -26,17 +26,25 @@ const run = async (file, env) => {
     if (code) throw new Error(output);
 };
 try {
-    for (const name of names) { await admin`CREATE DATABASE ${admin(name)}`; created.push(name); }
+    for (const name of names) {
+        await admin`CREATE DATABASE ${admin(name)}`;
+        created.push(name);
+        await admin`ALTER DATABASE ${admin(name)} SET timezone TO 'UTC'`;
+    }
     process.env.DATABASE_URL = urls[0];
     process.env.APP_SESSION_SECRET = 'temporary-smoke-secret-at-least-32-characters';
+    process.env.GOOGLE_CLIENT_ID = 'test-client';
+    process.env.GOOGLE_CLIENT_SECRET = 'test-secret';
+    process.env.GOOGLE_ALLOWED_DOMAINS = 'aluno.iffar.edu.br,iffarroupilha.edu.br';
     db = (await import('../backend/db.js')).default;
     target = postgres(urls[1], { max: 1, onnotice() {} });
-    const schema = await readFile('supabase/create_tables.sql', 'utf8');
+    assert.equal((await db`SHOW timezone`)[0].TimeZone, 'America/Sao_Paulo');
+    const schema = await readFile('database/schema.sql', 'utf8');
     for (const connection of [db, target]) {
         const setup = await connection.reserve();
         try {
             await setup.unsafe(schema);
-            for (const file of ['google_login', 'reservations']) await setup.unsafe(await readFile(`database/migrations/${file}.sql`, 'utf8'));
+            for (const file of ['google_login', 'reservations', 'google_only', 'indexes']) await setup.unsafe(await readFile(`database/migrations/${file}.sql`, 'utf8'));
         } finally { await setup.release(); }
     }
     const { upsertGoogleUserProfile } = await import('../backend/services/userProfile.js');
@@ -82,6 +90,7 @@ try {
         child.once('exit', code => reject(new Error(`Servidor terminou: ${code}`)));
         child.stdout.on('data', data => { const match = String(data).match(/http:\/\/localhost:\d+/); if (match) resolve(match[0]); });
     });
+    assert.equal((await fetch(`${base}/api/health`)).status, 200);
     const { chromium } = await import(process.env.PLAYWRIGHT_MODULE || 'playwright');
     browser = await chromium.launch({ headless: true, ...(process.env.PLAYWRIGHT_EXECUTABLE ? { executablePath: process.env.PLAYWRIGHT_EXECUTABLE } : {}) });
     const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
@@ -154,6 +163,10 @@ try {
     assert.equal((await target`SELECT count(*)::int AS n FROM pedido`)[0].n, 3);
     assert.equal((await target`SELECT estoque_total FROM produto WHERE id_produto = ${product.id_produto}`)[0].estoque_total, 2);
     await assert.rejects(run('scripts/copy-local-database.mjs', { SOURCE_DATABASE_URL: urls[0], DATABASE_URL: urls[1] }), /Destino não está vazio/);
+    const migrationPaths = ['database/schema.sql', ...['google_login', 'reservations', 'google_only', 'indexes'].map(file => `database/migrations/${file}.sql`)];
+    await run('scripts/apply-migration.mjs', { DATABASE_URL: urls[0] }, migrationPaths);
+    assert.equal((await db`SELECT count(*)::int AS n FROM pedido`)[0].n, 3);
+    assert.equal((await db`SELECT estoque_total FROM produto WHERE id_produto = ${product.id_produto}`)[0].estoque_total, 2);
     console.log('OK: schema, migrações, vínculo Google, reserva/cancelamento/estoque, catálogo público, permissões, checkout, Kanban por arraste e teclado, cópia de dados.');
 } finally {
     if (browser) await browser.close();

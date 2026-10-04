@@ -1,7 +1,7 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import 'dotenv/config';
+import { getServerConfig, getGoogleConfig } from './config.js';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 
@@ -9,20 +9,18 @@ import apiRoutes from './routes/api.js';
 import { verifySessionAuth } from './middleware/authSession.js';
 import pageRoutes from './routes/pages.js';
 import cookieParser from 'cookie-parser';
+import sql from './db.js';
+import { getSessionSecret } from './services/sessionAuth.js';
+import { checkDatabase } from './services/databaseStatus.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const PORT = process.env.PORT || 3000;
-
-function getPositiveIntegerEnv(name, fallback) {
-    const value = Number.parseInt(process.env[name], 10);
-    return Number.isInteger(value) && value > 0 ? value : fallback;
-}
-
-const GLOBAL_RATE_LIMIT_MAX = getPositiveIntegerEnv('GLOBAL_RATE_LIMIT_MAX', 500);
-const AUTH_RATE_LIMIT_MAX = getPositiveIntegerEnv('AUTH_RATE_LIMIT_MAX', 20);
+const config = getServerConfig();
+getGoogleConfig();
+getSessionSecret();
+app.set('trust proxy', config.trustProxy);
 const PUBLIC_PAGE_PATHS = new Set([
     '/',
     '/index.html',
@@ -54,28 +52,30 @@ function hasPrivilegedAccess(level) {
 }
 
 // --- Segurança: Helmet (headers HTTP seguros + HSTS) ---
-// Configurado para permitir imagens externas (HTTPS), Supabase Storage e Google Fonts.
+// Fontes e ícones são servidos por esta instalação.
 app.use(
     helmet({
         contentSecurityPolicy: {
             directives: {
                 defaultSrc: ["'self'"],
                 scriptSrc: ["'self'", "'unsafe-inline'"],
-                styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com', 'https://cdnjs.cloudflare.com'],
-                fontSrc: ["'self'", 'https://fonts.gstatic.com', 'https://cdnjs.cloudflare.com'],
+                styleSrc: ["'self'", "'unsafe-inline'"],
+                fontSrc: ["'self'"],
                 imgSrc: ["'self'", 'data:', 'blob:', 'https:', 'http:'],
-                connectSrc: ["'self'", 'https:', 'http:', 'ws:', 'wss:']
+                connectSrc: ["'self'"],
+                upgradeInsecureRequests: config.production ? [] : null
             }
         },
-        crossOriginResourcePolicy: { policy: 'cross-origin' }
+        crossOriginResourcePolicy: { policy: 'cross-origin' },
+        strictTransportSecurity: config.production ? undefined : false
     })
 );
 
 // --- Segurança: Redirecionar HTTP → HTTPS em produção ---
-if (process.env.NODE_ENV === 'production') {
+if (config.production) {
     app.use((req, res, next) => {
-        if (req.headers['x-forwarded-proto'] !== 'https') {
-            return res.redirect(301, `https://${req.headers.host}${req.url}`);
+        if (!req.secure && req.path !== '/api/health') {
+            return res.redirect(308, `${config.appUrl}${req.originalUrl}`);
         }
         next();
     });
@@ -83,9 +83,8 @@ if (process.env.NODE_ENV === 'production') {
 
 // --- Segurança: Proteção CSRF via verificação de Origin ---
 const ALLOWED_ORIGINS = new Set([
-    `http://localhost:${PORT}`,
-    `http://127.0.0.1:${PORT}`,
-    process.env.APP_URL // ex: https://chip-ppi.vercel.app
+    ...(!config.production ? [`http://localhost:${config.port}`, `http://127.0.0.1:${config.port}`] : []),
+    config.appUrl
 ]
     .filter(Boolean)
     .map((value) => new URL(value).origin));
@@ -111,20 +110,30 @@ app.use((req, res, next) => {
 // --- Segurança: Rate Limiting global ---
 app.use(rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutos
-    max: GLOBAL_RATE_LIMIT_MAX,
+    max: config.globalRateLimit,
     message: { error: 'Muitas requisições. Tente novamente em 15 minutos.' }
 }));
 
 // --- Segurança: Rate Limiting mais restritivo para autenticação ---
 const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: AUTH_RATE_LIMIT_MAX,
+    max: config.authRateLimit,
     message: { error: 'Muitas tentativas. Aguarde 15 minutos.' }
 });
 app.use('/api/auth/google', authLimiter);
 app.use('/api/login', authLimiter);
 app.use('/api/institutional-login', authLimiter);
 app.use('/api/register', authLimiter);
+
+app.get('/api/health', async (req, res) => {
+    res.set('Cache-Control', 'no-store');
+    try {
+        await checkDatabase();
+        return res.json({ status: 'ready' });
+    } catch {
+        return res.status(503).json({ status: 'unavailable' });
+    }
+});
 
 // URLs antigas de cadastro e senha deixam de oferecer autenticação paralela.
 app.get(['/register', '/redefinir-senha', '/nova-senha', '/pages/cadastro.html', '/pages/redefinir-senha.html', '/pages/nova-senha.html'], (req, res) => res.redirect('/login'));
@@ -192,9 +201,24 @@ app.use((error, req, res, next) => {
         });
     }
 
-    return next(error);
+    console.error('Erro na requisição:', error.code || error.name);
+    return res.status(500).json({ success: false, message: 'Erro interno do servidor.' });
 });
 
-const server = app.listen(PORT, () => {
+const server = app.listen(config.port, config.host, () => {
     console.log(`Servidor rodando em: http://localhost:${server.address().port}`);
 });
+server.on('error', (error) => {
+    console.error(`Não foi possível iniciar o servidor (${error.code}). Confira HOST e PORT.`);
+    process.exitCode = 1;
+});
+
+let stopping = false;
+async function shutdown() {
+    if (stopping) return;
+    stopping = true;
+    server.close();
+    await sql.end({ timeout: 5 });
+}
+process.on('SIGTERM', shutdown);
+process.on('SIGINT', shutdown);

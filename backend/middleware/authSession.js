@@ -30,6 +30,7 @@ async function attachActiveProfile(req) {
     if (req.user.auth_provider !== 'google') throw new AccountAccessError('Entre novamente com Google.');
     req.profile = await getProfileByAuthUserId(req.user.id);
     assertAccountIsActive(req.profile);
+    if (req.profile.auth_provider !== 'google' || !req.profile.google_sub) throw new AccountAccessError('Entre novamente com Google.');
 }
 
 export async function optionalSessionAuth(req, res, next) {
@@ -58,7 +59,7 @@ export async function verifySessionAuth(req, res, next) {
     }
 
     try {
-        const token = req.cookies.authcookie || req.headers.authorization?.split(' ')[1];
+        const token = req.cookies?.authcookie || req.headers.authorization?.split(' ')[1];
 
         if (!token) {
             return handleUnauthorized(req, res, 'Sessão não fornecida.');
@@ -72,7 +73,8 @@ export async function verifySessionAuth(req, res, next) {
             return handleForbidden(req, res, error.message);
         }
 
-        if (error.name === 'TokenExpiredError' || error.name === 'JsonWebTokenError') {
+        if (['TokenExpiredError', 'JsonWebTokenError', 'NotBeforeError'].includes(error.name)) {
+            clearSessionCookie(res);
             return handleUnauthorized(req, res, 'Sua sessão expirou. Entre novamente.');
         }
 

@@ -2,28 +2,30 @@
   "name": "chip-ppi",
   "version": "1.0.0",
   "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "start": "node backend/server.js",
     "dev": "node --watch backend/server.js",
     "test": "node --test",
     "dev:local": "node --env-file=.env.local --watch backend/server.js",
-    "db:setup": "node scripts/apply-migration.mjs supabase/create_tables.sql database/migrations/google_login.sql database/migrations/reservations.sql",
-    "db:setup:local": "node --env-file=.env.local scripts/apply-migration.mjs supabase/create_tables.sql database/migrations/google_login.sql database/migrations/reservations.sql",
+    "db:setup": "node scripts/apply-migration.mjs database/schema.sql database/migrations/google_login.sql database/migrations/reservations.sql database/migrations/google_only.sql database/migrations/indexes.sql",
+    "db:setup:local": "node --env-file=.env.local scripts/apply-migration.mjs database/schema.sql database/migrations/google_login.sql database/migrations/reservations.sql database/migrations/google_only.sql database/migrations/indexes.sql",
+    "db:check": "node scripts/check-database.mjs",
+    "doctor": "node scripts/doctor.mjs",
     "test:local": "node scripts/smoke-local.mjs"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.103.0",
-    "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
     "dotenv": "^17.3.1",
     "express": "^4.21.2",
     "express-rate-limit": "^8.3.1",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.3",
-    "postgres": "^3.4.8",
-    "skills": "^1.4.6"
+    "postgres": "^3.4.8"
   },
-  "allowScripts": {
-    "bcrypt": false
+  "devDependencies": {
+    "playwright": "1.63.0"
   }
 }

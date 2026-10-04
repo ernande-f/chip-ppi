@@ -47,16 +47,8 @@ router.get('/login', (req, res) => {
     res.sendFile(path.join(__dirname, '../../frontend/pages/login.html'));
 });
 
-router.get('/register', (req, res) => {
-    res.sendFile(path.join(__dirname, '../../frontend/pages/cadastro.html'));
-});
-
-router.get('/redefinir-senha', (req, res) => {
-    res.sendFile(path.join(__dirname, '../../frontend/pages/redefinir-senha.html'));
-});
-
-router.get('/nova-senha', (req, res) => {
-    res.sendFile(path.join(__dirname, '../../frontend/pages/nova-senha.html'));
+router.get(['/register', '/redefinir-senha', '/nova-senha'], (req, res) => {
+    res.redirect('/login');
 });
 
 // Endereços curtos usados pelas telas técnicas. Os arquivos continuam em

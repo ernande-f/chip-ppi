@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+// A validação de entrada não precisa de um banco nem de credenciais locais.
+process.env.DATABASE_URL = 'postgresql://test:test@127.0.0.1:1/test';
 const { ProductValidationError, validateProductPayload } = await import('../backend/services/productService.js');
 
 test('valida os campos obrigatórios do cadastro de item', () => {

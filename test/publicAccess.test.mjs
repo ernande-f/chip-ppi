@@ -22,6 +22,10 @@ test('catálogo público, APIs privadas protegidas e senha desativada', { timeou
     }
     const session = await fetch(`${base}/api/session`).then(response => response.json());
     assert.equal(session.user, null);
+    const local = await fetch(`${base}/login`);
+    assert.equal(local.headers.get('strict-transport-security'), null);
+    assert.doesNotMatch(local.headers.get('content-security-policy'), /upgrade-insecure-requests/);
+    assert.equal((await fetch(`${base}/api/health`)).status, 503);
     for (const api of ['/api/carrinho', '/api/pedidos', '/api/gestao/pedidos', '/api/profile']) {
         assert.equal((await fetch(`${base}${api}`)).status, 401);
     }

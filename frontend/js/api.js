@@ -248,42 +248,6 @@ export async function getSession() {
     return _sessionPromise;
 }
 
-export async function login(payload) {
-    return apiRequest('/api/login', {
-        method: 'POST',
-        body: payload
-    });
-}
-
-export async function institutionalLogin(payload) {
-    return apiRequest('/api/institutional-login', {
-        method: 'POST',
-        body: payload
-    });
-}
-
-export async function register(payload) {
-    return apiRequest('/api/register', {
-        method: 'POST',
-        body: payload
-    });
-}
-
-export async function sendPasswordResetEmail(email) {
-    return apiRequest('/api/forgot-password', {
-        method: 'POST',
-        body: { email }
-    });
-}
-
-export async function updatePassword(password, headers = {}) {
-    return apiRequest('/api/update-password', {
-        method: 'POST',
-        headers,
-        body: { password }
-    });
-}
-
 export async function logout() {
     return apiRequest('/api/logout', {
         method: 'POST'

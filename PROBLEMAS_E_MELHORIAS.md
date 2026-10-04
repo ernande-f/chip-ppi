@@ -1,5 +1,7 @@
 # CHIP-PPI — Problemas e melhorias
 
+Registro histórico da auditoria anterior à migração para PostgreSQL próprio e Google OAuth. Os caminhos, resultados de testes e dependências abaixo descrevem aquela versão; consulte o README e `docs/installation.md` para a instalação atual.
+
 Documento gerado a partir da auditoria do código, banco, telas, dependências e requisitos oficiais do projeto.
 
 ## Resultado das validações
@@ -228,4 +230,3 @@ Conforme o documento oficial de requisitos, permanecem pendentes ou não comprov
 - otimização e redimensionamento de imagens;
 - validação de desempenho para 50 usuários simultâneos;
 - compatibilidade validada nos navegadores previstos.
-

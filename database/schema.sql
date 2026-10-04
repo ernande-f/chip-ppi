@@ -1,8 +1,10 @@
 -- ============================================================
--- CHIP-PPI — Criação de tabelas no Supabase
+-- CHIP-PPI — Schema PostgreSQL
 -- Baseado no modelo lógico (ER) do projeto
--- Execute este script inteiro no SQL Editor do Supabase
+-- Aplicado por npm run db:setup em instalações novas e existentes.
 -- ============================================================
+
+begin;
 
 -- ============================================================
 -- 1. TABELAS BASE (sem dependências)
@@ -41,13 +43,13 @@ create table if not exists notificacao (
 -- Usuários do sistema
 create table if not exists usuario (
   id_usuario bigint generated always as identity primary key,
-  -- Também é usado por contas LDAP/SIGAA; por isso não referencia auth.users.
+  -- Identidade interna da aplicação, independente do identificador Google.
   auth_user_id uuid unique,
   google_sub text unique,
   nome varchar(60) not null,
   cpf text unique,
   email varchar(320) unique,
-  auth_provider varchar(20) not null default 'supabase',
+  auth_provider varchar(20) not null default 'google',
   institutional_auth_type varchar(1) check (institutional_auth_type is null or institutional_auth_type in ('L', 'S')),
   senha varchar(80),
   status_conta boolean not null default true,
@@ -276,3 +278,5 @@ BEGIN
     END IF;
   END LOOP;
 END $$;
+
+commit;

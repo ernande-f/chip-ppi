@@ -1,12 +1,14 @@
 import postgres from 'postgres';
-import 'dotenv/config';
+import { getDatabaseConfig } from '../backend/config.js';
 
 // Copia somente tabelas da aplicação para um destino vazio já inicializado.
 const sourceUrl = process.env.SOURCE_DATABASE_URL;
 const targetUrl = process.env.DATABASE_URL;
 if (!sourceUrl || !targetUrl || sourceUrl === targetUrl) throw new Error('Defina SOURCE_DATABASE_URL e DATABASE_URL distintos.');
-const source = postgres(sourceUrl, { max: 1, prepare: false });
-const target = postgres(targetUrl, { max: 1, prepare: false });
+const sourceConfig = getDatabaseConfig({ ...process.env, DATABASE_URL: sourceUrl });
+const targetConfig = getDatabaseConfig();
+const source = postgres(sourceConfig.url, { ...sourceConfig.options, max: 1 });
+const target = postgres(targetConfig.url, { ...targetConfig.options, max: 1 });
 const tables = ['categoria', 'status_produto', 'status_pedido', 'notificacao', 'usuario', 'produto', 'pedido', 'renovacao', 'log_auditoria', 'notificar', 'lista_de_desejos', 'contem_lista', 'categorizar', 'renovacao_pedido'];
 
 try {

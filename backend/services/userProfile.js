@@ -27,29 +27,6 @@ export async function upsertGoogleUserProfile({ sub, email, name }) {
     });
 }
 
-function normalizeEmail(email) {
-    return email?.trim().toLowerCase() || null;
-}
-
-function normalizeName(name, fallbackEmail) {
-    const trimmedName = name?.trim();
-
-    if (trimmedName) {
-        return trimmedName;
-    }
-
-    if (fallbackEmail) {
-        return fallbackEmail.split('@')[0];
-    }
-
-    return 'Usuario';
-}
-
-function normalizeCpf(cpf) {
-    const digits = cpf?.replace(/\D/g, '') || null;
-    return digits || null;
-}
-
 function normalizeDisplayName(name) {
     const trimmedName = name?.trim();
     return trimmedName || null;
@@ -69,43 +46,9 @@ export function getAccessLevelLabel(level) {
 
 export async function getProfileByAuthUserId(authUserId) {
     const [profile] = await sql`
-        SELECT id_usuario, auth_user_id, nome, email, cpf, nivel_acesso, status_conta
+        SELECT id_usuario, auth_user_id, google_sub, auth_provider, nome, email, cpf, nivel_acesso, status_conta
         FROM usuario
         WHERE auth_user_id = ${authUserId}
-        LIMIT 1
-    `;
-
-    return profile ?? null;
-}
-
-export async function getProfileByEmail(email) {
-    const normalizedEmail = normalizeEmail(email);
-
-    if (!normalizedEmail) {
-        return null;
-    }
-
-    const [profile] = await sql`
-        SELECT id_usuario, auth_user_id, nome, email, cpf, nivel_acesso, status_conta
-        FROM usuario
-        WHERE lower(email) = ${normalizedEmail}
-        LIMIT 1
-    `;
-
-    return profile ?? null;
-}
-
-export async function getProfileByCpf(cpf) {
-    const normalizedCpf = normalizeCpf(cpf);
-
-    if (!normalizedCpf) {
-        return null;
-    }
-
-    const [profile] = await sql`
-        SELECT id_usuario, auth_user_id, nome, email, cpf, nivel_acesso, status_conta
-        FROM usuario
-        WHERE cpf = ${normalizedCpf}
         LIMIT 1
     `;
 
@@ -164,120 +107,4 @@ export async function updateProfileByAuthUserId(authUserId, { name }) {
     `;
 
     return updatedProfile ?? null;
-}
-
-export async function upsertUserProfile({ authUserId, email, name, cpf }) {
-    const normalizedEmail = normalizeEmail(email);
-    const normalizedCpf = normalizeCpf(cpf);
-    const normalizedName = normalizeName(name, normalizedEmail);
-
-    if (!authUserId || !normalizedEmail) {
-        throw new Error('authUserId e email são obrigatórios para sincronizar o perfil.');
-    }
-
-    const existingByAuthId = await getProfileByAuthUserId(authUserId);
-    if (existingByAuthId) {
-        const [updatedProfile] = await sql`
-            UPDATE usuario
-            SET
-                nome = CASE
-                    WHEN nome IS NULL OR nome = '' THEN ${normalizedName}
-                    ELSE nome
-                END,
-                email = COALESCE(${normalizedEmail}, email),
-                cpf = COALESCE(${normalizedCpf}, cpf),
-                status_conta = COALESCE(status_conta, true)
-            WHERE auth_user_id = ${authUserId}
-            RETURNING id_usuario, auth_user_id, nome, email, cpf, nivel_acesso, status_conta
-        `;
-
-        return updatedProfile;
-    }
-
-    const existingByEmail = await getProfileByEmail(normalizedEmail);
-    if (existingByEmail) {
-        const [updatedProfile] = await sql`
-            UPDATE usuario
-            SET
-                auth_user_id = COALESCE(auth_user_id, ${authUserId}),
-                nome = CASE
-                    WHEN nome IS NULL OR nome = '' THEN ${normalizedName}
-                    ELSE nome
-                END,
-                cpf = COALESCE(cpf, ${normalizedCpf}),
-                status_conta = COALESCE(status_conta, true)
-            WHERE id_usuario = ${existingByEmail.id_usuario}
-            RETURNING id_usuario, auth_user_id, nome, email, cpf, nivel_acesso, status_conta
-        `;
-
-        return updatedProfile;
-    }
-
-    const [createdProfile] = await sql`
-        INSERT INTO usuario (auth_user_id, nome, email, cpf, status_conta, nivel_acesso)
-        VALUES (${authUserId}, ${normalizedName}, ${normalizedEmail}, ${normalizedCpf}, true, 0)
-        RETURNING id_usuario, auth_user_id, nome, email, cpf, nivel_acesso, status_conta
-    `;
-
-    return createdProfile;
-}
-
-export async function upsertInstitutionalUserProfile({ cpf, type, name, email }) {
-    const normalizedCpf = normalizeCpf(cpf);
-    const normalizedName = normalizeDisplayName(name) || 'Usuário institucional';
-    const normalizedEmail = normalizeEmail(email);
-    const provider = type === 'S' ? 'sigaa' : 'ldap';
-
-    if (!normalizedCpf || normalizedCpf.length !== 11) {
-        throw new Error('CPF institucional inválido.');
-    }
-
-    const existingProfile = await getProfileByCpf(normalizedCpf);
-
-    if (existingProfile) {
-        const authUserId = existingProfile.auth_user_id || randomUUID();
-        const [updatedProfile] = await sql`
-            UPDATE usuario
-            SET
-                auth_user_id = COALESCE(auth_user_id, ${authUserId}),
-                nome = CASE
-                    WHEN nome IS NULL OR nome = '' OR nome = 'Usuário institucional' THEN ${normalizedName}
-                    ELSE nome
-                END,
-                email = COALESCE(email, ${normalizedEmail}),
-                institutional_auth_type = ${type},
-                status_conta = COALESCE(status_conta, true)
-            WHERE id_usuario = ${existingProfile.id_usuario}
-            RETURNING id_usuario, auth_user_id, nome, email, cpf, nivel_acesso, status_conta
-        `;
-
-        return updatedProfile;
-    }
-
-    const authUserId = randomUUID();
-    const [createdProfile] = await sql`
-        INSERT INTO usuario (
-            auth_user_id,
-            nome,
-            email,
-            cpf,
-            status_conta,
-            nivel_acesso,
-            auth_provider,
-            institutional_auth_type
-        )
-        VALUES (
-            ${authUserId},
-            ${normalizedName},
-            ${normalizedEmail},
-            ${normalizedCpf},
-            true,
-            0,
-            ${provider},
-            ${type}
-        )
-        RETURNING id_usuario, auth_user_id, nome, email, cpf, nivel_acesso, status_conta
-    `;
-
-    return createdProfile;
 }

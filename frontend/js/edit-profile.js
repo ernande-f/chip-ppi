@@ -4,26 +4,11 @@ import {
     isUserTechnical,
     maskCpf,
     updateNavbarForRole,
-    updatePassword,
     updateProfile
 } from './api.js';
 
 function redirectToLogin() {
     window.location.href = '/login';
-}
-
-function toggleModal(modalId, show) {
-    const modal = document.getElementById(modalId);
-    const page = document.getElementById('page-content');
-
-    if (show) {
-        modal.style.display = 'flex';
-        page.classList.add('modal-active');
-        return;
-    }
-
-    modal.style.display = 'none';
-    page.classList.remove('modal-active');
 }
 
 function applyAvatar(name) {
@@ -63,13 +48,9 @@ async function loadProfile() {
 
 document.addEventListener('DOMContentLoaded', async () => {
     const profileForm = document.getElementById('profileForm');
-    const passwordForm = document.getElementById('passwordForm');
     const fileInput = document.getElementById('file-input');
     const cancelEdit = document.getElementById('cancelEdit');
-    const openPasswordModal = document.getElementById('openPasswordModal');
-    const closePasswordModal = document.getElementById('closePasswordModal');
     const selectAvatarButton = document.getElementById('selectAvatarButton');
-    const passwordModal = document.getElementById('modal-redefinir');
 
     if (cancelEdit) {
         cancelEdit.addEventListener('click', () => {
@@ -77,24 +58,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    if (openPasswordModal) {
-        openPasswordModal.addEventListener('click', () => toggleModal('modal-redefinir', true));
-    }
-    if (closePasswordModal) {
-        closePasswordModal.addEventListener('click', () => toggleModal('modal-redefinir', false));
-    }
     if (selectAvatarButton && fileInput) {
         selectAvatarButton.addEventListener('click', () => fileInput.click());
     }
-
-    if (passwordModal) {
-        passwordModal.addEventListener('click', (event) => {
-            if (event.target === passwordModal) {
-                toggleModal('modal-redefinir', false);
-            }
-        });
-    }
-
 
     if (profileForm) {
         profileForm.addEventListener('submit', async (event) => {
@@ -110,30 +76,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             } catch (error) {
                 console.error('Erro ao atualizar perfil:', error);
                 alert(error.message || 'Não foi possível salvar as alterações.');
-            }
-        });
-    }
-
-    if (passwordForm) {
-        passwordForm.addEventListener('submit', async (event) => {
-            event.preventDefault();
-
-            const newPassword = document.getElementById('newPassword')?.value;
-            const confirmPassword = document.getElementById('confirmPassword')?.value;
-
-            if (newPassword !== confirmPassword) {
-                alert('As senhas não coincidem.');
-                return;
-            }
-
-            try {
-                await updatePassword(newPassword);
-                passwordForm.reset();
-                toggleModal('modal-redefinir', false);
-                alert('Senha atualizada com sucesso.');
-            } catch (error) {
-                console.error('Erro ao atualizar senha:', error);
-                alert(error.message || 'Não foi possível atualizar a senha.');
             }
         });
     }

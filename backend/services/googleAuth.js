@@ -1,20 +1,13 @@
 import { createHash, createPublicKey, randomBytes } from 'node:crypto';
 import jwt from 'jsonwebtoken';
 import { getSessionSecret } from './sessionAuth.js';
+import { getGoogleConfig } from '../config.js';
 
 const COOKIE = 'google_login';
 const cookieOptions = () => ({ httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', path: '/api/auth/google' });
 
-function config() {
-    const clientId = process.env.GOOGLE_CLIENT_ID;
-    const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-    const domains = (process.env.GOOGLE_ALLOWED_DOMAINS || '').split(',').map(value => value.trim().toLowerCase()).filter(Boolean);
-    if (!clientId || !clientSecret || !domains.length || !process.env.APP_URL) throw new Error('Google não configurado.');
-    return { clientId, clientSecret, domains, redirectUri: new URL('/api/auth/google/callback', process.env.APP_URL).href };
-}
-
 export function startGoogleLogin(res) {
-    const { clientId, domains, redirectUri } = config();
+    const { clientId, domains, redirectUri } = getGoogleConfig();
     const state = randomBytes(32).toString('base64url');
     const nonce = randomBytes(32).toString('base64url');
     const verifier = randomBytes(32).toString('base64url');
@@ -44,7 +37,7 @@ export function validateGoogleIdentity(claims, nonce, domains) {
 
 export async function completeGoogleLogin(req, res) {
     res.clearCookie(COOKIE, cookieOptions());
-    const { clientId, clientSecret, redirectUri, domains } = config();
+    const { clientId, clientSecret, redirectUri, domains } = getGoogleConfig();
     const flow = jwt.verify(req.cookies?.[COOKIE], getSessionSecret(), { algorithms: ['HS256'], audience: 'google-login', issuer: 'chip-ppi' });
     if (typeof req.query.state !== 'string' || req.query.state !== flow.state || typeof req.query.code !== 'string' || req.query.error) {
         throw new Error('Retorno OAuth inválido.');
