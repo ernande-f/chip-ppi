@@ -13,7 +13,8 @@ const user = {
     id: '00000000-0000-4000-8000-000000000001',
     email: 'aluno@aluno.iffar.edu.br',
     user_metadata: { name: 'Aluno' },
-    auth_provider: 'google'
+    auth_provider: 'google',
+    session_version: 0
 };
 
 function configureSession(t, environment = 'test') {
@@ -34,15 +35,23 @@ test('a sessão local identifica a conta Google autenticada', (t) => {
     assert.deepEqual(verifySessionToken(createSessionToken(user)), user);
     assert.throws(() => createSessionToken({ ...user, auth_provider: 'ldap' }));
     assert.throws(() => createSessionToken({ ...user, id: null }));
+    for (const session_version of [undefined, null, -1, 0.5, '0', Number.MAX_SAFE_INTEGER + 1]) {
+        assert.throws(() => createSessionToken({ ...user, session_version }));
+    }
+    assert.equal(verifySessionToken(createSessionToken({ ...user, session_version: 2 })).session_version, 2);
 });
 
 test('recusa sessões antigas, adulteradas, vencidas ou destinadas a outra aplicação', (t) => {
     configureSession(t);
-    const claims = { email: user.email, auth_provider: 'google' };
+    const claims = { email: user.email, auth_provider: 'google', session_version: 0 };
     const options = { subject: user.id, issuer: 'chip-ppi', audience: 'chip-ppi', expiresIn: 60 };
     for (const [payload, signingOptions, signingSecret] of [
         [{ ...claims, auth_provider: undefined }, options, secret],
         [{ ...claims, auth_provider: 'ldap' }, options, secret],
+        [{ ...claims, session_version: undefined }, options, secret],
+        [{ ...claims, session_version: -1 }, options, secret],
+        [{ ...claims, session_version: 1.5 }, options, secret],
+        [{ ...claims, session_version: '0' }, options, secret],
         [claims, { ...options, subject: '' }, secret],
         [claims, { ...options, issuer: 'another-app' }, secret],
         [claims, { ...options, audience: 'another-app' }, secret],

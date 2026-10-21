@@ -18,7 +18,9 @@ test('apenas os proxies explicitamente configurados são confiáveis', () => {
     const env = { APP_URL: 'https://chip.test' };
     assert.equal(getServerConfig(env).trustProxy, false);
     assert.deepEqual(getServerConfig({ ...env, TRUST_PROXY: 'loopback, 192.0.2.5, 10.1.1.0/24' }).trustProxy, ['loopback', '192.0.2.5', '10.1.1.0/24']);
-    for (const TRUST_PROXY of ['true', '1', '0.0.0.0/0', '192.0.2.5/99', 'proxy.example']) {
+    assert.deepEqual(getServerConfig({ ...env, TRUST_PROXY: '::ffff:10.0.0.0/104, ::1/128' }).trustProxy, ['::ffff:10.0.0.0/104', '::1/128']);
+    assert.deepEqual(getServerConfig({ ...env, TRUST_PROXY: '::ffff:0:10.0.0.0/64' }).trustProxy, ['::ffff:0:10.0.0.0/64']);
+    for (const TRUST_PROXY of ['true', '1', '0.0.0.0/0', '192.0.2.5/99', 'proxy.example', '::ffff:10.0.0.0/8', '::ffff:0:0/96', '0:0:0:0:0:ffff:a00:0/64']) {
         assert.throws(() => getServerConfig({ ...env, TRUST_PROXY }));
     }
 });

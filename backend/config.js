@@ -33,6 +33,9 @@ function trustProxy(value) {
         if (!version || extra !== undefined || (mask !== undefined && (!/^\d+$/.test(mask) || Number(mask) < 1 || Number(mask) > (version === 4 ? 32 : 128)))) {
             throw new Error('TRUST_PROXY deve ser false, loopback ou IPs/sub-redes dos proxies conhecidos.');
         }
+        if (version === 6 && mask !== undefined && Number(mask) <= 96 && /^\[::ffff:[0-9a-f]+:[0-9a-f]+\]$/.test(new URL(`http://[${address}]/`).hostname)) {
+            throw new Error('TRUST_PROXY deve usar IPv4 puro ou prefixo IPv6 mapeado maior que 96.');
+        }
     }
     return entries;
 }

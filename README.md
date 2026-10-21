@@ -59,6 +59,8 @@ O backend verifica assinatura, emissor, audiência, expiração, nonce, e-mail v
 
 O primeiro login cria um perfil de estudante. Perfis antigos são vinculados por e-mail institucional verificado, preservando pedidos, bloqueios e permissões; depois o vínculo usa o identificador estável `sub` do Google. O domínio de professor **não concede** acesso técnico. A administração atribui `nivel_acesso` no banco: `0` estudante/solicitante, `1` técnico, `2` administrador. O guia explica como promover o primeiro administrador. As sessões anteriores precisam fazer novo login Google.
 
+O logout encerra todas as sessões da conta, inclusive cópias do token. Atualizações devem executar `npm run db:setup` para aplicar a migração de versão de sessão; sessões anteriores a essa migração exigem novo login. As respostas de perfil mostram o CPF mascarado e não devem ser armazenadas em cache.
+
 Cadastro por senha, LDAP/SIGAA e recuperação de senha deixaram de ser entradas da aplicação. Os endpoints antigos retornam 410 e as páginas antigas redirecionam para o Google. Não há envio de e-mail de cadastro ou recuperação.
 
 ## Migrar dados existentes para PostgreSQL local
@@ -94,7 +96,7 @@ A solicitação separa o estoque imediatamente, inclusive enquanto pendente. A a
 
 O Kanban aceita apenas as transições do fluxo: Pendente → Aprovado → Em separação → Pronto para retirada → Retirado → Devolvido. Recusa exige justificativa. Abrir o cartão oferece as mesmas ações por teclado e celular.
 
-Para agendar, preencha retirada e devolução previstas no carrinho. O período deve ter de 1 a 15 dias e não pode iniciar no passado. As datas ficam visíveis para solicitante e equipe. A retirada só pode ser confirmada a partir do início e antes do fim da reserva; atrasos na retirada não prorrogam a devolução prevista. Reservas não retiradas devem ser canceladas para liberar estoque.
+Para agendar, preencha retirada e devolução previstas no carrinho. O período deve ter de 1 a 15 dias, com retirada entre hoje e os próximos 30 dias. As datas ficam visíveis para solicitante e equipe. A retirada só pode ser confirmada a partir do início e antes do fim da reserva; atrasos na retirada não prorrogam a devolução prevista. Reservas não retiradas devem ser canceladas para liberar estoque.
 
 Nesta versão, a reserva bloqueia os itens desde a solicitação, mesmo quando a retirada é futura. Não há reutilização automática do mesmo estoque entre períodos de reservas. Pedidos sem datas continuam usando a duração de 1 a 15 dias contada da retirada efetiva; cada pessoa pode manter até três pedidos ativos.
 

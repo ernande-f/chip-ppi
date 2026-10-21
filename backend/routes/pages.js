@@ -8,6 +8,11 @@ const __dirname = path.dirname(__filename);
 
 const router = express.Router();
 
+router.use((req, res, next) => {
+    res.set('Cache-Control', 'no-store');
+    next();
+});
+
 function hasTechnicalAccess(level) {
     return level === 1 || level === 2 || level === 'tecnico' || level === 'adm' || level === 'administrador';
 }

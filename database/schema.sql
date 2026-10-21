@@ -50,6 +50,7 @@ create table if not exists usuario (
   cpf text unique,
   email varchar(320) unique,
   auth_provider varchar(20) not null default 'google',
+  session_version integer not null default 0 check (session_version >= 0),
   institutional_auth_type varchar(1) check (institutional_auth_type is null or institutional_auth_type in ('L', 'S')),
   senha varchar(80),
   status_conta boolean not null default true,

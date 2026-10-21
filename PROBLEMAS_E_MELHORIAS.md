@@ -2,6 +2,8 @@
 
 Registro histórico da auditoria anterior à migração para PostgreSQL próprio e Google OAuth. Os caminhos, resultados de testes e dependências abaixo descrevem aquela versão; consulte o README e `docs/installation.md` para a instalação atual.
 
+Os achados de segurança e o estado da remediação de 20/10/2026 estão registrados em um relatório interno, mantido fora do versionamento público.
+
 Documento gerado a partir da auditoria do código, banco, telas, dependências e requisitos oficiais do projeto.
 
 ## Resultado das validações

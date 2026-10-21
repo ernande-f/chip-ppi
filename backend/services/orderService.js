@@ -471,6 +471,10 @@ async function recordOrderAudit(db, {
 }
 
 export async function transitionOrder(actorUserId, orderId, action, { reason, ip } = {}) {
+    if (action === ORDER_ACTION.CANCEL) {
+        throw new OrderValidationError('Somente o solicitante pode cancelar o pedido.');
+    }
+
     const normalizedActorUserId = normalizeId(actorUserId, 'Usuário');
     const normalizedOrderId = normalizeId(orderId, 'Pedido');
     const normalizedReason = validateTransitionReason(action, reason);
@@ -503,7 +507,7 @@ export async function transitionOrder(actorUserId, orderId, action, { reason, ip
         const nextStatus = getNextOrderStatus(order.status, action);
         const nextStatusId = await getOrderStatusId(db, nextStatus);
 
-        if (action === ORDER_ACTION.DENY || action === ORDER_ACTION.CANCEL) {
+        if (action === ORDER_ACTION.DENY) {
             await restoreOrderItemsStock(db, normalizedOrderId);
         }
 

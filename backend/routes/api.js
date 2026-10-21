@@ -2,6 +2,7 @@ import express from 'express';
 import { verifySessionAuth, optionalSessionAuth } from '../middleware/authSession.js';
 import {
     getProfileSummaryByAuthUserId,
+    revokeUserSessions,
     updateProfileByAuthUserId,
     upsertGoogleUserProfile
 } from '../services/userProfile.js';
@@ -17,7 +18,7 @@ import {
     updateProduct
 } from '../services/productService.js';
 import { startGoogleLogin, completeGoogleLogin } from '../services/googleAuth.js';
-import { clearSessionCookie, setSessionCookie } from '../services/sessionAuth.js';
+import { clearSessionCookie, setSessionCookie, verifySessionToken } from '../services/sessionAuth.js';
 import {
     assertAccountIsActive
 } from '../services/accountValidation.js';
@@ -102,7 +103,8 @@ router.get('/auth/google/callback', async (req, res) => {
             id: profile.auth_user_id,
             email: profile.email,
             user_metadata: { name: profile.nome },
-            auth_provider: 'google'
+            auth_provider: 'google',
+            session_version: profile.session_version
         });
         return res.redirect('/');
     } catch (error) {
@@ -189,6 +191,17 @@ router.patch('/profile', verifySessionAuth, async (req, res) => {
 
 router.post('/logout', async (req, res) => {
     try {
+        const token = req.cookies?.authcookie || req.headers.authorization?.split(' ')[1];
+        let user;
+        if (token) {
+            try {
+                user = verifySessionToken(token);
+            } catch (error) {
+                if (!['TokenExpiredError', 'JsonWebTokenError', 'NotBeforeError'].includes(error.name)) throw error;
+            }
+        }
+        // O logout revoga também contas bloqueadas, antes de um eventual desbloqueio.
+        if (user) await revokeUserSessions(user.id, user.session_version);
         clearSessionCookie(res);
         res.json({ success: true, message: 'Desconectado com sucesso' });
     } catch (error) {

@@ -46,13 +46,32 @@ export function getAccessLevelLabel(level) {
 
 export async function getProfileByAuthUserId(authUserId) {
     const [profile] = await sql`
-        SELECT id_usuario, auth_user_id, google_sub, auth_provider, nome, email, cpf, nivel_acesso, status_conta
+        SELECT id_usuario, auth_user_id, google_sub, auth_provider, session_version, nome, email, cpf, nivel_acesso, status_conta
         FROM usuario
         WHERE auth_user_id = ${authUserId}
         LIMIT 1
     `;
 
     return profile ?? null;
+}
+
+export function getPublicProfile(profile) {
+    const cpfDigits = String(profile.cpf || '').replace(/\D/g, '');
+    return {
+        id_usuario: profile.id_usuario,
+        nome: profile.nome,
+        email: profile.email,
+        cpf: cpfDigits.length === 11 ? `***.***.***-${cpfDigits.slice(-2)}` : null,
+        nivel_acesso: profile.nivel_acesso,
+        status_conta: profile.status_conta
+    };
+}
+
+export async function revokeUserSessions(authUserId, sessionVersion) {
+    await sql`
+        UPDATE usuario SET session_version = session_version + 1
+        WHERE auth_user_id = ${authUserId} AND session_version = ${sessionVersion}
+    `;
 }
 
 export async function getProfileSummaryByAuthUserId(authUserId, existingProfile = null) {
@@ -82,7 +101,7 @@ export async function getProfileSummaryByAuthUserId(authUserId, existingProfile 
     `;
 
     return {
-        ...profile,
+        ...getPublicProfile(profile),
         nivel_acesso_label: getAccessLevelLabel(profile.nivel_acesso),
         recentOrders
     };
@@ -106,5 +125,5 @@ export async function updateProfileByAuthUserId(authUserId, { name }) {
         RETURNING id_usuario, auth_user_id, nome, email, cpf, nivel_acesso, status_conta
     `;
 
-    return updatedProfile ?? null;
+    return updatedProfile ? getPublicProfile(updatedProfile) : null;
 }

@@ -43,6 +43,9 @@ export function normalizeReservationDates(start, end, today) {
         }
     }
     if (start < today) throw new OrderValidationError('A retirada prevista não pode estar no passado.');
+    if (Date.parse(start) - Date.parse(today) > 30 * 86_400_000) {
+        throw new OrderValidationError('A retirada prevista deve ocorrer nos próximos 30 dias.');
+    }
     const duration = normalizeLoanDuration((Date.parse(end) - Date.parse(start)) / 86_400_000);
     return { start, end, duration };
 }

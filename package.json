@@ -10,8 +10,8 @@
     "dev": "node --watch backend/server.js",
     "test": "node --test",
     "dev:local": "node --env-file=.env.local --watch backend/server.js",
-    "db:setup": "node scripts/apply-migration.mjs database/schema.sql database/migrations/google_login.sql database/migrations/reservations.sql database/migrations/google_only.sql database/migrations/indexes.sql",
-    "db:setup:local": "node --env-file=.env.local scripts/apply-migration.mjs database/schema.sql database/migrations/google_login.sql database/migrations/reservations.sql database/migrations/google_only.sql database/migrations/indexes.sql",
+    "db:setup": "node scripts/apply-migration.mjs database/schema.sql database/migrations/google_login.sql database/migrations/reservations.sql database/migrations/google_only.sql database/migrations/indexes.sql database/migrations/session_version.sql",
+    "db:setup:local": "node --env-file=.env.local scripts/apply-migration.mjs database/schema.sql database/migrations/google_login.sql database/migrations/reservations.sql database/migrations/google_only.sql database/migrations/indexes.sql database/migrations/session_version.sql",
     "db:check": "node scripts/check-database.mjs",
     "doctor": "node scripts/doctor.mjs",
     "test:local": "node scripts/smoke-local.mjs"

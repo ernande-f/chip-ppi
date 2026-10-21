@@ -58,7 +58,7 @@ app.use(
         contentSecurityPolicy: {
             directives: {
                 defaultSrc: ["'self'"],
-                scriptSrc: ["'self'", "'unsafe-inline'"],
+                scriptSrc: ["'self'"],
                 styleSrc: ["'self'", "'unsafe-inline'"],
                 fontSrc: ["'self'"],
                 imgSrc: ["'self'", 'data:', 'blob:', 'https:', 'http:'],
@@ -70,6 +70,12 @@ app.use(
         strictTransportSecurity: config.production ? undefined : false
     })
 );
+
+app.use('/api', (req, res, next) => {
+    res.set('Cache-Control', 'no-store');
+    res.vary('Cookie');
+    next();
+});
 
 // --- Segurança: Redirecionar HTTP → HTTPS em produção ---
 if (config.production) {
@@ -107,8 +113,8 @@ app.use((req, res, next) => {
     next();
 });
 
-// --- Segurança: Rate Limiting global ---
-app.use(rateLimit({
+// --- Segurança: Rate Limiting da API ---
+app.use('/api', rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutos
     max: config.globalRateLimit,
     message: { error: 'Muitas requisições. Tente novamente em 15 minutos.' }
@@ -144,11 +150,20 @@ app.use(express.json({ limit: '3mb' }));
 app.use(cookieParser());
 
 app.use((req, res, next) => {
+    let normalizedPath;
+    try {
+        normalizedPath = path.posix.normalize(decodeURIComponent(req.path).replaceAll('\\', '/')).toLowerCase();
+        if (normalizedPath.includes('\0')) return res.sendStatus(400);
+    } catch {
+        return res.sendStatus(400);
+    }
     const isHtmlRequest =
-        req.method === 'GET' &&
-        (req.path === '/' || req.path.endsWith('.html') || PUBLIC_PAGE_PATHS.has(req.path));
+        ['GET', 'HEAD'].includes(req.method) &&
+        (normalizedPath === '/' || normalizedPath.endsWith('.html') || PUBLIC_PAGE_PATHS.has(normalizedPath));
 
-    if (!isHtmlRequest || PUBLIC_PAGE_PATHS.has(req.path)) {
+    if (isHtmlRequest) res.set('Cache-Control', 'no-store');
+
+    if (!isHtmlRequest || PUBLIC_PAGE_PATHS.has(normalizedPath)) {
         return next();
     }
 
@@ -157,11 +172,11 @@ app.use((req, res, next) => {
         // evitando que o router de páginas execute verifySessionAuth novamente.
         req._authVerified = true;
 
-        if (req.path === '/pages/seus-pedidos.html' && hasPrivilegedAccess(req.profile?.nivel_acesso)) {
+        if (normalizedPath === '/pages/seus-pedidos.html' && hasPrivilegedAccess(req.profile?.nivel_acesso)) {
             return res.redirect('/pedidos.html');
         }
 
-        if (!TECH_ONLY_PAGE_PATHS.has(req.path)) {
+        if (!TECH_ONLY_PAGE_PATHS.has(normalizedPath)) {
             return next();
         }
 

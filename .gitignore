@@ -23,5 +23,7 @@ CHIP_Cronograma.xlsx
 .claude
 .codex
 .sb-pentest-*
+# Relatório interno de segurança (manter local)
+docs/relatorio-seguranca.md
 skills-lock.json
 modelos

@@ -3,7 +3,7 @@ import sql from '../db.js';
 export async function checkDatabase() {
     const [status] = await sql`
         WITH required(table_name, column_name) AS (VALUES
-            ('usuario', 'google_sub'), ('usuario', 'auth_provider'), ('usuario', 'auth_user_id'),
+            ('usuario', 'google_sub'), ('usuario', 'auth_provider'), ('usuario', 'auth_user_id'), ('usuario', 'session_version'),
             ('pedido', 'retirada_prevista'), ('pedido', 'devolucao_prevista'), ('pedido', 'justificativa'),
             ('produto', 'foto_produto'), ('lista_de_desejos', 'quantidade')
         )

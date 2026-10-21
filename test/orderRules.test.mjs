@@ -82,3 +82,22 @@ test('valida reservas futuras e preserva pedidos sem agendamento', () => {
         assert.equal(getNextOrderStatus(status, ORDER_ACTION.CANCEL), ORDER_STATUS.CANCELLED);
     }
 });
+
+test('limita a retirada aos próximos trinta dias, inclusive em viradas de mês e ano', () => {
+    for (const [today, start, end] of [
+        ['2026-09-17', '2026-09-17', '2026-09-18'],
+        ['2026-09-17', '2026-10-17', '2026-11-01'],
+        ['2026-12-15', '2027-01-14', '2027-01-15'],
+        ['2028-02-01', '2028-03-02', '2028-03-03']
+    ]) {
+        assert.equal(normalizeReservationDates(start, end, today).start, start);
+    }
+    for (const [today, start, end] of [
+        ['2026-09-17', '2026-10-18', '2026-10-19'],
+        ['2026-09-17', '2027-09-17', '2027-09-18'],
+        ['2026-12-15', '2027-01-15', '2027-01-16'],
+        ['2028-02-01', '2028-03-03', '2028-03-04']
+    ]) {
+        assert.throws(() => normalizeReservationDates(start, end, today), /próximos 30 dias/);
+    }
+});

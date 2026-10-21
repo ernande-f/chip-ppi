@@ -28,23 +28,32 @@ function renderOrders(orders) {
         return;
     }
 
-    container.innerHTML = orders.map((order) => `
-        <article class="order-card">
+    container.replaceChildren(...orders.map((order) => {
+        const card = document.createElement('article');
+        card.className = 'order-card';
+        card.innerHTML = `
             <div class="order-id">
-                <h3>Pedido #${order.id_pedido}</h3>
-                <span class="${getStatusClass(order.status)}">${order.status}</span>
+                <h3></h3>
+                <span></span>
             </div>
 
             <div class="order-meta">
-                <span>Data do pedido: ${formatDate(order.data_pedido)}</span>
-                <span>Devolucao: ${formatDate(order.data_devolucao)}</span>
+                <span></span>
+                <span></span>
             </div>
 
-            <p class="order-text">
-                ${order.motivo_recusa || 'Acompanhe seu perfil para consultar status, retirada e devolução dos itens solicitados.'}
-            </p>
-        </article>
-    `).join('');
+            <p class="order-text"></p>
+        `;
+        card.querySelector('h3').textContent = `Pedido #${order.id_pedido}`;
+        const status = card.querySelector('.order-id span');
+        status.className = getStatusClass(order.status);
+        status.textContent = order.status;
+        const [orderDate, returnDate] = card.querySelectorAll('.order-meta span');
+        orderDate.textContent = `Data do pedido: ${formatDate(order.data_pedido)}`;
+        returnDate.textContent = `Devolucao: ${formatDate(order.data_devolucao)}`;
+        card.querySelector('.order-text').textContent = order.motivo_recusa || 'Acompanhe seu perfil para consultar status, retirada e devolução dos itens solicitados.';
+        return card;
+    }));
 }
 
 async function loadProfile() {

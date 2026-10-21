@@ -20,10 +20,6 @@ const ACTIONS_BY_STATUS = {
     ]
 };
 
-for (const status of ['Pendente', 'Aprovado', 'Em separação', 'Pronto para retirada']) {
-    ACTIONS_BY_STATUS[status].push({ action: 'cancel', target: 'Cancelado', label: 'Cancelar pedido', className: 'btn-deny' });
-}
-
 let orders = [];
 let busy = false;
 let draggedOrder = null;

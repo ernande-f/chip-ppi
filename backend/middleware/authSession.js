@@ -6,7 +6,7 @@ import { getProfileByAuthUserId } from '../services/userProfile.js';
 import { AccountAccessError, assertAccountIsActive } from '../services/accountValidation.js';
 
 function handleUnauthorized(req, res, message) {
-    const acceptsHtml = req.method === 'GET' && !req.originalUrl.startsWith('/api/');
+    const acceptsHtml = ['GET', 'HEAD'].includes(req.method) && !req.originalUrl.startsWith('/api/');
 
     if (acceptsHtml) {
         return res.redirect('/login');
@@ -17,7 +17,7 @@ function handleUnauthorized(req, res, message) {
 
 function handleForbidden(req, res, message) {
     clearSessionCookie(res);
-    const acceptsHtml = req.method === 'GET' && !req.originalUrl.startsWith('/api/');
+    const acceptsHtml = ['GET', 'HEAD'].includes(req.method) && !req.originalUrl.startsWith('/api/');
 
     if (acceptsHtml) {
         return res.redirect('/login');
@@ -31,6 +31,7 @@ async function attachActiveProfile(req) {
     req.profile = await getProfileByAuthUserId(req.user.id);
     assertAccountIsActive(req.profile);
     if (req.profile.auth_provider !== 'google' || !req.profile.google_sub) throw new AccountAccessError('Entre novamente com Google.');
+    if (req.user.session_version !== req.profile.session_version) throw new AccountAccessError('Sua sessão foi encerrada. Entre novamente.');
 }
 
 export async function optionalSessionAuth(req, res, next) {

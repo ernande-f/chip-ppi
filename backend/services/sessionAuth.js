@@ -25,7 +25,8 @@ function getCookieOptions() {
 }
 
 export function createSessionToken(user) {
-    if (user.auth_provider !== 'google' || typeof user.id !== 'string' || !user.id) {
+    if (user.auth_provider !== 'google' || typeof user.id !== 'string' || !user.id ||
+        !Number.isSafeInteger(user.session_version) || user.session_version < 0) {
         throw new Error('A sessão exige uma conta autenticada com Google.');
     }
 
@@ -33,7 +34,8 @@ export function createSessionToken(user) {
         {
             email: user.email || null,
             user_metadata: user.user_metadata || {},
-            auth_provider: user.auth_provider
+            auth_provider: user.auth_provider,
+            session_version: user.session_version
         },
         getSessionSecret(),
         {
@@ -61,7 +63,8 @@ export function verifySessionToken(token) {
         algorithms: ['HS256']
     });
 
-    if (typeof payload.sub !== 'string' || !payload.sub || payload.auth_provider !== 'google') {
+    if (typeof payload.sub !== 'string' || !payload.sub || payload.auth_provider !== 'google' ||
+        !Number.isSafeInteger(payload.session_version) || payload.session_version < 0) {
         throw new jwt.JsonWebTokenError('Entre novamente com Google.');
     }
 
@@ -69,6 +72,7 @@ export function verifySessionToken(token) {
         id: payload.sub,
         email: payload.email || null,
         user_metadata: payload.user_metadata || {},
-        auth_provider: 'google'
+        auth_provider: 'google',
+        session_version: payload.session_version
     };
 }
