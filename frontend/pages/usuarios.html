@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Usuários - CHIP</title>
+    <link rel="stylesheet" href="/vendor/inter/inter.css">
+    <link rel="stylesheet" href="/css/css-base.css">
+    <link rel="stylesheet" href="/css/management.css">
+</head>
+<body>
+    <a class="skip-link" href="#mainContent">Ir para o conteúdo</a>
+    <header class="navbar">
+        <a href="/" aria-label="CHIP, início"><img src="/assets/logo.png" alt="CHIP" class="logo-img"></a>
+        <nav class="nav-links" aria-label="Navegação principal">
+            <a href="/" class="nav-link-item">Catálogo</a>
+            <a href="/pedidos.html" class="nav-link-item">Pedidos</a>
+            <a href="/usuarios.html" class="nav-link-item" aria-current="page">Usuários</a>
+            <a href="/perfil" class="nav-link-item">Meu perfil</a>
+        </nav>
+    </header>
+    <main class="container management-page" id="mainContent">
+        <h1>Usuários</h1>
+        <p>Consulte as contas e o histórico de empréstimos. Administradores também podem alterar o acesso.</p>
+        <form class="management-search" id="userSearch">
+            <label for="userQuery">Pesquisar por nome ou e-mail</label>
+            <div class="management-search-row">
+                <input id="userQuery" type="search" maxlength="100" autocomplete="off">
+                <button type="submit" class="management-primary">Pesquisar</button>
+            </div>
+        </form>
+        <p id="usersMessage" role="status" aria-live="polite">Carregando usuários…</p>
+        <div class="management-layout">
+            <section aria-label="Resultados da pesquisa">
+                <ul class="management-list" id="usersList"></ul>
+                <nav class="management-pagination" aria-label="Páginas de usuários">
+                    <button id="previousUsers" type="button" disabled>Anterior</button>
+                    <span id="usersPage"></span>
+                    <button id="nextUsers" type="button" disabled>Próxima</button>
+                </nav>
+            </section>
+            <section class="management-detail" id="userDetail" aria-labelledby="userDetailTitle" hidden>
+                <h2 id="userDetailTitle" tabindex="-1">Dados do usuário</h2>
+                <p class="management-email" id="detailEmail"></p>
+                <p id="detailStatus"></p>
+                <p id="detailPenalty"></p>
+                <form id="userEdit" hidden>
+                    <h3>Alterar conta</h3>
+                    <label for="editUserName">Nome</label>
+                    <input id="editUserName" required minlength="3" maxlength="60" autocomplete="off">
+                    <label for="editUserRole">Nível de acesso</label>
+                    <select id="editUserRole">
+                        <option value="0">Solicitante (estudante ou professor)</option>
+                        <option value="1">Técnico</option>
+                        <option value="2">Administrador</option>
+                    </select>
+                    <label for="editUserActive">Situação manual da conta</label>
+                    <select id="editUserActive">
+                        <option value="true">Liberada</option>
+                        <option value="false">Bloqueada manualmente</option>
+                    </select>
+                    <p class="management-help">O bloqueio por atraso é independente da situação manual. Alterações de acesso encerram as sessões do usuário.</p>
+                    <label for="editUserReason">Motivo da alteração de acesso ou bloqueio</label>
+                    <textarea id="editUserReason" rows="3" maxlength="500" aria-describedby="editReasonHelp"></textarea>
+                    <p class="management-help" id="editReasonHelp">Obrigatório ao alterar nível, bloquear, desbloquear ou encerrar uma penalidade.</p>
+                    <div class="management-actions">
+                        <button type="submit" class="management-primary" id="saveUser">Salvar alterações</button>
+                        <button type="button" id="clearUserPenalty" hidden>Encerrar bloqueio por atraso</button>
+                    </div>
+                </form>
+                <p id="editUserMessage" role="status" aria-live="polite"></p>
+                <h3>Histórico completo de pedidos</h3>
+                <p id="userHistorySummary"></p>
+                <div id="userHistory"></div>
+            </section>
+        </div>
+    </main>
+    <script type="module" src="/js/header-avatar.js"></script>
+    <script type="module" src="/js/users.js"></script>
+</body>
+</html>

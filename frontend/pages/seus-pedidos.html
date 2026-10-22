@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="/vendor/fontawesome/css/solid.min.css">
     <link rel="stylesheet" href="/vendor/inter/inter.css">
     <link rel="stylesheet" href="../css/style-pedidos.css">
+    <link rel="stylesheet" href="../css/termo.css">
 </head>
 <body>
 
@@ -79,14 +80,7 @@
                             </select>
                         </div>
                     </div>
-                    <fieldset class="reservation-fields">
-                        <legend>Reserva para retirada futura (opcional)</legend>
-                        <label for="reservationStart">Retirada prevista</label>
-                        <input type="date" id="reservationStart">
-                        <label for="reservationEnd">Devolução prevista</label>
-                        <input type="date" id="reservationEnd">
-                        <p>Preencha ambas as datas para reservar de 1 a 15 dias, com retirada nos próximos 30 dias. Os itens ficam separados desde a solicitação. Sem datas, vale a duração acima a partir da retirada.</p>
-                    </fieldset>
+                    <p class="pickup-deadline-note">Após a aprovação, você tem até 10 dias corridos para retirar os itens. A duração escolhida começa na retirada. Sem retirada no prazo, o pedido expira e os itens voltam ao estoque.</p>
                     <div class="justification-row">
                         <label for="orderJustification">Motivo do pedido (opcional):</label>
                         <textarea class="justification-input" id="orderJustification" maxlength="500" placeholder="Ex: Projeto da disciplina, protótipo em aula..."></textarea>
@@ -102,33 +96,35 @@
         </section>
 
         <section class="ongoing-section">
+            <p id="cartFeedback" class="loan-feedback" role="status" tabindex="-1"></p>
             <h2 class="section-title-black">Pedidos em andamento</h2>
             <div class="ongoing-grid" id="activeOrders" aria-live="polite"></div>
         </section>
 
         <section class="history-section">
             <h2 class="section-title-black">Histórico de pedidos</h2>
-            <div class="history-tabs" id="historyTabs">
-                <button type="button" class="tab active" data-filter="all">Todos</button>
-                <button type="button" class="tab" data-filter="Devolvido">Devolvidos</button>
-                <button type="button" class="tab" data-filter="Negado">Negados</button>
-                <button type="button" class="tab" data-filter="Cancelado">Cancelados</button>
+            <div class="history-tabs" id="historyTabs" role="group" aria-label="Filtrar histórico por status">
+                <button type="button" class="tab active" data-filter="all" aria-pressed="true">Todos</button>
+                <button type="button" class="tab" data-filter="Devolvido" aria-pressed="false">Devolvidos</button>
+                <button type="button" class="tab" data-filter="Negado" aria-pressed="false">Negados</button>
+                <button type="button" class="tab" data-filter="Cancelado" aria-pressed="false">Cancelados</button>
+                <button type="button" class="tab" data-filter="Expirado" aria-pressed="false">Expirados</button>
             </div>
             <div class="history-container history-grid" id="orderHistory" aria-live="polite"></div>
         </section>
 
-        <div id="modalTermos" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modalTermosTitle">
+        <div id="modalTermos" data-terms-version="3" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modalTermosTitle">
             <div class="modal-content modal-terms-content">
                 <header class="modal-header">
                     <div class="modal-title-group">
-                        <h2 id="modalTermosTitle">Termo de Responsabilidade</h2>
+                        <h2 id="modalTermosTitle">Termo de responsabilidade</h2>
                     </div>
                     <button class="close-modal" id="closeTermsModal" type="button" aria-label="Fechar">&times;</button>
                 </header>
-                <p class="modal-date">CHIP — Controle de Hardware e Itens de Projeto · IFFar Campus Frederico Westphalen</p>
+                <p class="modal-date">CHIP — Controle de Hardware e Itens de Projeto · IFFar Campus Frederico Westphalen · Versão 3</p>
                 <hr class="modal-divider">
 
-                <div class="modal-terms-scrollable">
+                <div class="modal-terms-scrollable" tabindex="0" role="region" aria-label="Condições do empréstimo">
                     <div class="terms-intro-card">
                         <i class="fa-solid fa-file-shield terms-intro-icon"></i>
                         <p class="terms-intro-text">
@@ -140,7 +136,7 @@
                         <article class="term-card">
                             <div class="term-number">1</div>
                             <div class="term-content">
-                                <h3 class="term-heading">Finalidade Exclusivamente Acadêmica</h3>
+                                <h3 class="term-heading">Finalidade exclusivamente acadêmica</h3>
                                 <p class="term-text">O item emprestado deverá ser utilizado exclusivamente para fins acadêmicos, relacionados às atividades, aulas, projetos ou trabalhos da instituição.</p>
                             </div>
                         </article>
@@ -148,7 +144,7 @@
                         <article class="term-card">
                             <div class="term-number">2</div>
                             <div class="term-content">
-                                <h3 class="term-heading">Cuidado, Manuseio e Conservação</h3>
+                                <h3 class="term-heading">Cuidado, manuseio e conservação</h3>
                                 <p class="term-text">O(a) aluno(a) compromete-se a manusear o equipamento com cuidado, evitando quedas, impactos, contato com líquidos, alterações indevidas ou qualquer outra ação que possa causar danos ao componente.</p>
                             </div>
                         </article>
@@ -156,15 +152,15 @@
                         <article class="term-card">
                             <div class="term-number">3</div>
                             <div class="term-content">
-                                <h3 class="term-heading">Condições e Acessórios de Devolução</h3>
-                                <p class="term-text">O item deverá ser devolvido nas mesmas condições em que foi retirado, acompanhado de todos os componentes e acessórios fornecidos no momento do empréstimo.</p>
+                                <h3 class="term-heading">Condições e acessórios de devolução</h3>
+                                <p class="term-text">O item deverá ser devolvido nas mesmas condições em que foi retirado, acompanhado de todos os componentes e acessórios fornecidos no momento do empréstimo. Na devolução, serão registradas as quantidades recebidas, as unidades danificadas e as ocorrências informadas. Somente unidades recebidas em condições de uso voltam ao estoque disponível. Enquanto faltarem unidades, o pedido permanece com o status Retirado.</p>
                             </div>
                         </article>
 
                         <article class="term-card">
                             <div class="term-number">4</div>
                             <div class="term-content">
-                                <h3 class="term-heading">Guarda Pessoal e Não Transferência</h3>
+                                <h3 class="term-heading">Guarda pessoal e não transferência</h3>
                                 <p class="term-text">O(a) aluno(a) é responsável pela guarda e conservação do item durante todo o período do empréstimo, não devendo transferi-lo a terceiros sem autorização do responsável pelo laboratório.</p>
                             </div>
                         </article>
@@ -172,7 +168,7 @@
                         <article class="term-card">
                             <div class="term-number">5</div>
                             <div class="term-content">
-                                <h3 class="term-heading">Comunicação e Responsabilidade por Danos ou Perdas</h3>
+                                <h3 class="term-heading">Comunicação e responsabilidade por danos ou perdas</h3>
                                 <p class="term-text">Em caso de perda, dano decorrente de mau uso ou não devolução do item, o(a) aluno(a) deverá comunicar o responsável pelo laboratório e poderá ser responsabilizado conforme as normas da instituição.</p>
                             </div>
                         </article>
@@ -180,15 +176,15 @@
                         <article class="term-card">
                             <div class="term-number">6</div>
                             <div class="term-content">
-                                <h3 class="term-heading">Pontualidade e Renovação de Prazo</h3>
-                                <p class="term-text">O prazo de devolução deverá ser rigorosamente respeitado. Caso seja necessário permanecer com o item por mais tempo, o(a) aluno(a) deverá solicitar autorização ou renovação do empréstimo.</p>
+                                <h3 class="term-heading">Pontualidade e renovação de prazo</h3>
+                                <p class="term-text">Após a aprovação, o prazo para retirada é de 10 dias corridos, até a data limite informada no pedido. Sem retirada nesse prazo, o pedido expira automaticamente e os itens voltam ao estoque. A duração escolhida, de 1 a 15 dias, começa na retirada efetiva. O prazo de devolução deverá ser respeitado; para permanecer com os itens por mais tempo, é necessário solicitar renovação.</p>
                             </div>
                         </article>
 
                         <article class="term-card">
                             <div class="term-number">7</div>
                             <div class="term-content">
-                                <h3 class="term-heading">Declaração de Ciência e Concordância</h3>
+                                <h3 class="term-heading">Declaração de ciência e concordância</h3>
                                 <p class="term-text">O(a) aluno(a) declara que leu e compreendeu este termo antes de realizar a solicitação do empréstimo, estando ciente de suas responsabilidades.</p>
                             </div>
                         </article>
@@ -226,6 +222,21 @@
                     </div>
                     <div class="modal-table-body" id="modalOrderItems"></div>
                 </div>
+                <div id="studentOrderReturns"></div>
+                <section id="studentRenewals" aria-label="Renovações do pedido"></section>
+                <form id="renewalForm" class="renewal-form" hidden>
+                    <h3>Solicitar renovação</h3>
+                    <p>Até duas renovações aprovadas, com até 15 dias adicionais cada. O prazo atual só muda após aprovação.</p>
+                    <label for="renewalDate">Nova data de devolução</label>
+                    <input id="renewalDate" type="date" required>
+                    <label for="renewalJustification">Justificativa</label>
+                    <textarea id="renewalJustification" maxlength="500" rows="3" required></textarea>
+                    <div class="modal-actions">
+                        <button class="action-btn" id="cancelRenewal" type="button">Voltar</button>
+                        <button class="action-btn" id="submitRenewal" type="submit">Enviar renovação</button>
+                    </div>
+                </form>
+                <p id="renewalFeedback" class="loan-feedback" role="status"></p>
                 <div class="modal-actions" id="studentOrderActions"></div>
             </div>
         </div>

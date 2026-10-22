@@ -7,7 +7,7 @@ import {
     getNextOrderStatus,
     normalizeCartQuantity,
     normalizeLoanDuration,
-    normalizeReservationDates,
+    validatePickupDeadline,
     normalizeOrderJustification,
     validateTransitionReason
 } from '../backend/services/orderRules.js';
@@ -72,32 +72,24 @@ test('normaliza o motivo opcional do pedido', () => {
 
 
 
-test('valida reservas futuras e preserva pedidos sem agendamento', () => {
-    assert.equal(normalizeReservationDates(null, null, '2026-09-17'), null);
-    assert.deepEqual(normalizeReservationDates('2026-09-20', '2026-09-27', '2026-09-17'), { start: '2026-09-20', end: '2026-09-27', duration: 7 });
-    for (const [start, end] of [['2026-09-16', '2026-09-20'], ['2026-02-30', '2026-03-05'], ['2026-09-20', null], ['2026-09-20', '2026-09-20'], ['2026-09-20', '2026-10-06'], [false, null]]) {
-        assert.throws(() => normalizeReservationDates(start, end, '2026-09-17'));
-    }
+test('permite cancelamento pelo solicitante em todas as etapas anteriores à retirada', () => {
     for (const status of [ORDER_STATUS.APPROVED, ORDER_STATUS.SEPARATING, ORDER_STATUS.READY]) {
         assert.equal(getNextOrderStatus(status, ORDER_ACTION.CANCEL), ORDER_STATUS.CANCELLED);
     }
+    assert.throws(() => getNextOrderStatus(ORDER_STATUS.EXPIRED, ORDER_ACTION.CANCEL), /não permitida/);
+    assert.throws(() => getNextOrderStatus(ORDER_STATUS.READY, 'expire'), /não permitida/);
 });
 
-test('limita a retirada aos próximos trinta dias, inclusive em viradas de mês e ano', () => {
-    for (const [today, start, end] of [
-        ['2026-09-17', '2026-09-17', '2026-09-18'],
-        ['2026-09-17', '2026-10-17', '2026-11-01'],
-        ['2026-12-15', '2027-01-14', '2027-01-15'],
-        ['2028-02-01', '2028-03-02', '2028-03-03']
+test('retirada tem dez dias corridos desde a aprovação, incluindo a data limite', () => {
+    for (const [approved, deadline] of [
+        ['2026-10-21', '2026-10-31'],
+        ['2026-12-25', '2027-01-04'],
+        ['2028-02-20', '2028-03-01']
     ]) {
-        assert.equal(normalizeReservationDates(start, end, today).start, start);
+        assert.doesNotThrow(() => validatePickupDeadline(approved, approved));
+        assert.doesNotThrow(() => validatePickupDeadline(approved, deadline));
+        const nextDay = new Date(Date.parse(deadline) + 86_400_000).toISOString().slice(0, 10);
+        assert.throws(() => validatePickupDeadline(approved, nextDay), /expirou/);
     }
-    for (const [today, start, end] of [
-        ['2026-09-17', '2026-10-18', '2026-10-19'],
-        ['2026-09-17', '2027-09-17', '2027-09-18'],
-        ['2026-12-15', '2027-01-15', '2027-01-16'],
-        ['2028-02-01', '2028-03-03', '2028-03-04']
-    ]) {
-        assert.throws(() => normalizeReservationDates(start, end, today), /próximos 30 dias/);
-    }
+    assert.throws(() => validatePickupDeadline(null, '2026-10-21'), /data de aprovação/);
 });

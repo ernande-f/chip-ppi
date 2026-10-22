@@ -45,7 +45,7 @@ try {
         try {
             await setup.unsafe(schema);
             if (connection === target) await setup`ALTER TABLE usuario DROP COLUMN session_version`;
-            for (const file of ['google_login', 'reservations', 'google_only', 'indexes', 'session_version']) await setup.unsafe(await readFile(`database/migrations/${file}.sql`, 'utf8'));
+            for (const file of ['google_login', 'reservations', 'google_only', 'indexes', 'session_version', 'pickup_deadline', 'return_conditions', 'loan_renewals', 'user_management', 'notifications', 'inventory_usage']) await setup.unsafe(await readFile(`database/migrations/${file}.sql`, 'utf8'));
         } finally { await setup.release(); }
     }
     const { upsertGoogleUserProfile } = await import('../backend/services/userProfile.js');
@@ -64,26 +64,68 @@ try {
     assert.equal(linked.status_conta, false);
     assert.equal(linked.nivel_acesso, 2);
     await assert.rejects(upsertGoogleUserProfile({ sub: 'other', email: 'legacy@iffarroupilha.edu.br', name: 'Outro' }));
-    const { createProduct } = await import('../backend/services/productService.js');
+    const { createProduct, deleteProduct, getProductById } = await import('../backend/services/productService.js');
     const product = await createProduct({ nome: 'Arduino de teste', descricao_produto: 'Placa para testar reservas', estoque_total: 4, foto_produto: 'https://example.invalid/photo.png', categorias: ['Eletrônica'] });
     const archived = await createProduct({ nome: 'Item arquivado', descricao_produto: 'Não deve aparecer', estoque_total: 2, foto_produto: 'https://example.invalid/photo.png', categorias: ['Eletrônica'] });
-    const { updateProduct } = await import('../backend/services/productService.js');
-    await updateProduct(archived.id_produto, { archived: true });
-    const { addCartItem, checkoutCart, transitionOrder, cancelUserOrder } = await import('../backend/services/orderService.js');
-    const [{ distantStart, distantEnd, start, end }] = await db`
-        SELECT (current_date + 31)::text AS "distantStart", (current_date + 38)::text AS "distantEnd",
-            (current_date + 2)::text AS start, (current_date + 9)::text AS end
-    `;
+    await deleteProduct(archived.id_produto);
+    assert.equal((await getProductById(archived.id_produto)).status_produto, 'Arquivado');
+    assert.equal((await db`SELECT count(*)::int AS total FROM categorizar WHERE id_produto = ${archived.id_produto}`)[0].total, 1);
+    const { CURRENT_TERMS_VERSION } = await import("../backend/services/orderRules.js");
+    const { addCartItem, checkoutCart, transitionOrder, cancelUserOrder, expireUncollectedOrders, listUserOrders } = await import('../backend/services/orderService.js');
     await addCartItem(student.id_usuario, product.id_produto, 1);
-    const reserved = await checkoutCart(student.id_usuario, { durationDays: 7, acceptedTerms: true, reservationStart: start, reservationEnd: end });
-    assert.equal(reserved.duracao_dias, 7);
+    await assert.rejects(checkoutCart(student.id_usuario, {
+        durationDays: 7, acceptedTerms: true, termsVersion: CURRENT_TERMS_VERSION, reservationStart: '2026-10-23', reservationEnd: '2026-10-30'
+    }), /agendamento por datas foi removido/);
+    const reserved = await checkoutCart(student.id_usuario, { durationDays: 7, acceptedTerms: true, termsVersion: CURRENT_TERMS_VERSION });
+    assert.equal(reserved.data_aprovacao, null);
+    assert.equal(reserved.data_prevista_devolucao, null);
     for (const action of ['approve', 'start_separation', 'mark_ready']) await transitionOrder(tech.id_usuario, reserved.id_pedido, action);
-    await assert.rejects(transitionOrder(tech.id_usuario, reserved.id_pedido, 'confirm_pickup'), /período reservado/);
     await cancelUserOrder(student.id_usuario, reserved.id_pedido);
     assert.equal((await db`SELECT estoque_total FROM produto WHERE id_produto = ${product.id_produto}`)[0].estoque_total, 4);
     await assert.rejects(cancelUserOrder(student.id_usuario, reserved.id_pedido));
+
     await addCartItem(student.id_usuario, product.id_produto, 1);
-    const order = await checkoutCart(student.id_usuario, { durationDays: 7, acceptedTerms: true });
+    const collected = await checkoutCart(student.id_usuario, { durationDays: 7, acceptedTerms: true, termsVersion: CURRENT_TERMS_VERSION });
+    await transitionOrder(tech.id_usuario, collected.id_pedido, 'approve');
+    await db`UPDATE pedido SET data_aprovacao = current_date - 10,
+        retirada_prevista = current_date + 20, devolucao_prevista = current_date + 21
+        WHERE id_pedido = ${collected.id_pedido}`;
+    for (const action of ['start_separation', 'mark_ready']) await transitionOrder(tech.id_usuario, collected.id_pedido, action);
+    assert.equal((await db`SELECT data_aprovacao = current_date - 10 AS unchanged FROM pedido WHERE id_pedido = ${collected.id_pedido}`)[0].unchanged, true);
+    const pickedUp = await transitionOrder(tech.id_usuario, collected.id_pedido, 'confirm_pickup');
+    const [{ due }] = await db`SELECT (current_date + 7)::text AS due`;
+    assert.equal(new Date(pickedUp.data_prevista_devolucao).toISOString().slice(0, 10), due);
+    await db`UPDATE pedido SET data_aprovacao = current_date - 30 WHERE id_pedido = ${collected.id_pedido}`;
+    await expireUncollectedOrders();
+    assert.equal((await listUserOrders(student.id_usuario)).find(row => row.id_pedido === collected.id_pedido).status, 'Retirado');
+    await transitionOrder(tech.id_usuario, collected.id_pedido, 'register_return');
+    await assert.rejects(transitionOrder(tech.id_usuario, collected.id_pedido, 'register_return'));
+    assert.equal((await db`SELECT estoque_total FROM produto WHERE id_produto = ${product.id_produto}`)[0].estoque_total, 4);
+
+    await addCartItem(student.id_usuario, product.id_produto, 1);
+    const expired = await checkoutCart(student.id_usuario, { durationDays: 7, acceptedTerms: true, termsVersion: CURRENT_TERMS_VERSION });
+    for (const action of ['approve', 'start_separation', 'mark_ready']) await transitionOrder(tech.id_usuario, expired.id_pedido, action);
+    await db`UPDATE pedido SET data_aprovacao = current_date - 11 WHERE id_pedido = ${expired.id_pedido}`;
+    await Promise.all([expireUncollectedOrders(), expireUncollectedOrders()]);
+    const expiredOrder = (await listUserOrders(student.id_usuario)).find(row => row.id_pedido === expired.id_pedido);
+    assert.equal(expiredOrder.status, 'Expirado');
+    assert.equal(expiredOrder.data_retirada, null);
+    assert.equal(expiredOrder.data_prevista_devolucao, null);
+    assert.equal((await db`SELECT estoque_total FROM produto WHERE id_produto = ${product.id_produto}`)[0].estoque_total, 4);
+    assert.equal((await db`SELECT count(*)::int AS n FROM log_auditoria WHERE acao = 'pedido:expire' AND id_usuario IS NULL`)[0].n, 1);
+    await assert.rejects(transitionOrder(tech.id_usuario, expired.id_pedido, 'confirm_pickup'));
+    await assert.rejects(cancelUserOrder(student.id_usuario, expired.id_pedido));
+    await expireUncollectedOrders();
+    assert.equal((await db`SELECT estoque_total FROM produto WHERE id_produto = ${product.id_produto}`)[0].estoque_total, 4);
+
+    await addCartItem(student.id_usuario, product.id_produto, 1);
+    const order = await checkoutCart(student.id_usuario, { durationDays: 7, acceptedTerms: true, termsVersion: CURRENT_TERMS_VERSION });
+    const returnProduct = await createProduct({ nome: 'Kit para devolução', descricao_produto: 'Conferência de devolução e arquivamento', estoque_total: 5, foto_produto: 'https://example.invalid/photo.png', categorias: ['Eletrônica'] });
+    await addCartItem(student.id_usuario, returnProduct.id_produto, 3);
+    const returnOrder = await checkoutCart(student.id_usuario, { durationDays: 7, acceptedTerms: true, termsVersion: CURRENT_TERMS_VERSION });
+    for (const action of ['approve', 'start_separation', 'mark_ready', 'confirm_pickup']) await transitionOrder(tech.id_usuario, returnOrder.id_pedido, action);
+    await deleteProduct(returnProduct.id_produto);
+
 
     const probe = createServer().listen(0, '127.0.0.1');
     await once(probe, 'listening');
@@ -141,26 +183,58 @@ try {
     });
     assert.equal(editedProfile.status, 200);
     assert.equal((await editedProfile.json()).profile.cpf, '***.***.***-09');
+    for (const name of [{}, 'a'.repeat(61), 'ab']) {
+        const invalidName = await context.request.patch(`${base}/api/profile`, { headers: { Origin: base }, data: { name } });
+        assert.equal(invalidName.status(), 400);
+        assert.match((await invalidName.json()).message, /nome válido/);
+    }
+    const longestName = await context.request.patch(`${base}/api/profile`, { headers: { Origin: base }, data: { name: 'a'.repeat(60) } });
+    assert.equal(longestName.status(), 200);
+    assert.equal((await longestName.json()).profile.nome.length, 60);
+    assert.equal((await context.request.patch(`${base}/api/profile`, { headers: { Origin: base }, data: { name: student.nome } })).status(), 200);
+
     await page.goto(`${base}/pedidos.html`);
     await page.waitForURL(`${base}/pages/pagina-inicial.html`);
     await page.goto(`${base}/pedidos`);
-    await page.locator('#reservationStart').waitFor();
+    await page.locator('#loanDuration').waitFor();
+    assert.equal(await page.locator('#reservationStart, #reservationEnd').count(), 0);
+    await page.getByText('Após a aprovação, você tem até 10 dias corridos', { exact: false }).waitFor();
     await page.goto(`${base}/pages/pagina-inicial.html`);
     const added = page.waitForResponse(response => response.url().endsWith('/api/carrinho/itens') && response.request().method() === 'POST');
     await page.getByRole('button', { name: 'Adicionar ao carrinho' }).click();
     const addedResponse = await added;
     assert.equal(addedResponse.status(), 201, await addedResponse.text());
     await page.goto(`${base}/pedidos`);
+    await page.locator('#cartItems .table-row').waitFor();
+    const checkoutArtifacts = join(tmpdir(), 'chip-smoke-artifacts');
+    await mkdir(checkoutArtifacts, { recursive: true });
+    await page.screenshot({ path: join(checkoutArtifacts, 'checkout-pickup.png'), fullPage: true });
+    await page.setViewportSize({ width: 390, height: 844 });
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, 'Carrinho deve caber na tela do celular');
+    await page.screenshot({ path: join(checkoutArtifacts, 'checkout-pickup-mobile.png'), fullPage: true });
+    await page.setViewportSize({ width: 1440, height: 1000 });
     const beforeInvalidCheckout = (await db`SELECT estoque_total FROM produto WHERE id_produto = ${product.id_produto}`)[0].estoque_total;
     const invalidCheckout = await context.request.post(`${base}/api/pedidos`, {
-        headers: { Origin: base }, data: { acceptedTerms: true, reservationStart: distantStart, reservationEnd: distantEnd, durationDays: 7 }
+        headers: { Origin: base }, data: { acceptedTerms: true, termsVersion: CURRENT_TERMS_VERSION, reservationStart: '2026-10-23', reservationEnd: '2026-10-30', durationDays: 7 }
     });
     assert.equal(invalidCheckout.status(), 400);
-    assert.match((await invalidCheckout.json()).message, /próximos 30 dias/);
+    assert.match((await invalidCheckout.json()).message, /agendamento por datas foi removido/);
     assert.equal((await db`SELECT estoque_total FROM produto WHERE id_produto = ${product.id_produto}`)[0].estoque_total, beforeInvalidCheckout);
-    await page.locator('#reservationStart').fill(start);
-    await page.locator('#reservationEnd').fill(end);
+    for (const termsVersion of [undefined, 1, 2]) {
+        const staleTerms = await context.request.post(`${base}/api/pedidos`, { headers: { Origin: base }, data: { acceptedTerms: true, termsVersion, durationDays: 7 } });
+        assert.equal(staleTerms.status(), 400);
+        assert.match((await staleTerms.json()).message, /termo.*atualizado/i);
+    }
+    assert.equal((await db`SELECT estoque_total FROM produto WHERE id_produto = ${product.id_produto}`)[0].estoque_total, beforeInvalidCheckout);
     await page.locator('#acceptTerms').check();
+    await page.evaluate(() => document.getElementById('modalTermos').dataset.termsVersion = '1');
+    const staleNotice = page.waitForEvent('dialog').then(async dialog => { assert.match(dialog.message(), /termo.*atualizado/i); await dialog.accept(); });
+    const staleRequest = page.waitForResponse(response => response.url().endsWith('/api/pedidos') && response.request().method() === 'POST');
+    await page.locator('#checkoutButton').click();
+    assert.equal((await staleRequest).status(), 400);
+    await staleNotice;
+    await page.evaluate(version => document.getElementById('modalTermos').dataset.termsVersion = String(version), CURRENT_TERMS_VERSION);
+
     const checkoutNotice = page.waitForEvent('dialog').then(async dialog => {
         const message = dialog.message();
         await dialog.accept();
@@ -248,6 +322,70 @@ try {
     });
     assert.equal(repeatedDenial.status(), 400);
     assert.equal((await db`SELECT estoque_total FROM produto WHERE id_produto = ${product.id_produto}`)[0].estoque_total, 3);
+    const archiveResponse = await context.request.delete(`${base}/api/produtos/${returnProduct.id_produto}`, { headers: { Origin: base } });
+    assert.equal(archiveResponse.status(), 200);
+    assert.match((await archiveResponse.json()).message, /arquivado/);
+    assert.equal((await getProductById(returnProduct.id_produto)).status_produto, 'Arquivado');
+    assert.equal((await db`SELECT count(*)::int AS total FROM contem_lista WHERE id_pedido = ${returnOrder.id_pedido}`)[0].total, 1);
+    assert.equal((await db`SELECT count(*)::int AS total FROM categorizar WHERE id_produto = ${returnProduct.id_produto}`)[0].total, 1);
+    const outdatedReturn = await context.request.patch(`${base}/api/gestao/pedidos/${returnOrder.id_pedido}`, {
+        headers: { Origin: base }, data: { action: 'register_return', returnItems: [{ productId: returnProduct.id_produto, quantityReturned: 1, quantityDamaged: 0 }] }
+    });
+    assert.equal(outdatedReturn.status(), 400);
+    assert.match((await outdatedReturn.json()).message, /Confira as quantidades/);
+    assert.equal((await getProductById(returnProduct.id_produto)).estoque_total, 2);
+    await page.reload();
+    await page.getByRole('button', { name: new RegExp(`Pedido #${returnOrder.id_pedido}, Retirado`) }).click();
+    await page.getByRole('button', { name: 'Registrar devolução', exact: true }).click();
+    assert.equal(await page.getByRole('button', { name: 'Confirmar devolução', exact: true }).isEnabled(), false);
+    await page.locator('#returnItems [name="quantity"]').fill('2');
+    await page.locator('#returnItems [name="damagedQuantity"]').fill('1');
+    const returnNote = 'Uma unidade com conector danificado <script>alert(1)</script>.';
+    await page.locator('#returnNotes').fill(returnNote);
+    const partialReturn = page.waitForResponse(response => response.url().endsWith(`/api/gestao/pedidos/${returnOrder.id_pedido}`) && response.request().method() === 'PATCH');
+    await page.getByRole('button', { name: 'Confirmar devolução', exact: true }).click();
+    const partialResponse = await partialReturn;
+    assert.equal(partialResponse.status(), 200);
+    const partial = (await partialResponse.json()).pedido;
+    assert.equal(partial.status, 'Retirado');
+    assert.equal(partial.data_devolucao, null);
+    assert.equal(partial.itens[0].qnt_devolvida, 2);
+    assert.equal(partial.itens[0].qnt_danificada, 1);
+    assert.equal(partial.devolucoes[0].observacao, returnNote);
+    assert.equal((await getProductById(returnProduct.id_produto)).estoque_total, 3);
+    assert.equal((await getProductById(returnProduct.id_produto)).status_produto, 'Arquivado');
+    const excessiveReturn = await context.request.patch(`${base}/api/gestao/pedidos/${returnOrder.id_pedido}`, {
+        headers: { Origin: base }, data: { action: 'register_return', returnItems: [{ productId: returnProduct.id_produto, quantity: 2, damagedQuantity: 0, expectedReturned: 2 }] }
+    });
+    assert.equal(excessiveReturn.status(), 400);
+    assert.equal((await getProductById(returnProduct.id_produto)).estoque_total, 3);
+    await page.getByRole('button', { name: new RegExp(`Pedido #${returnOrder.id_pedido}, Retirado`) }).click();
+    await page.getByText(returnNote, { exact: true }).waitFor();
+    assert.equal(await page.locator('#returnLog script').count(), 0);
+    await page.getByRole('button', { name: 'Registrar devolução', exact: true }).click();
+    await page.locator('#returnItems [name="quantity"]').fill('1');
+    const finalReturn = page.waitForResponse(response => response.url().endsWith(`/api/gestao/pedidos/${returnOrder.id_pedido}`) && response.request().method() === 'PATCH');
+    await page.getByRole('button', { name: 'Confirmar devolução', exact: true }).click();
+    const finalReturnResponse = await finalReturn;
+    assert.equal(finalReturnResponse.status(), 200);
+    const completedReturn = (await finalReturnResponse.json()).pedido;
+    assert.equal(completedReturn.status, 'Devolvido');
+    assert.ok(completedReturn.data_devolucao);
+    assert.equal(completedReturn.itens[0].qnt_devolvida, 3);
+    assert.equal(completedReturn.itens[0].qnt_danificada, 1);
+    const archivedAfterReturn = await getProductById(returnProduct.id_produto);
+    assert.equal(archivedAfterReturn.estoque_total, 4);
+    assert.equal(archivedAfterReturn.status_produto, 'Arquivado');
+    const repeatedReturn = await context.request.patch(`${base}/api/gestao/pedidos/${returnOrder.id_pedido}`, {
+        headers: { Origin: base }, data: { action: 'register_return' }
+    });
+    assert.equal(repeatedReturn.status(), 400);
+    assert.equal((await getProductById(returnProduct.id_produto)).estoque_total, 4);
+    const returnAudit = await db`SELECT dados_anteriores, dados_posteriores FROM log_auditoria WHERE acao = 'pedido:register_return' AND dados_posteriores::jsonb ->> 'id_pedido' = ${String(returnOrder.id_pedido)} ORDER BY id_log`;
+    assert.equal(returnAudit.length, 2);
+    assert.equal(JSON.parse(returnAudit[0].dados_anteriores).status, 'Retirado');
+    assert.equal(JSON.parse(returnAudit[0].dados_posteriores).status, 'Retirado');
+    assert.equal(JSON.parse(returnAudit[1].dados_posteriores).status, 'Devolvido');
     await context.addCookies([cookieFor(student)]);
     await page.goto(`${base}/pedidos`);
     await page.locator('#orderHistory').getByRole('button').filter({ hasText: `Pedido #${submittedOrder.id_pedido}` }).click();
@@ -284,19 +422,23 @@ try {
     await run('scripts/apply-migration.mjs', { DATABASE_URL: urls[0] }, ['database/migrations/session_version.sql']);
     assert.equal((await db`SELECT session_version FROM usuario WHERE id_usuario = ${student.id_usuario}`)[0].session_version, 2);
     await db`ALTER TABLE usuario DROP COLUMN session_version`;
+    const expectedOrderCount = (await db`SELECT count(*)::int AS n FROM pedido`)[0].n;
     await run('scripts/copy-local-database.mjs', { SOURCE_DATABASE_URL: urls[0], DATABASE_URL: urls[1] });
-    assert.equal((await target`SELECT count(*)::int AS n FROM pedido`)[0].n, 3);
+    assert.equal((await target`SELECT count(*)::int AS n FROM pedido`)[0].n, expectedOrderCount);
     assert.equal((await target`SELECT estoque_total FROM produto WHERE id_produto = ${product.id_produto}`)[0].estoque_total, 3);
     assert.equal((await target`SELECT motivo_recusa FROM pedido WHERE id_pedido = ${submittedOrder.id_pedido}`)[0].motivo_recusa, refusalReason);
     assert.equal((await target`SELECT session_version FROM usuario WHERE id_usuario = ${student.id_usuario}`)[0].session_version, 0);
     await assert.rejects(run('scripts/copy-local-database.mjs', { SOURCE_DATABASE_URL: urls[0], DATABASE_URL: urls[1] }), /Destino não está vazio/);
-    const migrationPaths = ['database/schema.sql', ...['google_login', 'reservations', 'google_only', 'indexes', 'session_version'].map(file => `database/migrations/${file}.sql`)];
+    await db`UPDATE pedido SET data_aprovacao = NULL WHERE id_pedido = ${order.id_pedido}`;
+    await run('scripts/apply-migration.mjs', { DATABASE_URL: urls[0] }, ['database/migrations/pickup_deadline.sql']);
+    assert.equal((await db`SELECT data_aprovacao = current_date AS backfilled FROM pedido WHERE id_pedido = ${order.id_pedido}`)[0].backfilled, true);
+    const migrationPaths = ['database/schema.sql', ...['google_login', 'reservations', 'google_only', 'indexes', 'session_version', 'pickup_deadline', 'return_conditions', 'loan_renewals', 'user_management', 'notifications', 'inventory_usage'].map(file => `database/migrations/${file}.sql`)];
     await run('scripts/apply-migration.mjs', { DATABASE_URL: urls[0] }, migrationPaths);
-    assert.equal((await db`SELECT count(*)::int AS n FROM pedido`)[0].n, 3);
+    assert.equal((await db`SELECT count(*)::int AS n FROM pedido`)[0].n, expectedOrderCount);
     assert.equal((await db`SELECT estoque_total FROM produto WHERE id_produto = ${product.id_produto}`)[0].estoque_total, 3);
     assert.equal((await db`SELECT motivo_recusa FROM pedido WHERE id_pedido = ${submittedOrder.id_pedido}`)[0].motivo_recusa, refusalReason);
     assert.equal((await db`SELECT session_version FROM usuario WHERE id_usuario = ${student.id_usuario}`)[0].session_version, 0);
-    console.log('OK: schema, migrações, vínculo Google, reserva/cancelamento próprio/estoque, catálogo público, permissões e paths alternativos, checkout e horizonte, Kanban por arraste e teclado, negativa com justificativa, privacidade do CPF, cache privado, logout com revogação, cópia de schema antigo.');
+    console.log('OK: schema, migrações, vínculo Google, retirada/cancelamento próprio/expiração/estoque, catálogo público, permissões e paths alternativos, termo exibido e versão antiga recusada, nome validado, devoluções parciais/danos/ocorrências sem duplicar estoque, arquivamento com histórico, checkout sem agendamento, prazo de dez dias, expiração concorrente sem duplicar estoque, Kanban por arraste e teclado, negativa com justificativa, privacidade do CPF, cache privado, logout com revogação, cópia de schema antigo.');
 } finally {
     if (browser) await browser.close();
     if (child && child.exitCode === null) { child.kill(); await once(child, 'exit'); }

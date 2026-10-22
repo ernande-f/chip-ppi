@@ -10,11 +10,20 @@
     "dev": "node --watch backend/server.js",
     "test": "node --test",
     "dev:local": "node --env-file=.env.local --watch backend/server.js",
-    "db:setup": "node scripts/apply-migration.mjs database/schema.sql database/migrations/google_login.sql database/migrations/reservations.sql database/migrations/google_only.sql database/migrations/indexes.sql database/migrations/session_version.sql",
-    "db:setup:local": "node --env-file=.env.local scripts/apply-migration.mjs database/schema.sql database/migrations/google_login.sql database/migrations/reservations.sql database/migrations/google_only.sql database/migrations/indexes.sql database/migrations/session_version.sql",
+    "db:setup": "node scripts/apply-migration.mjs database/schema.sql database/migrations/google_login.sql database/migrations/reservations.sql database/migrations/google_only.sql database/migrations/indexes.sql database/migrations/session_version.sql database/migrations/pickup_deadline.sql database/migrations/return_conditions.sql database/migrations/loan_renewals.sql database/migrations/user_management.sql database/migrations/notifications.sql database/migrations/inventory_usage.sql",
+    "db:setup:local": "node --env-file=.env.local scripts/apply-migration.mjs database/schema.sql database/migrations/google_login.sql database/migrations/reservations.sql database/migrations/google_only.sql database/migrations/indexes.sql database/migrations/session_version.sql database/migrations/pickup_deadline.sql database/migrations/return_conditions.sql database/migrations/loan_renewals.sql database/migrations/user_management.sql database/migrations/notifications.sql database/migrations/inventory_usage.sql",
     "db:check": "node scripts/check-database.mjs",
     "doctor": "node scripts/doctor.mjs",
-    "test:local": "node scripts/smoke-local.mjs"
+    "test:local": "node scripts/smoke-local.mjs",
+    "test:orders": "node scripts/order-regressions.mjs",
+    "test:ui": "node scripts/ui-regressions.mjs",
+    "test:loans": "node scripts/loan-regressions.mjs",
+    "test:loans:ui": "node scripts/loan-ui-regressions.mjs",
+    "test:accounts": "node scripts/account-regressions.mjs",
+    "test:accounts:ui": "node scripts/account-ui-regressions.mjs",
+    "test:reports": "node scripts/report-regressions.mjs",
+    "test:notifications": "node scripts/notification-regressions.mjs",
+    "test:features": "node scripts/feature-regressions.mjs"
   },
   "dependencies": {
     "cookie-parser": "^1.4.7",

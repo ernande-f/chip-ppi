@@ -278,14 +278,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     document.getElementById('deleteItemButton').addEventListener('click', async () => {
         const id = document.getElementById('editProductId').value;
-        if (!window.confirm('Remover este item permanentemente do catálogo?')) return;
+        if (!window.confirm('Arquivar este item? Ele ficará oculto no catálogo público e seu histórico será preservado.')) return;
 
         try {
             await deleteProduto(id);
             closeModal();
             await loadProducts();
         } catch (error) {
-            alert(error.message || 'Não foi possível remover o item.');
+            alert(error.message || 'Não foi possível arquivar o item.');
         }
     });
 

@@ -6,6 +6,8 @@ test('a configuração usa a URL da instalação e exige HTTPS em produção', (
     const local = { APP_URL: 'http://localhost:3100', PORT: '3100' };
     assert.equal(getServerConfig(local).port, 3100);
     assert.equal(getServerConfig(local).host, '127.0.0.1');
+    assert.equal(getServerConfig(local).authRateLimit, 100);
+    assert.equal(getServerConfig({ ...local, AUTH_RATE_LIMIT_MAX: '20' }).authRateLimit, 20);
     assert.equal(getServerConfig({ APP_URL: 'https://chip.escola.edu.br/', NODE_ENV: 'production' }).appUrl, 'https://chip.escola.edu.br');
     for (const APP_URL of [undefined, 'not-a-url', 'https://chip.test/path', 'https://user:pass@chip.test', 'https://chip.test/?x=1']) {
         assert.throws(() => getServerConfig({ APP_URL }));

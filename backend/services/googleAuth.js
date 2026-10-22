@@ -5,6 +5,38 @@ import { getGoogleConfig } from '../config.js';
 
 const COOKIE = 'google_login';
 const cookieOptions = () => ({ httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', path: '/api/auth/google' });
+let signingKeys = { keys: [], expiresAt: 0 };
+
+async function fetchGoogleJson(stage, url, options = {}) {
+    try {
+        const response = await fetch(url, { ...options, signal: AbortSignal.timeout(20_000) });
+        if (!response.ok) {
+            const error = new Error('Google recusou a requisição.');
+            error.code = `HTTP_${response.status}`;
+            throw error;
+        }
+        return { data: await response.json(), headers: response.headers };
+    } catch (error) {
+        error.googleStage = stage;
+        throw error;
+    }
+}
+
+async function getGoogleSigningKey(kid) {
+    const matches = key => key.kid === kid && key.kty === 'RSA' && key.use === 'sig';
+    const cachedKey = signingKeys.expiresAt > Date.now() && signingKeys.keys.find(matches);
+    if (cachedKey) return cachedKey;
+
+    const { data, headers } = await fetchGoogleJson('certs', 'https://www.googleapis.com/oauth2/v3/certs');
+    if (!Array.isArray(data.keys)) throw new Error('Chaves Google inválidas.');
+    const cacheControl = headers.get('cache-control') || '';
+    const maxAge = Number(cacheControl.match(/(?:^|,)\s*max-age=(\d+)/i)?.[1] || 0);
+    const ttl = /\b(?:no-store|no-cache)\b/i.test(cacheControl) ? 0 : Math.max(0, maxAge - Number(headers.get('age') || 0));
+    signingKeys = { keys: data.keys, expiresAt: Date.now() + ttl * 1000 };
+    const key = data.keys.find(matches);
+    if (!key) throw new Error('Assinatura Google desconhecida.');
+    return key;
+}
 
 export function startGoogleLogin(res) {
     const { clientId, domains, redirectUri } = getGoogleConfig();
@@ -42,19 +74,13 @@ export async function completeGoogleLogin(req, res) {
     if (typeof req.query.state !== 'string' || req.query.state !== flow.state || typeof req.query.code !== 'string' || req.query.error) {
         throw new Error('Retorno OAuth inválido.');
     }
-    const response = await fetch('https://oauth2.googleapis.com/token', {
-        method: 'POST', signal: AbortSignal.timeout(10_000),
+    const { data: { id_token: token } } = await fetchGoogleJson('token', 'https://oauth2.googleapis.com/token', {
+        method: 'POST',
         body: new URLSearchParams({ code: req.query.code, client_id: clientId, client_secret: clientSecret, redirect_uri: redirectUri, grant_type: 'authorization_code', code_verifier: flow.verifier })
     });
-    if (!response.ok) throw new Error('Google recusou a autenticação.');
-    const { id_token: token } = await response.json();
     const header = jwt.decode(token, { complete: true })?.header;
     if (header?.alg !== 'RS256' || !header.kid) throw new Error('Token Google inválido.');
-    const keysResponse = await fetch('https://www.googleapis.com/oauth2/v3/certs', { signal: AbortSignal.timeout(10_000) });
-    if (!keysResponse.ok) throw new Error('Não foi possível validar a assinatura Google.');
-    const { keys } = await keysResponse.json();
-    const key = keys.find(key => key.kid === header.kid && key.kty === 'RSA' && key.use === 'sig');
-    if (!key) throw new Error('Assinatura Google desconhecida.');
+    const key = await getGoogleSigningKey(header.kid);
     const claims = jwt.verify(token, createPublicKey({ key, format: 'jwk' }), {
         algorithms: ['RS256'], audience: clientId, issuer: ['https://accounts.google.com', 'accounts.google.com']
     });

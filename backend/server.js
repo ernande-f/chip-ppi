@@ -12,6 +12,12 @@ import cookieParser from 'cookie-parser';
 import sql from './db.js';
 import { getSessionSecret } from './services/sessionAuth.js';
 import { checkDatabase } from './services/databaseStatus.js';
+import { expireUncollectedOrders } from './services/orderService.js';
+import usersRoutes from './routes/users.js';
+import loansRoutes from './routes/loans.js';
+import reportsRoutes from './routes/reports.js';
+import notificationsRoutes from './routes/notifications.js';
+import { getEmailConfig, enqueueDueReminders, processNotificationEmails } from './services/notificationService.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -20,6 +26,7 @@ const app = express();
 const config = getServerConfig();
 getGoogleConfig();
 getSessionSecret();
+getEmailConfig();
 app.set('trust proxy', config.trustProxy);
 const PUBLIC_PAGE_PATHS = new Set([
     '/',
@@ -44,7 +51,9 @@ const TECH_ONLY_PAGE_PATHS = new Set([
     '/pages/pedidos.html',
     '/pages/perfil-tec.html',
     '/pages/editar-perfil-tec.html',
-    '/pages/cadastro-item.html'
+    '/pages/cadastro-item.html',
+    '/pages/usuarios.html',
+    '/pages/relatorios.html'
 ]);
 
 function hasPrivilegedAccess(level) {
@@ -126,7 +135,8 @@ const authLimiter = rateLimit({
     max: config.authRateLimit,
     message: { error: 'Muitas tentativas. Aguarde 15 minutos.' }
 });
-app.use('/api/auth/google', authLimiter);
+// O retorno do Google não conta como um novo início de login da mesma turma.
+app.get('/api/auth/google', authLimiter);
 app.use('/api/login', authLimiter);
 app.use('/api/institutional-login', authLimiter);
 app.use('/api/register', authLimiter);
@@ -206,6 +216,10 @@ app.use(express.static(path.join(__dirname, '../frontend'), {
 
 // Rotas da Aplicação
 app.use('/api', apiRoutes);
+app.use('/api', usersRoutes);
+app.use('/api', loansRoutes);
+app.use('/api/gestao/relatorios', reportsRoutes);
+app.use('/api/notificacoes', notificationsRoutes);
 app.use('/', pageRoutes);
 
 app.use((error, req, res, next) => {
@@ -229,9 +243,44 @@ server.on('error', (error) => {
 });
 
 let stopping = false;
+let expiringOrders = false;
+async function expireOrders() {
+    if (stopping || expiringOrders) return;
+    expiringOrders = true;
+    try {
+        await checkDatabase();
+        await expireUncollectedOrders();
+    } catch (error) {
+        console.error('Não foi possível verificar pedidos vencidos:', error.code || error.name);
+    } finally {
+        expiringOrders = false;
+    }
+}
+const expirationTimer = setInterval(expireOrders, 60_000);
+expirationTimer.unref();
+void expireOrders();
+
+let processingNotifications = false;
+async function processNotifications() {
+    if (stopping || processingNotifications) return;
+    processingNotifications = true;
+    try {
+        await checkDatabase();
+        await enqueueDueReminders();
+        await processNotificationEmails();
+    } catch (error) {
+        console.error('Não foi possível processar as notificações:', error.code || error.name);
+    } finally { processingNotifications = false; }
+}
+const notificationsTimer = setInterval(processNotifications, 60_000);
+notificationsTimer.unref();
+void processNotifications();
+
 async function shutdown() {
     if (stopping) return;
     stopping = true;
+    clearInterval(expirationTimer);
+    clearInterval(notificationsTimer);
     server.close();
     await sql.end({ timeout: 5 });
 }

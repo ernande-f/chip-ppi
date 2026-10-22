@@ -20,7 +20,8 @@ import {
 import { startGoogleLogin, completeGoogleLogin } from '../services/googleAuth.js';
 import { clearSessionCookie, setSessionCookie, verifySessionToken } from '../services/sessionAuth.js';
 import {
-    assertAccountIsActive
+    assertAccountIsActive,
+    AccountAccessError
 } from '../services/accountValidation.js';
 import {
     OrderConflictError,
@@ -69,6 +70,7 @@ function sendProductError(res, error) {
 }
 
 function sendOrderError(res, error) {
+    if (error instanceof AccountAccessError) return res.status(403).json({ success: false, message: error.message });
     if (error instanceof OrderValidationError) {
         return res.status(400).json({ success: false, message: error.message });
     }
@@ -95,10 +97,14 @@ router.get('/auth/google', (req, res) => {
 
 router.get('/auth/google/callback', async (req, res) => {
     res.set('Cache-Control', 'no-store');
+    const started = Date.now();
+    let stage = 'oauth';
     try {
         const identity = await completeGoogleLogin(req, res);
+        stage = 'perfil';
         const profile = await upsertGoogleUserProfile(identity);
         assertAccountIsActive(profile);
+        stage = 'sessao';
         setSessionCookie(res, {
             id: profile.auth_user_id,
             email: profile.email,
@@ -108,8 +114,14 @@ router.get('/auth/google/callback', async (req, res) => {
         });
         return res.redirect('/');
     } catch (error) {
-        console.error('Falha no login Google:', error.name);
-        return res.redirect('/login?error=google');
+        console.error('Falha no login Google:', {
+            etapa: error.googleStage || stage,
+            tipo: error.name,
+            codigo: error.cause?.code || error.code,
+            duracao_ms: Date.now() - started
+        });
+        const networkError = error.name === 'TimeoutError' || (error.googleStage && error.name === 'TypeError');
+        return res.redirect(error instanceof AccountAccessError ? '/login?error=blocked' : networkError ? '/login?error=network' : '/login?error=google');
     }
 });
 
@@ -268,6 +280,7 @@ router.post('/pedidos', verifySessionAuth, async (req, res) => {
         const pedido = await checkoutCart(req.profile.id_usuario, {
             durationDays: req.body.durationDays,
             acceptedTerms: req.body.acceptedTerms,
+            termsVersion: req.body.termsVersion,
             justification: req.body.justification ?? req.body.justificativa,
             reservationStart: req.body.reservationStart,
             reservationEnd: req.body.reservationEnd
@@ -310,7 +323,7 @@ router.patch('/gestao/pedidos/:id', verifySessionAuth, async (req, res) => {
             req.profile.id_usuario,
             req.params.id,
             req.body.action,
-            { reason: req.body.reason, ip: req.ip }
+            { reason: req.body.reason, ip: req.ip, returnItems: req.body.returnItems, returnNotes: req.body.returnNotes }
         );
         return res.json({ success: true, message: 'Status do pedido atualizado.', pedido });
     } catch (error) {
@@ -404,7 +417,7 @@ router.delete('/produtos/:id', verifySessionAuth, async (req, res) => {
         }
 
         const produto = await deleteProduct(req.params.id);
-        return res.json({ success: true, message: 'Item removido do catálogo.', produto });
+        return res.json({ success: true, message: 'Item arquivado e oculto no catálogo.', produto });
     } catch (error) {
         return sendProductError(res, error);
     }

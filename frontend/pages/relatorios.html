@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatórios - CHIP</title>
+    <link rel="stylesheet" href="/vendor/inter/inter.css">
+    <link rel="stylesheet" href="/css/pedidos-tec.css">
+    <link rel="stylesheet" href="/css/reports.css">
+</head>
+<body>
+    <div class="page-wrap">
+        <header class="navbar">
+            <a href="/" aria-label="CHIP — catálogo"><img src="/assets/logo.png" alt="CHIP" class="logo-img"></a>
+            <nav class="nav-links" aria-label="Navegação principal">
+                <a href="/pedidos.html" class="nav-link-item">Pedidos</a>
+                <a href="/relatorios.html" class="nav-link-item" aria-current="page">Relatórios</a>
+                <a href="/perfil-tec.html" class="nav-link-item" aria-label="Meu perfil"><div class="profile-pic"></div></a>
+            </nav>
+        </header>
+        <main>
+            <section class="page-header">
+                <h1>Relatórios</h1>
+                <p>Pedidos, utilização do acervo e devoluções do laboratório.</p>
+            </section>
+            <form id="reportFilters" class="report-filters">
+                <label for="reportStart">Início do período<input type="date" id="reportStart" name="inicio" required></label>
+                <label for="reportEnd">Até (inclusive)<input type="date" id="reportEnd" name="fim" required></label>
+                <label for="reportStatus">Situação atual dos pedidos<select id="reportStatus" name="status" aria-describedby="reportFilterScope">
+                    <option value="">Todas as situações</option>
+                    <option>Pendente</option><option>Aprovado</option><option>Em separação</option><option>Pronto para retirada</option>
+                    <option>Retirado</option><option>Devolvido</option><option>Negado</option><option>Cancelado</option><option>Expirado</option>
+                </select></label>
+                <button class="report-button" id="reportApply" type="submit">Gerar relatório</button>
+                <p id="reportFilterScope" class="report-note report-filter-scope">A situação filtra os detalhes de pedidos. As estatísticas de uso do acervo consideram todas as retiradas no período.</p>
+            </form>
+            <p id="reportMessage" class="report-message" role="status" aria-live="polite">Carregando relatório dos últimos 30 dias…</p>
+            <div id="reportContent" hidden>
+                <div class="report-toolbar">
+                    <p id="reportPeriod"></p>
+                    <div class="report-actions">
+                        <button class="report-button report-secondary" id="reportExport" type="button">Exportar CSV (Excel)</button>
+                        <button class="report-button report-secondary" id="reportPrint" type="button">Imprimir / Salvar PDF</button>
+                    </div>
+                </div>
+                <section class="report-section" aria-labelledby="reportUsageHeading">
+                    <h2 id="reportUsageHeading">Estatísticas de uso do acervo</h2>
+                    <p class="report-note">Empréstimos contam pela data da retirada efetiva, inclusive quando o pedido foi solicitado antes do período. Reservas, cancelamentos e pedidos negados não contam como empréstimos.</p>
+                    <dl class="report-metrics report-usage-metrics" id="reportUsageMetrics"></dl>
+                </section>
+                <div class="report-sections">
+                    <section class="report-section"><h2>Itens com estoque 100% emprestado no período</h2>
+                        <p class="report-note">Itens que chegaram a ter todas as unidades em condições de uso retiradas ao mesmo tempo, sem unidades disponíveis ou apenas reservadas. Considera as mudanças registradas para esse estado dentro do período. Datas e horários seguem o horário de Brasília.</p>
+                        <p id="reportTrackingCoverage" class="report-note report-coverage"></p>
+                        <div class="report-table-wrap" tabindex="0" role="region" aria-label="Itens com estoque 100% emprestado no período"><table><thead><tr><th scope="col">Item</th><th scope="col">Maior quantidade ao atingir 100%</th><th scope="col">Primeiro registro</th><th scope="col">Último registro</th><th scope="col">Ocorrências no período</th></tr></thead><tbody id="reportFullUsage"></tbody></table></div>
+                    </section>
+                    <section class="report-section"><h2>Itens sem empréstimos no período</h2><p class="report-note">Itens do acervo atual, excluindo os arquivados, sem retirada efetiva no período.</p><div class="report-table-wrap" tabindex="0" role="region" aria-label="Itens sem empréstimos no período"><table><thead><tr><th scope="col">Item</th><th scope="col">Unidades disponíveis agora</th></tr></thead><tbody id="reportUnusedItems"></tbody></table></div></section>
+                    <section class="report-section"><h2>Itens mais emprestados</h2><p class="report-note">Unidades efetivamente retiradas no período, incluindo itens que foram arquivados depois.</p><div class="report-table-wrap" tabindex="0" role="region" aria-label="Itens mais emprestados"><table><thead><tr><th scope="col">Item</th><th scope="col">Unidades emprestadas</th><th scope="col">Empréstimos</th></tr></thead><tbody id="reportBorrowedItems"></tbody></table></div></section>
+                    <section class="report-section"><h2>Itens menos emprestados</h2><p class="report-note">Itens com retirada no período, da menor para a maior quantidade de unidades emprestadas, incluindo os arquivados depois. Os que não tiveram retirada aparecem em “Itens sem empréstimos”.</p><div class="report-table-wrap" tabindex="0" role="region" aria-label="Itens menos emprestados"><table><thead><tr><th scope="col">Item</th><th scope="col">Unidades emprestadas</th><th scope="col">Empréstimos</th></tr></thead><tbody id="reportLeastBorrowedItems"></tbody></table></div></section>
+                </div>
+                <section class="report-section" aria-labelledby="reportOrdersHeading">
+                    <h2 id="reportOrdersHeading">Estatísticas dos pedidos</h2>
+                    <p class="report-note">Consideram a data da solicitação e a situação selecionada. As situações e quantidades recebidas refletem o estado atual desses pedidos, incluindo os do histórico.</p>
+                    <dl class="report-metrics" id="reportMetrics"></dl>
+                </section>
+                <div class="report-sections">
+                    <section class="report-section"><h2>Pedidos por situação</h2><div class="report-table-wrap" tabindex="0" role="region" aria-label="Pedidos por situação"><table><thead><tr><th scope="col">Situação atual</th><th scope="col">Pedidos</th></tr></thead><tbody id="reportStatuses"></tbody></table></div></section>
+                    <section class="report-section"><h2>Itens mais solicitados</h2><p class="report-note">Todas as solicitações no filtro, inclusive as canceladas ou negadas.</p><div class="report-table-wrap" tabindex="0" role="region" aria-label="Itens mais solicitados"><table><thead><tr><th scope="col">Item</th><th scope="col">Unidades solicitadas</th><th scope="col">Pedidos</th><th scope="col">Recebidas</th><th scope="col">Danificadas</th></tr></thead><tbody id="reportItems"></tbody></table></div></section>
+                    <section class="report-section"><h2>Usuários mais ativos</h2><p class="report-note">Ordenados pelo número de pedidos no filtro.</p><div class="report-table-wrap" tabindex="0" role="region" aria-label="Usuários mais ativos"><table><thead><tr><th scope="col">Usuário</th><th scope="col">E-mail</th><th scope="col">Pedidos</th></tr></thead><tbody id="reportUsers"></tbody></table></div></section>
+                    <section class="report-section"><h2>Pedidos no período</h2><div class="report-table-wrap" tabindex="0" role="region" aria-label="Pedidos no período"><table><thead><tr><th scope="col">Pedido</th><th scope="col">Solicitado em</th><th scope="col">Usuário</th><th scope="col">Situação atual</th><th scope="col">Unidades</th><th scope="col">Retirado em</th><th scope="col">Devolvido em</th></tr></thead><tbody id="reportOrders"></tbody></table></div></section>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script type="module" src="/js/header-avatar.js"></script>
+    <script type="module" src="/js/reports.js"></script>
+</body>
+</html>

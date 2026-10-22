@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notificações — CHIP</title>
+    <link rel="stylesheet" href="/vendor/inter/inter.css">
+    <link rel="stylesheet" href="/css/css-base.css">
+    <link rel="stylesheet" href="/css/notifications.css">
+</head>
+<body>
+    <header class="navbar">
+        <a href="/"><img src="/assets/logo.png" class="logo-img" alt="CHIP — catálogo"></a>
+        <div class="nav-links">
+            <a href="/pedidos" class="nav-link-item">Pedidos</a>
+            <a href="/perfil" class="nav-link-item" aria-label="Seu perfil"><div class="profile-pic"><span id="headerAvatar">CH</span></div></a>
+        </div>
+    </header>
+    <main class="container notification-page">
+        <h1>Notificações</h1>
+        <p>Acompanhe decisões da equipe, devoluções e lembretes de prazo.</p>
+        <div class="notification-controls">
+            <label for="unreadOnly"><input id="unreadOnly" type="checkbox"> Mostrar somente não lidas</label>
+            <button id="readAll" type="button">Marcar todas como lidas</button>
+        </div>
+        <p id="notificationStatus" role="status">Carregando notificações…</p>
+        <section id="notificationsList" aria-label="Suas notificações" aria-busy="true"></section>
+        <nav class="notification-controls" aria-label="Paginação das notificações">
+            <button id="previousPage" type="button" disabled>Anterior</button>
+            <span id="notificationPage"></span>
+            <button id="nextPage" type="button" disabled>Próxima</button>
+        </nav>
+        <section id="emailStatus" hidden aria-label="Configuração de envio de e-mails"></section>
+    </main>
+    <script type="module" src="/js/header-avatar.js"></script>
+    <script type="module" src="/js/notifications.js"></script>
+</body>
+</html>

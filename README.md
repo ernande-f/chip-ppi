@@ -57,7 +57,11 @@ GOOGLE_ALLOWED_DOMAINS=aluno.iffar.edu.br,iffarroupilha.edu.br
 
 O backend verifica assinatura, emissor, audiência, expiração, nonce, e-mail verificado e domínio Workspace (`hd`). `state` e PKCE protegem o retorno OAuth. Referência: [OpenID Connect do Google](https://developers.google.com/identity/openid-connect/openid-connect).
 
+As chamadas ao Google têm limite de 20 segundos por etapa. As chaves públicas são reutilizadas pelo prazo informado pelo Google, com nova consulta quando expiram ou aparece um identificador de chave desconhecido. Falhas de conexão mostram uma mensagem para tentar novamente; o terminal registra a etapa (`token`, `certs`, `perfil` ou `sessao`), o tipo/código do erro e a duração, sem registrar credenciais ou tokens. Se houver `TimeoutError` ou `ENOTFOUND`, confira a conexão e o DNS do servidor para `oauth2.googleapis.com` e `www.googleapis.com`. O código de autorização não é reenviado automaticamente.
+
 O primeiro login cria um perfil de estudante. Perfis antigos são vinculados por e-mail institucional verificado, preservando pedidos, bloqueios e permissões; depois o vínculo usa o identificador estável `sub` do Google. O domínio de professor **não concede** acesso técnico. A administração atribui `nivel_acesso` no banco: `0` estudante/solicitante, `1` técnico, `2` administrador. O guia explica como promover o primeiro administrador. As sessões anteriores precisam fazer novo login Google.
+
+O limite padrão de autenticação é de 100 inícios de login por IP a cada 15 minutos, para atender uma turma na mesma rede. O retorno do Google não consome esse limite; permanece protegido pelo limite global da API. `AUTH_RATE_LIMIT_MAX` pode ajustar os inícios, sem desativar a proteção. Instalações com o valor antigo explícito de 20 precisam atualizar essa configuração. Nomes de perfil devem ser textos de 3 a 60 caracteres, após remover espaços externos.
 
 O logout encerra todas as sessões da conta, inclusive cópias do token. Atualizações devem executar `npm run db:setup` para aplicar a migração de versão de sessão; sessões anteriores a essa migração exigem novo login. As respostas de perfil mostram o CPF mascarado e não devem ser armazenadas em cache.
 
@@ -90,27 +94,66 @@ O script troca cada URL antiga por sua imagem no banco local somente após baixa
 
 O [guia de instalação](docs/installation.md#backup-e-restauração) inclui backup e recuperação do banco. Mantenha uma cópia fora do disco do servidor.
 
-## Pedidos, Kanban e reservas
+## Pedidos, Kanban e prazos
 
-A solicitação separa o estoque imediatamente, inclusive enquanto pendente. A aprovação não faz uma segunda baixa. Devolução, recusa e cancelamento devolvem o estoque em transação. Cada mudança é auditada. É possível cancelar até antes da retirada; pedidos retirados precisam ser devolvidos.
+A solicitação separa o estoque imediatamente, inclusive enquanto pendente. A aprovação não faz uma segunda baixa. Devolução, recusa, cancelamento pelo solicitante e expiração automática devolvem o estoque em transação. Cada mudança é auditada. É possível cancelar até antes da retirada; pedidos retirados precisam ser devolvidos.
 
-O Kanban aceita apenas as transições do fluxo: Pendente → Aprovado → Em separação → Pronto para retirada → Retirado → Devolvido. Recusa exige justificativa. Abrir o cartão oferece as mesmas ações por teclado e celular.
+A equipe confere cada devolução: informa as unidades recebidas agora, as danificadas dentre elas e uma observação opcional. Apenas as unidades recebidas em boas condições voltam ao estoque. Quantidades recebidas e danificadas são acumuladas; enquanto faltarem unidades, o pedido permanece Retirado. Quando todas forem recebidas, passa a Devolvido. Cada recebimento registra auditoria e pode ser consultado pela equipe e pelo solicitante. A conferência envia o saldo anterior (`expectedReturned`), validado sob trava para impedir reenvio ou gravação de uma tela desatualizada. Itens arquivados permanecem ocultos mesmo quando recebem estoque de uma devolução. Remover um item do catálogo sempre o arquiva e preserva dados, categorias, fotos e relações.
 
-Para agendar, preencha retirada e devolução previstas no carrinho. O período deve ter de 1 a 15 dias, com retirada entre hoje e os próximos 30 dias. As datas ficam visíveis para solicitante e equipe. A retirada só pode ser confirmada a partir do início e antes do fim da reserva; atrasos na retirada não prorrogam a devolução prevista. Reservas não retiradas devem ser canceladas para liberar estoque.
+Alterações de carrinho e finalização usam a mesma trava por usuário. Uma alteração concorrente termina antes da leitura do checkout ou recebe o resultado atualizado depois dele, sem desaparecer silenciosamente. O pedido também exige a versão do termo exibida na página (`termsVersion`); versões antigas ou ausentes exigem recarregar, ler e aceitar novamente.
 
-Nesta versão, a reserva bloqueia os itens desde a solicitação, mesmo quando a retirada é futura. Não há reutilização automática do mesmo estoque entre períodos de reservas. Pedidos sem datas continuam usando a duração de 1 a 15 dias contada da retirada efetiva; cada pessoa pode manter até três pedidos ativos.
+O Kanban aceita apenas as transições do fluxo: Pendente → Aprovado → Em separação → Pronto para retirada → Retirado → Devolvido. Recusa exige justificativa. Abrir o cartão oferece as mesmas ações por teclado e celular. Expirado é um estado terminal automático, sem ação manual de expiração.
 
-Avisos de prazo por e-mail ficam para uma etapa posterior: uma rotina diária que consulte devoluções previstas, com registro do envio para evitar duplicatas. OAuth autentica a pessoa, mas não fornece um serviço de envio de e-mails para o CHIP.
+As cinco etapas em andamento ficam no quadro principal. Devolvidos, negados, cancelados e expirados ficam no histórico expansível, com busca, filtro de situação e período da solicitação (hoje, 7, 30, 90 dias ou todo o período). O histórico mostra 12 pedidos por vez e permite Ver mais até consultar todos. Os filtros de data e situação não ocultam pedidos ativos.
+
+O solicitante escolhe apenas a duração do empréstimo, de 1 a 15 dias. O agendamento de retirada e devolução futuras foi removido. O prazo de retirada é a data de aprovação mais 10 dias corridos, incluindo a data limite, no fuso do laboratório. Separar os itens ou marcar Pronto para retirada não reinicia o prazo. A duração do empréstimo só começa na retirada efetiva; antes dela, não existe prazo de devolução em andamento.
+
+Após a data limite, pedidos Aprovados, Em separação ou Prontos para retirada que ainda não foram retirados passam a Expirado e liberam o estoque uma única vez. A verificação ocorre a cada minuto enquanto o servidor está ativo, na inicialização e antes das operações de pedidos. A validação no servidor impede a retirada fora do prazo. Pedidos Pendentes e já Retirados não expiram por essa regra. Pedidos expirados aparecem no histórico e deixam de contar no limite de três ativos.
+
+Aplique `npm run db:setup:local` (ou `npm run db:setup` na instalação configurada). A migração `pickup_deadline.sql` mantém as antigas datas de agendamento como histórico e registra a data de aprovação. Pedidos já aprovados sem essa data recebem o prazo de dez dias a partir da atualização; não são expirados imediatamente por falta de informação histórica. A expiração registra auditoria como ação do sistema, sem atribuí-la a uma pessoa. `return_conditions.sql` garante o campo e a validação das quantidades danificadas, preservando os dados existentes. O termo de responsabilidade passa à versão 3, com conferência de devoluções parciais e danos.
+
+As notificações internas registram aprovação/negativa, prontidão, recebimentos, decisões de renovação e alterações de acesso. A equipe também recebe solicitações de renovação. Lembretes de devolução são verificados a cada minuto para os prazos que terminam em dois dias ou um dia, considerando renovações aprovadas. Chaves por evento impedem duplicação; uma renovação ou devolução concorrente é revalidada antes de gravar o aviso. Cada pessoa acessa e marca apenas suas próprias notificações.
+
+O envio por e-mail usa uma fila persistente e a API Resend, fora da transação de pedidos. Fica desativado por padrão: notificações internas continuam funcionando. Para enviar **novos eventos**, configure `RESEND_API_KEY`, `EMAIL_FROM` com um endereço de domínio verificado e `NOTIFICATION_EMAIL_ENABLED=true`; reinicie o serviço. Eventos gerados enquanto o envio estava desativado não são disparados retroativamente. O worker usa timeout, reserva de trabalho, até cinco tentativas, chave idempotente e janela de 20 horas. O administrador consulta o estado da fila em Notificações. Referência: [API de envio](https://resend.com/docs/api-reference/emails/send-email) e [idempotência do Resend](https://resend.com/docs/dashboard/emails/idempotency-keys). Nenhum e-mail real foi enviado na validação local.
+
+## Renovação, usuários e relatórios
+
+O solicitante pode pedir renovação de um pedido Retirado com justificativa e nova data futura, no máximo 15 dias além do prazo atual. Apenas uma solicitação fica pendente por vez e cada pedido aceita até duas renovações aprovadas. A equipe aprova ou nega pelo cartão do pedido; negativa exige motivo. O prazo permanece válido até a aprovação, sem alterar os dez dias para retirada. Devolução completa encerra solicitações ainda pendentes.
+
+“Pedir novamente” adiciona itens de um pedido próprio ao carrinho existente até a quantidade disponível. Itens sem estoque ou arquivados e quantidades reduzidas são informados ao solicitante. Não cria um pedido, não renova o aceite do termo e não reserva estoque antes do novo checkout.
+
+O Menu do cabeçalho leva a **Usuários**, **Relatórios** e **Notificações**, conforme o perfil. Técnicos e administradores pesquisam usuários e consultam o histórico completo. Apenas administradores alteram nome, nível e bloqueio, com motivo e auditoria. Não é permitido bloquear outro administrador nem retirar o próprio acesso administrativo; alterações sensíveis revogam as sessões da conta.
+
+Ao registrar a devolução completa atrasada, aplica-se um dia de bloqueio para cada dia de atraso em relação ao prazo efetivo, incluindo renovações. A penalidade é registrada uma única vez por pedido e acumula depois de outra penalidade vigente; a liberação ocorre automaticamente na data limite, pelo calendário do banco. Bloqueio manual é separado e não expira por essa regra. Um administrador pode liberar uma penalidade com justificativa, mantendo o histórico; administradores não recebem bloqueio automático. Danos são registrados, mas não geram penalidade automática de duração não definida no documento.
+
+Relatórios mostram os itens que chegaram a **100% do estoque emprestado durante o período**, os itens do acervo atual sem retirada e os rankings dos itens mais e menos emprestados, pela quantidade de unidades efetivamente retiradas. Itens com zero retiradas permanecem na lista sem empréstimos. As estatísticas de utilização contam pela data da retirada, inclusive pedidos solicitados antes do período, e independem do filtro de situação. Reservas, cancelamentos, negativas e estoque vazio sem empréstimo não significam 100% emprestado. O histórico de estoque começa com a migração `inventory_usage.sql`: o estado inicial não comprova chegada a 100% e não é contado; movimentos anteriores não podem ser reconstruídos. Cada entrada nesse estado é contada uma vez, mesmo com devoluções parciais ou várias leituras seguidas. O histórico preserva os itens arquivados; a lista sem empréstimo usa o acervo atual não arquivado.
+
+Os detalhes dos pedidos continuam filtrados pela data de solicitação e situação atual, com itens mais solicitados, usuários mais ativos, unidades recebidas/danificadas, taxa de danos e tempo médio dos empréstimos concluídos. Exportação é **CSV compatível com Excel**, com proteção contra fórmulas em campos textuais e os novos indicadores; o botão de impressão permite salvar em PDF. Não há exportação XLSX nativa.
+
+Todas as páginas com cabeçalho oferecem **Alto contraste**, com preferência persistente e suporte à preferência de contraste do sistema. Os novos fluxos foram verificados por teclado e em larguras de 320, 390 e 1280 pixels; ainda precisam de homologação em aparelho real e leitor de tela.
+
+O [estado do sistema e plano de conclusão](docs/estado-do-sistema.md) cruza a implementação com o documento oficial v5 e o cronograma. Mobile e acessibilidade, incluindo alto contraste e baixa visão, são requisitos permanentes registrados em `AGENTS.md`.
+
+Para visualizar o quadro com exemplos locais, execute `node scripts/seed-demo-orders.mjs`. O script cria cinco pedidos identificados como DEMO, um em cada etapa ativa, com perfis sem login e um produto fictício próprio. Recusa produção/banco remoto e não duplica uma demonstração existente. Os registros permanecem no banco local para experimentar o fluxo de devolução, sem consumir o estoque dos produtos anteriores.
 
 ## Teste de ponta a ponta com Playwright
 
-`scripts/smoke-local.mjs` usa PostgreSQL local e Playwright para criar bancos temporários, validar migrações e testar catálogo anônimo, permissões, reserva, estoque, Kanban por arraste/teclado e cópia de dados. Remove somente os bancos criados pelo teste. Requer um usuário local com permissão de criar bancos, dependências de desenvolvimento instaladas por `npm ci` e Chromium instalado.
+`scripts/smoke-local.mjs` usa PostgreSQL local e Playwright para criar bancos temporários, validar migrações e testar catálogo anônimo, permissões, retirada em dez dias, expiração, estoque, Kanban por arraste/teclado e cópia de dados. Remove somente os bancos criados pelo teste. Requer um usuário local com permissão de criar bancos, dependências de desenvolvimento instaladas por `npm ci` e Chromium instalado.
 
 ```sh
 npx playwright install chromium
 TEST_DATABASE_URL=postgresql://USUARIO:SENHA@127.0.0.1:5432/postgres npm run test:local
+TEST_DATABASE_URL=postgresql://USUARIO:SENHA@127.0.0.1:5432/postgres npm run test:orders
+npm run test:ui
+TEST_DATABASE_URL=postgresql://USUARIO:SENHA@127.0.0.1:5432/postgres npm run test:loans
+TEST_DATABASE_URL=postgresql://USUARIO:SENHA@127.0.0.1:5432/postgres npm run test:accounts
+TEST_DATABASE_URL=postgresql://USUARIO:SENHA@127.0.0.1:5432/postgres npm run test:reports
+TEST_DATABASE_URL=postgresql://USUARIO:SENHA@127.0.0.1:5432/postgres npm run test:notifications
+TEST_DATABASE_URL=postgresql://USUARIO:SENHA@127.0.0.1:5432/postgres npm run test:features
+npm run test:loans:ui
+npm run test:accounts:ui
 ```
 
-No PowerShell, configure `$env:TEST_DATABASE_URL` antes de `npm run test:local`. Use uma conta de teste separada da conta da aplicação. O fluxo automatizado valida a integração com sessões locais; confira também o login completo com uma conta Google real no endereço da instalação.
+No PowerShell, configure `$env:TEST_DATABASE_URL` antes de `npm run test:local`. Use uma conta de teste separada da conta da aplicação. O fluxo automatizado valida a integração com sessões locais, devoluções parciais/danos e proteção contra reenvio. `test:ui` verifica os componentes em navegador com dados simulados, sem banco. Confira também o login completo com uma conta Google real no endereço da instalação.
 
 Se Playwright já estiver instalado fora do projeto, informe seu `index.mjs` em `PLAYWRIGHT_MODULE`; `PLAYWRIGHT_EXECUTABLE` permite apontar para um Chromium existente. Capturas ficam na pasta `chip-smoke-artifacts` dentro do diretório temporário do sistema.

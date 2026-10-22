@@ -4,8 +4,12 @@ export async function checkDatabase() {
     const [status] = await sql`
         WITH required(table_name, column_name) AS (VALUES
             ('usuario', 'google_sub'), ('usuario', 'auth_provider'), ('usuario', 'auth_user_id'), ('usuario', 'session_version'),
-            ('pedido', 'retirada_prevista'), ('pedido', 'devolucao_prevista'), ('pedido', 'justificativa'),
-            ('produto', 'foto_produto'), ('lista_de_desejos', 'quantidade')
+            ('pedido', 'data_aprovacao'), ('pedido', 'justificativa'),
+            ('produto', 'foto_produto'), ('lista_de_desejos', 'quantidade'),
+            ('contem_lista', 'qnt_danificada'), ('usuario', 'bloqueio_automatico_ate'),
+            ('renovacao', 'status'), ('renovacao', 'id_decisor'),
+            ('notificacao', 'chave_evento'), ('notificar', 'lida_em'), ('notificacao_email', 'estado'),
+            ('penalidade_atraso', 'id_pedido'), ('historico_uso_estoque', 'emprestadas')
         )
         SELECT current_setting('TimeZone') AS timezone,
             NOT EXISTS (

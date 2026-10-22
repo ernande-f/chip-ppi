@@ -48,7 +48,7 @@ export function getServerConfig(env = process.env) {
         port: integer(env.PORT, 'PORT', 3000, 0, 65535),
         trustProxy: trustProxy(env.TRUST_PROXY),
         globalRateLimit: integer(env.GLOBAL_RATE_LIMIT_MAX, 'GLOBAL_RATE_LIMIT_MAX', 500),
-        authRateLimit: integer(env.AUTH_RATE_LIMIT_MAX, 'AUTH_RATE_LIMIT_MAX', 20)
+        authRateLimit: integer(env.AUTH_RATE_LIMIT_MAX, 'AUTH_RATE_LIMIT_MAX', 100)
     };
 }
 

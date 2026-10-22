@@ -9,7 +9,7 @@ try {
             (SELECT count(*)::int FROM pedido) AS pedidos,
             (SELECT count(*)::int FROM produto WHERE foto_produto ~ '^https?://') AS fotos_externas
     `;
-    console.log(`PostgreSQL acessível; schema Google/reservas pronto; fuso ${timezone}.`);
+    console.log(`PostgreSQL acessível; schema Google/prazos de retirada/devoluções pronto; fuso ${timezone}.`);
     console.log(counts);
 } catch (error) {
     console.error(`Banco indisponível ou schema incompleto (${error.code || error.name}). Confira DATABASE_URL, serviço PostgreSQL e npm run db:setup.`);

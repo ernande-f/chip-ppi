@@ -1,4 +1,5 @@
 export class OrderValidationError extends Error {}
+export class OrderConflictError extends Error {}
 
 export const ORDER_STATUS = Object.freeze({
     PENDING: 'Pendente',
@@ -8,8 +9,12 @@ export const ORDER_STATUS = Object.freeze({
     PICKED_UP: 'Retirado',
     RETURNED: 'Devolvido',
     DENIED: 'Negado',
-    CANCELLED: 'Cancelado'
+    CANCELLED: 'Cancelado',
+    EXPIRED: 'Expirado'
 });
+
+export const PICKUP_WINDOW_DAYS = 10;
+export const CURRENT_TERMS_VERSION = 3;
 
 export const ORDER_ACTION = Object.freeze({
     APPROVE: 'approve',
@@ -34,20 +39,15 @@ const TRANSITIONS = new Map([
     [`${ORDER_STATUS.PICKED_UP}:${ORDER_ACTION.REGISTER_RETURN}`, ORDER_STATUS.RETURNED]
 ]);
 
-export function normalizeReservationDates(start, end, today) {
-    if ((start === undefined || start === null || start === '') && (end === undefined || end === null || end === '')) return null;
-    for (const value of [start, end]) {
-        if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value) ||
-            !Number.isFinite(Date.parse(value)) || new Date(value).toISOString().slice(0, 10) !== value) {
-            throw new OrderValidationError('Informe datas válidas de retirada e devolução.');
-        }
+export function validatePickupDeadline(approvalDate, today) {
+    const approved = Date.parse(approvalDate);
+    const current = Date.parse(today);
+    if (!Number.isFinite(approved) || !Number.isFinite(current)) {
+        throw new OrderValidationError('A data de aprovação do pedido não está registrada corretamente.');
     }
-    if (start < today) throw new OrderValidationError('A retirada prevista não pode estar no passado.');
-    if (Date.parse(start) - Date.parse(today) > 30 * 86_400_000) {
-        throw new OrderValidationError('A retirada prevista deve ocorrer nos próximos 30 dias.');
+    if (current - approved > PICKUP_WINDOW_DAYS * 86_400_000) {
+        throw new OrderValidationError('O prazo de 10 dias após a aprovação para retirar o pedido expirou.');
     }
-    const duration = normalizeLoanDuration((Date.parse(end) - Date.parse(start)) / 86_400_000);
-    return { start, end, duration };
 }
 
 export function normalizeLoanDuration(value) {
@@ -58,6 +58,24 @@ export function normalizeLoanDuration(value) {
     }
 
     return duration;
+}
+
+export function validateRenewalDate(value, dueDate, today) {
+    const requested = typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value) ? Date.parse(value) : NaN;
+    const due = Date.parse(dueDate);
+    const current = Date.parse(today);
+    if (!Number.isFinite(requested) || new Date(requested).toISOString().slice(0, 10) !== value
+        || !Number.isFinite(due) || !Number.isFinite(current)
+        || requested <= due || requested <= current || requested - due > 15 * 86_400_000) {
+        throw new OrderValidationError('Informe uma data futura, posterior ao prazo atual e até 15 dias depois dele.');
+    }
+    return value;
+}
+
+export function normalizeRenewalJustification(value) {
+    const justification = normalizeOrderJustification(value);
+    if (!justification) throw new OrderValidationError('Informe a justificativa para solicitar a renovação.');
+    return justification;
 }
 
 export function normalizeCartQuantity(value, availableStock) {
@@ -119,4 +137,53 @@ export function normalizeOrderJustification(value) {
     }
 
     return trimmed;
+}
+
+export function normalizeReturnItems(orderItems, submittedItems) {
+    const items = submittedItems === undefined
+        ? orderItems.filter(item => item.qnt_solicitada > item.qnt_devolvida).map(item => ({
+            productId: item.id_produto,
+            quantity: item.qnt_solicitada - item.qnt_devolvida,
+            damagedQuantity: 0,
+            expectedReturned: item.qnt_devolvida
+        }))
+        : submittedItems;
+    if (!Array.isArray(items) || items.length === 0 || items.length > orderItems.length) {
+        throw new OrderValidationError('Informe as quantidades recebidas nesta devolução.');
+    }
+    const seen = new Set();
+    const normalized = items.map(item => {
+        const productId = Number(item?.productId);
+        const product = orderItems.find(product => Number(product.id_produto) === productId);
+        if (!['number', 'string'].includes(typeof item?.productId)
+            || !Number.isSafeInteger(productId) || productId < 1 || !product || seen.has(productId)) {
+            throw new OrderValidationError('A devolução contém um item inválido ou repetido.');
+        }
+        seen.add(productId);
+        const { quantity, damagedQuantity } = item;
+        if (!Number.isSafeInteger(quantity) || !Number.isSafeInteger(damagedQuantity)
+            || quantity < 0 || damagedQuantity < 0 || damagedQuantity > quantity
+            || quantity > product.qnt_solicitada - product.qnt_devolvida) {
+            throw new OrderValidationError('Confira as quantidades recebidas e danificadas: elas não podem superar as unidades ainda pendentes.');
+        }
+        if (!Number.isSafeInteger(item.expectedReturned) || item.expectedReturned < 0) {
+            throw new OrderValidationError('Recarregue o pedido para conferir as quantidades já recebidas antes de registrar a devolução.');
+        }
+        if (item.expectedReturned !== product.qnt_devolvida) {
+            throw new OrderConflictError('Esta devolução já foi registrada ou o pedido mudou. Recarregue o pedido antes de registrar outro recebimento.');
+        }
+        return { id_produto: product.id_produto, quantidade: quantity, danificada: damagedQuantity };
+    });
+    if (!normalized.some(item => item.quantidade > 0)) {
+        throw new OrderValidationError('Registre pelo menos uma unidade recebida.');
+    }
+    return normalized.filter(item => item.quantidade > 0);
+}
+
+export function normalizeReturnNotes(value) {
+    if (value === undefined || value === null) return null;
+    if (typeof value !== 'string' || value.trim().length > 1000) {
+        throw new OrderValidationError('A observação da devolução deve ser um texto de até 1000 caracteres.');
+    }
+    return value.trim() || null;
 }

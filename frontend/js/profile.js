@@ -50,8 +50,10 @@ function renderOrders(orders) {
         status.textContent = order.status;
         const [orderDate, returnDate] = card.querySelectorAll('.order-meta span');
         orderDate.textContent = `Data do pedido: ${formatDate(order.data_pedido)}`;
-        returnDate.textContent = `Devolucao: ${formatDate(order.data_devolucao)}`;
-        card.querySelector('.order-text').textContent = order.motivo_recusa || 'Acompanhe seu perfil para consultar status, retirada e devolução dos itens solicitados.';
+        returnDate.textContent = order.data_devolucao
+            ? `Devolvido em: ${formatDate(order.data_devolucao)}`
+            : order.data_retirada ? `Retirado em: ${formatDate(order.data_retirada)}` : 'Retirada ainda não realizada.';
+        card.querySelector('.order-text').textContent = order.motivo_recusa || 'Consulte seus pedidos para acompanhar o status, a retirada e a devolução dos itens solicitados.';
         return card;
     }));
 }
@@ -107,7 +109,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             redirectToLogin();
         } catch (error) {
             console.error('Erro ao fazer logout:', error);
-            alert(error.message || 'Nao foi possivel encerrar a sessão.');
+            alert(error.message || 'Não foi possível encerrar a sessão.');
         }
     });
 

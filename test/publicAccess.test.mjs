@@ -79,3 +79,27 @@ test('arquivos estáticos não gastam o limite da API', { timeout: 15_000 }, asy
     assert.equal(limited.headers.get('cache-control'), 'no-store');
     assert.equal((await fetch(`${base}/js/api.js`)).status, 200);
 });
+
+test('uma turma com 50 logins no mesmo IP não esgota o limite com os callbacks', { timeout: 15_000 }, async (t) => {
+    const base = await startServer(t, { AUTH_RATE_LIMIT_MAX: '' });
+    for (let index = 0; index < 50; index++) {
+        assert.equal((await fetch(`${base}/api/auth/google`, { redirect: 'manual' })).status, 302);
+        const callback = await fetch(`${base}/api/auth/google/callback?state=invalid&code=invalid`, { redirect: 'manual' });
+        assert.equal(callback.status, 302);
+    }
+    for (let index = 50; index < 100; index++) {
+        assert.equal((await fetch(`${base}/api/auth/google`, { redirect: 'manual' })).status, 302);
+    }
+    assert.equal((await fetch(`${base}/api/auth/google`, { redirect: 'manual' })).status, 429);
+    assert.equal((await fetch(`${base}/api/auth/google/callback?state=invalid&code=invalid`, { redirect: 'manual' })).status, 302);
+    assert.equal((await fetch(`${base}/api/session`)).status, 200);
+});
+
+test('o limite de início de login configurado continua sendo aplicado', { timeout: 15_000 }, async (t) => {
+    const base = await startServer(t, { AUTH_RATE_LIMIT_MAX: '2' });
+    for (let index = 0; index < 2; index++) {
+        assert.equal((await fetch(`${base}/api/auth/google`, { redirect: 'manual' })).status, 302);
+        assert.equal((await fetch(`${base}/api/auth/google/callback`, { redirect: 'manual' })).status, 302);
+    }
+    assert.equal((await fetch(`${base}/api/auth/google`, { redirect: 'manual' })).status, 429);
+});

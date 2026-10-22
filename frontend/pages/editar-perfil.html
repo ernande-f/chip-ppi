@@ -51,10 +51,6 @@
                         <div class="profile-avatar-circle" id="avatar-container">
                             <span id="profileAvatar">CH</span>
                         </div>
-                        <input type="file" id="file-input" style="display: none;" accept="image/*">
-                        <button type="button" class="edit-photo-badge" id="selectAvatarButton">
-                            <i class="fa-solid fa-pencil"></i>
-                        </button>
                     </div>
                 </div>
 
@@ -66,21 +62,21 @@
                     <form class="profile-form" id="profileForm">
                         <div class="form-group">
                             <label for="profileNameInput">Nome:</label>
-                            <input type="text" id="profileNameInput" autocomplete="name" required>
+                            <input type="text" id="profileNameInput" autocomplete="name" minlength="3" maxlength="60" required>
                         </div>
                         <div class="form-group">
-                            <label for="profileEmailInput">*Email:</label>
+                            <label for="profileEmailInput">E-mail:</label>
                             <input type="email" id="profileEmailInput" readonly tabindex="-1" class="readonly-input">
                         </div>
                         <div class="form-group">
-                            <label for="profileCpfInput">*CPF:</label>
+                            <label for="profileCpfInput">CPF:</label>
                             <input type="text" id="profileCpfInput" readonly tabindex="-1" class="readonly-input">
                         </div>
                         <div class="form-buttons">
                             <button type="submit" class="btn-save">Salvar alterações</button>
                             <button type="button" class="btn-cancel" id="cancelEdit">Cancelar</button>
                         </div>
-                        <p class="form-footer-note">*Para alterar email ou CPF, fale com o administrador do sistema.</p>
+                        <p class="form-footer-note">Para alterar e-mail ou CPF, fale com o administrador do sistema.</p>
                     </form>
                 </div>
             </div>

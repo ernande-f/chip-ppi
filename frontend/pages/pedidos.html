@@ -15,15 +15,15 @@
             </a>
 
             <div class="search-bar">
-                <input type="search" placeholder="Pesquisar por usuário ou número do pedido...">
+                <input type="search" aria-label="Pesquisar pedidos por usuário, e-mail ou número" placeholder="Pesquisar por usuário ou número do pedido...">
             </div>
 
             <div class="nav-links">
-                <a href="/pedidos.html" class="nav-link-item">
+                <a href="/pedidos.html" class="nav-link-item" aria-current="page">
                     <span>Pedidos</span>
                 </a>
                 <img src="../assets/sino.png" alt="Notificações" class="sino-img">
-                <a href="/perfil-tec.html" class="nav-link-item">
+                <a href="/perfil-tec.html" class="nav-link-item" aria-label="Meu perfil">
                     <div class="profile-pic">
                         <svg viewBox="0 0 24 24" fill="#c7c7c7"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
                     </div>
@@ -33,13 +33,45 @@
 
         <section class="page-header">
             <h1>Pedidos</h1>
-            <p>Gerenciamento dos pedidos</p>
+            <p>Acompanhe as solicitações, retiradas e devoluções do laboratório.</p>
         </section>
 
         <hr class="header-divider">
 
-        <p class="tab-note" id="tabNote">Role o quadro na horizontal para ver todas as etapas. Arraste o cartão ou abra o pedido para usar os botões. Para negar, informe uma justificativa.</p>
-        <section class="orders-grid kanban-board" id="ordersGrid" aria-label="Quadro de pedidos"></section>
+        <div class="board-heading">
+            <h2>Em andamento <span class="order-count" id="activeOrderCount">0</span></h2>
+            <p class="tab-note" id="tabNote">Todas as etapas ativas ficam neste quadro. Deslize para ver as etapas e abra um pedido para consultar os detalhes e as ações.</p>
+        </div>
+        <p class="orders-summary" id="ordersSummary" role="status">Carregando pedidos…</p>
+        <section class="orders-grid kanban-board" id="ordersGrid" aria-label="Quadro de pedidos em andamento" aria-describedby="tabNote" tabindex="0"></section>
+
+        <details class="orders-history" id="ordersHistory">
+            <summary>Histórico de pedidos <span class="order-count" id="historyOrderCount">0</span></summary>
+            <p class="tab-note">Devolvidos, negados, cancelados e expirados continuam disponíveis para consulta. Os filtros abaixo afetam somente o histórico.</p>
+            <div class="history-filters">
+                <label for="historyPeriod">Data da solicitação
+                    <select id="historyPeriod">
+                        <option value="all">Todo o período</option>
+                        <option value="1">Hoje</option>
+                        <option value="7">Últimos 7 dias</option>
+                        <option value="30">Últimos 30 dias</option>
+                        <option value="90">Últimos 90 dias</option>
+                    </select>
+                </label>
+                <label for="historyStatus">Situação
+                    <select id="historyStatus">
+                        <option value="all">Todas as situações</option>
+                        <option value="Devolvido">Devolvido</option>
+                        <option value="Negado">Negado</option>
+                        <option value="Cancelado">Cancelado</option>
+                        <option value="Expirado">Expirado</option>
+                    </select>
+                </label>
+            </div>
+            <p class="orders-summary" id="historySummary" role="status"></p>
+            <div class="history-grid" id="historyGrid" aria-label="Pedidos do histórico"></div>
+            <button class="history-more" id="historyMore" type="button" hidden>Ver mais pedidos</button>
+        </details>
     </div>
 
     <div class="modal-overlay" id="orderModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
@@ -72,6 +104,30 @@
                 <p class="justification-heading">Motivo do pedido:</p>
                 <p class="justification-content" id="modalJustificationText"></p>
             </div>
+            <p class="refusal-reason" id="modalRefusalReason" hidden></p>
+            <section id="managedRenewals" class="managed-renewals" aria-label="Renovações do pedido"></section>
+            <p id="renewalDecisionFeedback" role="status"></p>
+
+            <section class="return-section" id="returnSection" aria-labelledby="returnTitle" hidden>
+                <h3 id="returnTitle">Conferir devolução</h3>
+                <p class="return-help">Informe as unidades recebidas agora e, dentre elas, quantas estão danificadas. Unidades danificadas não voltam ao estoque disponível.</p>
+                <form id="returnForm">
+                    <div id="returnItems"></div>
+                    <label class="return-notes" for="returnNotes">Observação sobre a devolução (opcional)
+                        <textarea id="returnNotes" maxlength="1000" rows="3" placeholder="Registre as condições dos itens recebidos."></textarea>
+                    </label>
+                    <p class="return-help" id="returnSummary" role="status"></p>
+                    <div class="modal-actions">
+                        <button class="modal-btn btn-deny" id="cancelReturn" type="button">Voltar</button>
+                        <button class="modal-btn btn-approve" id="confirmReturn" type="submit" disabled>Confirmar devolução</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="return-log" id="returnLog" aria-labelledby="returnLogTitle" hidden>
+                <h3 id="returnLogTitle">Recebimentos registrados</h3>
+                <div id="returnLogEntries"></div>
+            </section>
 
             <div class="modal-actions" id="modalActions"></div>
         </div>

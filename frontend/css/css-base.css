@@ -7,6 +7,12 @@
     --shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
 
+*, *::before, *::after { box-sizing: border-box; }
+
+:focus-visible { outline: 3px solid #8a5200; outline-offset: 3px; }
+
+button, input, select, textarea { font: inherit; }
+
 body {
     font-family: 'Inter', sans-serif;
     margin: 0;
@@ -190,4 +196,10 @@ body {
     .search-bar input {
         width: 100%;
     }
+
+    .nav-links { gap: 16px; }
+    .footer-container { flex-wrap: wrap; align-items: flex-start; gap: 24px; }
+    .footer-col-icon { flex: 0 0 96px; }
+    .footer-col { flex: 1 1 180px; min-width: 0; }
+    .processor-img { max-width: 100%; }
 }

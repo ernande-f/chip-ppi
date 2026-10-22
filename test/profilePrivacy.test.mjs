@@ -12,7 +12,8 @@ test('o perfil público mascara CPF e omite credenciais e identificadores intern
     };
     const expected = {
         id_usuario: '1', nome: 'Técnico', email: 'tech@example.test', cpf: '***.***.***-09',
-        nivel_acesso: 1, status_conta: true
+        nivel_acesso: 1, status_conta: true,
+        motivo_bloqueio: null, bloqueio_automatico_ate: null, bloqueio_automatico_ativo: false
     };
     assert.deepEqual(getPublicProfile(stored), expected);
     assert.deepEqual(await getProfileSummaryByAuthUserId('internal', stored), {

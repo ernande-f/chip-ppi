@@ -14,25 +14,29 @@ export async function upsertGoogleUserProfile({ sub, email, name }) {
             const [profile] = await db`
                 UPDATE usuario SET google_sub = ${sub}, auth_provider = 'google',
                     auth_user_id = COALESCE(auth_user_id, ${randomUUID()}), email = ${email}
-                WHERE id_usuario = ${existing.id_usuario} RETURNING *
+                WHERE id_usuario = ${existing.id_usuario} RETURNING *,
+                    COALESCE(bloqueio_automatico_ate > current_date, false) AS bloqueio_automatico_ativo
             `;
             return profile;
         }
         const [profile] = await db`
             INSERT INTO usuario (google_sub, auth_user_id, auth_provider, nome, email, nivel_acesso, status_conta)
             VALUES (${sub}, ${randomUUID()}, 'google', ${name || 'Usuário'}, ${email}, 0, true)
-            RETURNING *
+            RETURNING *, false AS bloqueio_automatico_ativo
         `;
         return profile;
     });
 }
 
-function normalizeDisplayName(name) {
-    const trimmedName = name?.trim();
-    return trimmedName || null;
+export function normalizeDisplayName(name) {
+    const trimmedName = typeof name === 'string' ? name.trim() : '';
+    if (trimmedName.length < 3 || trimmedName.length > 60) {
+        throw new Error('Informe um nome válido entre 3 e 60 caracteres.');
+    }
+    return trimmedName;
 }
 
-export function getAccessLevelLabel(level) {
+export function getAccessLevelLabel(level, email) {
     if (level === 1 || level === 'tecnico' || level === 'técnico') {
         return 'Técnico';
     }
@@ -41,12 +45,16 @@ export function getAccessLevelLabel(level) {
         return 'Administrador';
     }
 
-    return 'Estudante';
+    return level === 0 && typeof email === 'string' && email.toLowerCase().endsWith('@iffarroupilha.edu.br')
+        ? 'Professor'
+        : 'Estudante';
 }
 
 export async function getProfileByAuthUserId(authUserId) {
     const [profile] = await sql`
-        SELECT id_usuario, auth_user_id, google_sub, auth_provider, session_version, nome, email, cpf, nivel_acesso, status_conta
+        SELECT id_usuario, auth_user_id, google_sub, auth_provider, session_version, nome, email, cpf, nivel_acesso, status_conta,
+            motivo_bloqueio, bloqueio_automatico_ate::text,
+            COALESCE(bloqueio_automatico_ate > current_date, false) AS bloqueio_automatico_ativo
         FROM usuario
         WHERE auth_user_id = ${authUserId}
         LIMIT 1
@@ -63,7 +71,10 @@ export function getPublicProfile(profile) {
         email: profile.email,
         cpf: cpfDigits.length === 11 ? `***.***.***-${cpfDigits.slice(-2)}` : null,
         nivel_acesso: profile.nivel_acesso,
-        status_conta: profile.status_conta
+        status_conta: profile.status_conta,
+        motivo_bloqueio: profile.motivo_bloqueio || null,
+        bloqueio_automatico_ate: profile.bloqueio_automatico_ate || null,
+        bloqueio_automatico_ativo: profile.bloqueio_automatico_ativo === true
     };
 }
 
@@ -102,7 +113,7 @@ export async function getProfileSummaryByAuthUserId(authUserId, existingProfile 
 
     return {
         ...getPublicProfile(profile),
-        nivel_acesso_label: getAccessLevelLabel(profile.nivel_acesso),
+        nivel_acesso_label: getAccessLevelLabel(profile.nivel_acesso, profile.email),
         recentOrders
     };
 }
@@ -114,15 +125,13 @@ export async function updateProfileByAuthUserId(authUserId, { name }) {
         throw new Error('authUserId é obrigatório para atualizar o perfil.');
     }
 
-    if (!normalizedName || normalizedName.length < 3) {
-        throw new Error('Informe um nome válido com pelo menos 3 caracteres.');
-    }
-
     const [updatedProfile] = await sql`
         UPDATE usuario
         SET nome = ${normalizedName}
         WHERE auth_user_id = ${authUserId}
-        RETURNING id_usuario, auth_user_id, nome, email, cpf, nivel_acesso, status_conta
+        RETURNING id_usuario, auth_user_id, nome, email, cpf, nivel_acesso, status_conta,
+            motivo_bloqueio, bloqueio_automatico_ate::text,
+            COALESCE(bloqueio_automatico_ate > current_date, false) AS bloqueio_automatico_ativo
     `;
 
     return updatedProfile ? getPublicProfile(updatedProfile) : null;

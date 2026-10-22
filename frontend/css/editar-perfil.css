@@ -50,12 +50,6 @@ body { font-family: 'Inter', sans-serif; background-color: #fff; min-height: 100
 .profile-avatar-circle i.fa-user { font-size: 100px; color: #fff; }
 .profile-avatar-circle span { font-size: 46px; font-weight: 700; color: #54320f; }
 
-.edit-photo-badge {
-    position: absolute; bottom: 5px; right: 5px; background: #000; color: #fff;
-    border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer;
-    display: flex; align-items: center; justify-content: center; z-index: 20;
-}
-
 /* COLUNA DO FORMULÁRIO COM LARGURA EQUILIBRADA */
 .form-column { 
     flex: 1; 
@@ -82,7 +76,7 @@ body { font-family: 'Inter', sans-serif; background-color: #fff; min-height: 100
 .form-group label { width: 90px; font-weight: bold; font-size: 18px; }
 .form-group input { flex: 1; padding: 14px 15px; border: none; border-radius: 8px; background: var(--bg-input); font-size: 16px; }
 
-.readonly-input { color: #777; pointer-events: none; user-select: none; cursor: default; }
+.readonly-input { color: #666; }
 .input-with-button { display: flex; flex: 1; }
 .input-with-button input { border-radius: 8px 0 0 8px; }
 
@@ -132,4 +126,17 @@ body { font-family: 'Inter', sans-serif; background-color: #fff; min-height: 100
     .navbar { flex-wrap: wrap; justify-content: center; }
     .search-bar { order: 3; width: 100%; justify-content: stretch; }
     .search-bar input { width: 100%; }
+    .nav-links { gap: 16px; }
+    .edit-content { flex-direction: column; gap: 24px; }
+    .photo-column { flex: none; align-self: center; }
+    .profile-avatar-wrapper { width: 100px; height: 100px; }
+    .form-column { width: 100%; min-width: 0; }
+    .form-group { align-items: stretch; flex-direction: column; gap: 8px; }
+    .form-group label { width: auto; font-size: 16px; }
+    .form-group input { width: 100%; min-width: 0; }
+    .form-buttons { gap: 12px; flex-wrap: wrap; margin-top: 30px; }
+    .form-buttons > button { flex: 1 1 180px; }
+    .footer-container { flex-wrap: wrap; align-items: flex-start; gap: 24px; }
+    .footer-col { flex: 1 1 180px; min-width: 0; }
+    .processor-img { width: 96px; }
 }

@@ -48,9 +48,7 @@ async function loadProfile() {
 
 document.addEventListener('DOMContentLoaded', async () => {
     const profileForm = document.getElementById('profileForm');
-    const fileInput = document.getElementById('file-input');
     const cancelEdit = document.getElementById('cancelEdit');
-    const selectAvatarButton = document.getElementById('selectAvatarButton');
 
     if (cancelEdit) {
         cancelEdit.addEventListener('click', () => {
@@ -58,15 +56,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    if (selectAvatarButton && fileInput) {
-        selectAvatarButton.addEventListener('click', () => fileInput.click());
-    }
-
     if (profileForm) {
         profileForm.addEventListener('submit', async (event) => {
             event.preventDefault();
 
             const name = document.getElementById('profileNameInput')?.value.trim();
+            if (!name || name.length < 3 || name.length > 60) {
+                alert('Informe um nome válido entre 3 e 60 caracteres.');
+                return;
+            }
 
             try {
                 await updateProfile({ name });
@@ -77,28 +75,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 console.error('Erro ao atualizar perfil:', error);
                 alert(error.message || 'Não foi possível salvar as alterações.');
             }
-        });
-    }
-
-    if (fileInput) {
-        fileInput.addEventListener('change', function handleAvatarPreview() {
-            if (!this.files?.[0]) {
-                return;
-            }
-
-            const reader = new FileReader();
-            reader.onload = (loadEvent) => {
-                const container = document.getElementById('avatar-container');
-                if (!container) return;
-                const image = document.createElement('img');
-                image.src = loadEvent.target.result;
-                image.alt = 'Avatar';
-                image.style.width = '100%';
-                image.style.height = '100%';
-                image.style.objectFit = 'cover';
-                container.replaceChildren(image);
-            };
-            reader.readAsDataURL(this.files[0]);
         });
     }
 

@@ -88,10 +88,10 @@ export async function removeItemCarrinho(productId) {
     });
 }
 
-export async function checkoutCarrinho(durationDays, acceptedTerms, justification = null, reservationStart = null, reservationEnd = null) {
+export async function checkoutCarrinho(durationDays, acceptedTerms, justification = null, termsVersion) {
     return apiRequest('/api/pedidos', {
         method: 'POST',
-        body: { durationDays, acceptedTerms, justification, reservationStart, reservationEnd }
+        body: { durationDays, acceptedTerms, justification, termsVersion }
     });
 }
 
@@ -106,6 +106,36 @@ export async function cancelPedido(id) {
     });
 }
 
+export async function solicitarRenovacao(id, requestedDate, justification) {
+    const data = await apiRequest(`/api/pedidos/${encodeURIComponent(id)}/renovacoes`, {
+        method: 'POST', body: { requestedDate, justification }
+    });
+    return data.pedido;
+}
+
+export async function decidirRenovacao(id, renewalId, approved, reason) {
+    const data = await apiRequest(`/api/gestao/pedidos/${encodeURIComponent(id)}/renovacoes/${encodeURIComponent(renewalId)}`, {
+        method: 'PATCH', body: { approved, reason }
+    });
+    return data.pedido;
+}
+
+export async function pedirNovamente(id) {
+    return apiRequest(`/api/pedidos/${encodeURIComponent(id)}/repetir`, { method: 'POST' });
+}
+
+export async function getNotificacoes(filters = {}) {
+    return apiRequest(`/api/notificacoes?${new URLSearchParams(filters)}`);
+}
+
+export async function lerNotificacao(id) {
+    return apiRequest(`/api/notificacoes/${encodeURIComponent(id)}/lida`, { method: 'PATCH' });
+}
+
+export async function lerTodasNotificacoes() {
+    return apiRequest('/api/notificacoes/lidas', { method: 'PATCH' });
+}
+
 export async function getPedidosGestao(status = '') {
     const params = new URLSearchParams();
     if (status) params.set('status', status);
@@ -114,10 +144,10 @@ export async function getPedidosGestao(status = '') {
     return data.pedidos || [];
 }
 
-export async function transitionPedido(id, action, reason = null) {
+export async function transitionPedido(id, action, reason = null, returnItems, returnNotes) {
     return apiRequest(`/api/gestao/pedidos/${encodeURIComponent(id)}`, {
         method: 'PATCH',
-        body: { action, reason }
+        body: { action, reason, returnItems, returnNotes }
     });
 }
 
@@ -187,7 +217,7 @@ export function formatDate(dateString) {
 export function getStatusClass(status) {
     const normalizedStatus = (status || '').toLowerCase();
 
-    if (normalizedStatus.includes('neg') || normalizedStatus.includes('cancel')) {
+    if (normalizedStatus.includes('neg') || normalizedStatus.includes('cancel') || normalizedStatus.includes('expir')) {
         return 'status-negado';
     }
 

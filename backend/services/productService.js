@@ -1,4 +1,5 @@
 import sql from '../db.js';
+import { recordInventoryUsage } from './inventoryUsage.js';
 
 export class ProductValidationError extends Error {}
 export class ProductConflictError extends Error {}
@@ -386,6 +387,7 @@ export async function createProduct(data) {
         `;
 
         await replaceCategories(db, createdProduct.id_produto, product.categorias);
+        await recordInventoryUsage(db, [createdProduct.id_produto], 'cadastro');
         return createdProduct;
     });
 }
@@ -452,43 +454,13 @@ export async function updateProduct(id, data) {
             await replaceCategories(db, productId, updates.categorias);
         }
 
+        await recordInventoryUsage(db, [productId], 'edicao');
         return updatedProduct;
     });
 }
 
 export async function deleteProduct(id) {
-    const productId = normalizeId(id);
-
-    try {
-        return await sql.begin(async (db) => {
-            const [existing] = await db`
-                SELECT id_produto, nome, foto_produto
-                FROM produto
-                WHERE id_produto = ${productId}
-                FOR UPDATE
-            `;
-
-            if (!existing) {
-                throw new ProductNotFoundError('Item não encontrado.');
-            }
-
-            await db`DELETE FROM categorizar WHERE id_produto = ${productId}`;
-            const [deletedProduct] = await db`
-                DELETE FROM produto
-                WHERE id_produto = ${productId}
-                RETURNING id_produto, nome
-            `;
-
-
-            return deletedProduct;
-        });
-    } catch (error) {
-        if (error.code === '23503') {
-            throw new ProductConflictError('Este item possui histórico de pedidos e não pode ser excluído. Arquive-o para removê-lo do catálogo.');
-        }
-
-        throw error;
-    }
+    return updateProduct(id, { archived: true });
 }
 
 export async function getAllCategories() {

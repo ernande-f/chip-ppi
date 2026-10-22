@@ -76,6 +76,7 @@ create table if not exists produto (
 create table if not exists pedido (
   id_pedido bigint generated always as identity primary key,
   data_pedido date not null default current_date,
+  data_aprovacao date,
   data_retirada date,
   data_devolucao date,
   duracao_dias smallint not null default 15 check (duracao_dias between 1 and 15),
@@ -107,7 +108,7 @@ create table if not exists log_auditoria (
   dados_anteriores text,
   ip text,
   dados_posteriores text,
-  id_usuario bigint not null references usuario(id_usuario)
+  id_usuario bigint references usuario(id_usuario)
 );
 
 -- ============================================================
@@ -136,12 +137,15 @@ create table if not exists contem_lista (
   id_produto bigint not null references produto(id_produto),
   qnt_solicitada int not null default 1,
   qnt_devolvida int not null default 0,
+  -- Danificadas estão incluídas nas recebidas, mas não no estoque disponível.
+  qnt_danificada int not null default 0,
   status_item text,
   constraint contem_lista_quantidades_check check (
     qnt_solicitada > 0
     and qnt_devolvida >= 0
     and qnt_devolvida <= qnt_solicitada
   ),
+  constraint contem_lista_danos_check check (qnt_danificada >= 0 and qnt_danificada <= qnt_devolvida),
   primary key (id_pedido, id_produto)
 );
 
@@ -213,7 +217,8 @@ from (
     ('Retirado'),
     ('Devolvido'),
     ('Negado'),
-    ('Cancelado')
+    ('Cancelado'),
+    ('Expirado')
 ) as statuses(required_status)
 where not exists (
   select 1

@@ -63,6 +63,9 @@ router.get('/cadastro-item.html', verifySessionAuth, (req, res) => sendTechnical
 router.get('/perfil-tec.html', verifySessionAuth, (req, res) => sendTechnicalPage(req, res, 'perfil.html'));
 router.get('/editar-perfil-tec.html', verifySessionAuth, (req, res) => sendTechnicalPage(req, res, 'editar-perfil.html'));
 router.get('/pedidos.html', verifySessionAuth, (req, res) => sendTechnicalPage(req, res, 'pedidos.html'));
+router.get('/usuarios.html', verifySessionAuth, (req, res) => sendTechnicalPage(req, res, 'usuarios.html'));
+router.get('/relatorios.html', verifySessionAuth, (req, res) => sendTechnicalPage(req, res, 'relatorios.html'));
+router.get('/notificacoes.html', verifySessionAuth, (req, res) => res.sendFile(path.join(__dirname, '../../frontend/pages/notificacoes.html')));
 
 router.get('/perfil', verifySessionAuth, async (req, res) => {
     try {
@@ -96,7 +99,7 @@ router.get('/pedidos', verifySessionAuth, async (req, res) => {
 
 router.get('/pesquisa', verifySessionAuth, async (req, res) => {
     try {
-        return res.redirect('/index-tec.html');
+        return res.redirect(hasTechnicalAccess(req.profile?.nivel_acesso) ? '/usuarios.html' : '/');
     } catch (error) {
         console.error('Erro ao carregar pesquisa:', error);
         return res.status(500).send('Erro ao carregar a página de pesquisa');

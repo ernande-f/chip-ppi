@@ -1,4 +1,5 @@
 .terms-container {
+    width: 100%;
     max-width: 960px;
     margin: 40px auto 60px;
     padding: 0 20px;
@@ -9,7 +10,7 @@
 }
 
 .terms-title {
-    font-size: 2.2rem;
+    font-size: clamp(1.65rem, 4vw, 2.2rem);
     font-weight: 800;
     color: #1f1f1f;
     margin: 0 0 8px 0;
@@ -17,7 +18,7 @@
 
 .terms-subtitle {
     font-size: 0.95rem;
-    color: #777;
+    color: #666;
     margin: 0 0 20px 0;
 }
 
@@ -69,13 +70,6 @@
     gap: 20px;
     align-items: flex-start;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
-    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
-}
-
-.term-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
-    border-color: #f3cb8a;
 }
 
 .term-number {
@@ -94,6 +88,7 @@
 
 .term-content {
     flex: 1;
+    min-width: 0;
 }
 
 .term-heading {
@@ -156,6 +151,15 @@
 
 .btn-terms-print:hover {
     background: #e5e5e5;
+}
+
+@media (max-width: 600px) {
+    .terms-container { margin-top: 28px; padding: 0 16px; }
+    .terms-intro-card, .term-card { padding: 16px; gap: 12px; }
+    .terms-intro-text { font-size: 0.95rem; }
+    .term-number { width: 30px; height: 30px; font-size: 1rem; }
+    .terms-footer-actions { margin-top: 28px; gap: 12px; }
+    .terms-footer-actions > * { width: 100%; justify-content: center; box-sizing: border-box; }
 }
 
 @media print {

@@ -9,7 +9,7 @@ const sourceConfig = getDatabaseConfig({ ...process.env, DATABASE_URL: sourceUrl
 const targetConfig = getDatabaseConfig();
 const source = postgres(sourceConfig.url, { ...sourceConfig.options, max: 1 });
 const target = postgres(targetConfig.url, { ...targetConfig.options, max: 1 });
-const tables = ['categoria', 'status_produto', 'status_pedido', 'notificacao', 'usuario', 'produto', 'pedido', 'renovacao', 'log_auditoria', 'notificar', 'lista_de_desejos', 'contem_lista', 'categorizar', 'renovacao_pedido'];
+const tables = ['categoria', 'status_produto', 'status_pedido', 'notificacao', 'usuario', 'produto', 'pedido', 'renovacao', 'log_auditoria', 'notificar', 'lista_de_desejos', 'contem_lista', 'categorizar', 'renovacao_pedido', 'penalidade_atraso', 'notificacao_email', 'historico_uso_estoque'];
 
 try {
     await source.begin('isolation level repeatable read read only', async (read) => {
@@ -22,6 +22,8 @@ try {
             await write`DELETE FROM status_produto`;
             await write`DELETE FROM status_pedido`;
             for (const table of tables) {
+                const [existing] = await read`SELECT to_regclass(${'public.' + table}) IS NOT NULL AS present`;
+                if (!existing.present && ['penalidade_atraso', 'notificacao_email', 'historico_uso_estoque'].includes(table)) continue;
                 const rows = await read`SELECT * FROM ${read(table)}`;
                 // ponytail: cópia em memória por tabela; usar pg_dump/COPY quando o acervo crescer.
                 for (const row of rows) {
