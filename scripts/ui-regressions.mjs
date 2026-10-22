@@ -68,7 +68,8 @@ try {
         await page.setViewportSize({ width, height: 800 });
         for (const file of ['termo_responsabilidade', 'perfil', 'editar-perfil', 'seus-pedidos']) {
             await page.goto(`${base}/pages/${file}.html`);
-            await page.getByRole('link', { name: 'Explorar catálogo' }).waitFor();
+            await page.locator('.navbar.chip-header-ready').waitFor();
+            assert.equal(await page.locator('.chip-catalog-link').count(), 1);
             assert.equal(await page.locator('.icon-notification').count(), 0);
             if (file === 'perfil') {
                 await page.locator('#ordersPreview').getByText('Devolvido em: 22/10/2026', { exact: true }).waitFor();

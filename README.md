@@ -63,9 +63,13 @@ O primeiro login cria um perfil de estudante. Perfis antigos são vinculados por
 
 O limite padrão de autenticação é de 100 inícios de login por IP a cada 15 minutos, para atender uma turma na mesma rede. O retorno do Google não consome esse limite; permanece protegido pelo limite global da API. `AUTH_RATE_LIMIT_MAX` pode ajustar os inícios, sem desativar a proteção. Instalações com o valor antigo explícito de 20 precisam atualizar essa configuração. Nomes de perfil devem ser textos de 3 a 60 caracteres, após remover espaços externos.
 
-O logout encerra todas as sessões da conta, inclusive cópias do token. Atualizações devem executar `npm run db:setup` para aplicar a migração de versão de sessão; sessões anteriores a essa migração exigem novo login. As respostas de perfil mostram o CPF mascarado e não devem ser armazenadas em cache.
+O logout encerra todas as sessões da conta, inclusive cópias do token. Atualizações devem executar `npm run db:setup` para aplicar a migração de versão de sessão; sessões anteriores a essa migração exigem novo login. As respostas de perfil retornam somente os campos necessários e não devem ser armazenadas em cache.
 
 Cadastro por senha, LDAP/SIGAA e recuperação de senha deixaram de ser entradas da aplicação. Os endpoints antigos retornam 410 e as páginas antigas redirecionam para o Google. Não há envio de e-mail de cadastro ou recuperação.
+
+## Dados do perfil
+
+O CHIP não utiliza CPF: o campo foi removido das telas, APIs e schema por decisão de 22/10/2026. `npm run db:setup` aplica `remove_cpf.sql`, que exclui a coluna e seus valores existentes, além de remover campos com esse nome dos objetos e arrays JSON de auditoria. A cópia de instalações antigas descarta o campo e esses registros estruturados antes de inseri-los no destino. Nome, e-mail institucional, permissões e histórico de pedidos são preservados. Backups externos anteriores não são regravados; ao restaurar uma versão antiga, reaplique as migrações antes de iniciar o sistema.
 
 ## Migrar dados existentes para PostgreSQL local
 
@@ -130,7 +134,7 @@ Relatórios mostram os itens que chegaram a **100% do estoque emprestado durante
 
 Os detalhes dos pedidos continuam filtrados pela data de solicitação e situação atual, com itens mais solicitados, usuários mais ativos, unidades recebidas/danificadas, taxa de danos e tempo médio dos empréstimos concluídos. Exportação é **CSV compatível com Excel**, com proteção contra fórmulas em campos textuais e os novos indicadores; o botão de impressão permite salvar em PDF. Não há exportação XLSX nativa.
 
-Todas as páginas com cabeçalho oferecem **Alto contraste**, com preferência persistente e suporte à preferência de contraste do sistema. Os novos fluxos foram verificados por teclado e em larguras de 320, 390 e 1280 pixels; ainda precisam de homologação em aparelho real e leitor de tela.
+O **Menu** do cabeçalho reúne navegação e **Alto contraste**, com preferência persistente e suporte à preferência de contraste do sistema. Em telas menores, logo, notificações, Menu e perfil ficam em uma linha e a busca ocupa a seguinte. O catálogo usa cartões que se ajustam à largura e um rodapé compartilhado que empilha as informações no celular. Os novos fluxos foram verificados por teclado e em larguras de 320, 390 e 1280 pixels; ainda precisam de homologação em aparelho real e leitor de tela.
 
 O [estado do sistema e plano de conclusão](docs/estado-do-sistema.md) cruza a implementação com o documento oficial v5 e o cronograma. Mobile e acessibilidade, incluindo alto contraste e baixa visão, são requisitos permanentes registrados em `AGENTS.md`.
 
@@ -145,6 +149,7 @@ npx playwright install chromium
 TEST_DATABASE_URL=postgresql://USUARIO:SENHA@127.0.0.1:5432/postgres npm run test:local
 TEST_DATABASE_URL=postgresql://USUARIO:SENHA@127.0.0.1:5432/postgres npm run test:orders
 npm run test:ui
+npm run test:catalog:ui
 TEST_DATABASE_URL=postgresql://USUARIO:SENHA@127.0.0.1:5432/postgres npm run test:loans
 TEST_DATABASE_URL=postgresql://USUARIO:SENHA@127.0.0.1:5432/postgres npm run test:accounts
 TEST_DATABASE_URL=postgresql://USUARIO:SENHA@127.0.0.1:5432/postgres npm run test:reports

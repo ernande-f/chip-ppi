@@ -52,7 +52,7 @@ export function getAccessLevelLabel(level, email) {
 
 export async function getProfileByAuthUserId(authUserId) {
     const [profile] = await sql`
-        SELECT id_usuario, auth_user_id, google_sub, auth_provider, session_version, nome, email, cpf, nivel_acesso, status_conta,
+        SELECT id_usuario, auth_user_id, google_sub, auth_provider, session_version, nome, email, nivel_acesso, status_conta,
             motivo_bloqueio, bloqueio_automatico_ate::text,
             COALESCE(bloqueio_automatico_ate > current_date, false) AS bloqueio_automatico_ativo
         FROM usuario
@@ -64,12 +64,10 @@ export async function getProfileByAuthUserId(authUserId) {
 }
 
 export function getPublicProfile(profile) {
-    const cpfDigits = String(profile.cpf || '').replace(/\D/g, '');
     return {
         id_usuario: profile.id_usuario,
         nome: profile.nome,
         email: profile.email,
-        cpf: cpfDigits.length === 11 ? `***.***.***-${cpfDigits.slice(-2)}` : null,
         nivel_acesso: profile.nivel_acesso,
         status_conta: profile.status_conta,
         motivo_bloqueio: profile.motivo_bloqueio || null,
@@ -129,7 +127,7 @@ export async function updateProfileByAuthUserId(authUserId, { name }) {
         UPDATE usuario
         SET nome = ${normalizedName}
         WHERE auth_user_id = ${authUserId}
-        RETURNING id_usuario, auth_user_id, nome, email, cpf, nivel_acesso, status_conta,
+        RETURNING id_usuario, auth_user_id, nome, email, nivel_acesso, status_conta,
             motivo_bloqueio, bloqueio_automatico_ate::text,
             COALESCE(bloqueio_automatico_ate > current_date, false) AS bloqueio_automatico_ativo
     `;

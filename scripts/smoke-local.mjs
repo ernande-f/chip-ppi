@@ -45,13 +45,33 @@ try {
         try {
             await setup.unsafe(schema);
             if (connection === target) await setup`ALTER TABLE usuario DROP COLUMN session_version`;
-            for (const file of ['google_login', 'reservations', 'google_only', 'indexes', 'session_version', 'pickup_deadline', 'return_conditions', 'loan_renewals', 'user_management', 'notifications', 'inventory_usage']) await setup.unsafe(await readFile(`database/migrations/${file}.sql`, 'utf8'));
+            for (const file of ['google_login', 'reservations', 'google_only', 'indexes', 'session_version', 'pickup_deadline', 'return_conditions', 'loan_renewals', 'user_management', 'notifications', 'inventory_usage', 'remove_cpf']) await setup.unsafe(await readFile(`database/migrations/${file}.sql`, 'utf8'));
         } finally { await setup.release(); }
     }
     const { upsertGoogleUserProfile } = await import('../backend/services/userProfile.js');
     const { createSessionToken } = await import('../backend/services/sessionAuth.js');
     const student = await upsertGoogleUserProfile({ sub: 'student', email: 'student@aluno.iffar.edu.br', name: 'Estudante Teste' });
+    assert.equal(Object.hasOwn(student, 'cpf'), false);
+    const legacyAuditBefore = { cpf: '12345678909', nome: student.nome, perfil: { CPF: '123.456.789-09', email: student.email }, itens: [{ id_produto: 7, Cpf: '12345678909', quantidade: 2 }, null, ['preservado', { cpf: null, ativo: true }]] };
+    const legacyAuditAfter = [{ cpf: '12345678909', status: 'Retirado' }, { recebido: 2, itens: [{ CPF: '12345678909', id_produto: 7 }] }, null, 3];
+    const expectedAuditBefore = { nome: student.nome, perfil: { email: student.email }, itens: [{ id_produto: 7, quantidade: 2 }, null, ['preservado', { ativo: true }]] };
+    const expectedAuditAfter = [{ status: 'Retirado' }, { recebido: 2, itens: [{ id_produto: 7 }] }, null, 3];
+    const unchangedJson = ' { "nome": "Sem documento", "itens": [3, null] } ';
+    const unchangedText = 'Anotação antiga sem JSON válido';
+    await db`ALTER TABLE usuario ADD COLUMN cpf text UNIQUE`;
     await db`UPDATE usuario SET cpf = '12345678909' WHERE id_usuario = ${student.id_usuario}`;
+    const [legacyAudit] = await db`INSERT INTO log_auditoria (acao, dados_anteriores, dados_posteriores, id_usuario)
+        VALUES ('regressao:documento_legado', ${JSON.stringify(legacyAuditBefore)}, ${JSON.stringify(legacyAuditAfter)}, ${student.id_usuario}) RETURNING id_log`;
+    const [unchangedAudit] = await db`INSERT INTO log_auditoria (acao, dados_anteriores, dados_posteriores)
+        VALUES ('regressao:texto_legado', ${unchangedText}, ${unchangedJson}) RETURNING id_log`;
+    for (let attempt = 0; attempt < 2; attempt++) await run('scripts/apply-migration.mjs', { DATABASE_URL: urls[0] }, ['database/migrations/remove_cpf.sql']);
+    assert.equal((await db`SELECT count(*)::int AS total FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'usuario' AND column_name = 'cpf'`)[0].total, 0);
+    const [migratedAudit] = await db`SELECT dados_anteriores, dados_posteriores FROM log_auditoria WHERE id_log = ${legacyAudit.id_log}`;
+    assert.deepEqual(JSON.parse(migratedAudit.dados_anteriores), expectedAuditBefore);
+    assert.deepEqual(JSON.parse(migratedAudit.dados_posteriores), expectedAuditAfter);
+    assert.deepEqual((await db`SELECT dados_anteriores, dados_posteriores FROM log_auditoria WHERE id_log = ${unchangedAudit.id_log}`)[0], { dados_anteriores: unchangedText, dados_posteriores: unchangedJson });
+    assert.deepEqual((await db`SELECT nome, email FROM usuario WHERE id_usuario = ${student.id_usuario}`)[0], { nome: student.nome, email: student.email });
+    await db`DELETE FROM log_auditoria WHERE id_log IN (${legacyAudit.id_log}, ${unchangedAudit.id_log})`;
     let tech = await upsertGoogleUserProfile({ sub: 'tech', email: 'tech@iffarroupilha.edu.br', name: 'Técnico Teste' });
     await db`UPDATE usuario SET nivel_acesso = 1 WHERE id_usuario = ${tech.id_usuario}`;
     tech = await upsertGoogleUserProfile({ sub: 'tech', email: 'tech@iffarroupilha.edu.br', name: 'Outro Nome' });
@@ -172,7 +192,7 @@ try {
         assert.equal(response.headers.get('cache-control'), 'no-store');
         const payload = await response.json();
         if (payload.profile) {
-            assert.equal(payload.profile.cpf, '***.***.***-09');
+            assert.equal(Object.hasOwn(payload.profile, 'cpf'), false);
             assert.equal(payload.profile.google_sub, undefined);
             assert.equal(payload.profile.session_version, undefined);
         }
@@ -182,7 +202,7 @@ try {
         body: JSON.stringify({ name: student.nome })
     });
     assert.equal(editedProfile.status, 200);
-    assert.equal((await editedProfile.json()).profile.cpf, '***.***.***-09');
+    assert.equal(Object.hasOwn((await editedProfile.json()).profile, 'cpf'), false);
     for (const name of [{}, 'a'.repeat(61), 'ab']) {
         const invalidName = await context.request.patch(`${base}/api/profile`, { headers: { Origin: base }, data: { name } });
         assert.equal(invalidName.status(), 400);
@@ -422,23 +442,34 @@ try {
     await run('scripts/apply-migration.mjs', { DATABASE_URL: urls[0] }, ['database/migrations/session_version.sql']);
     assert.equal((await db`SELECT session_version FROM usuario WHERE id_usuario = ${student.id_usuario}`)[0].session_version, 2);
     await db`ALTER TABLE usuario DROP COLUMN session_version`;
+    await db`ALTER TABLE usuario ADD COLUMN cpf text UNIQUE`;
+    await db`UPDATE usuario SET cpf = '12345678909' WHERE id_usuario = ${student.id_usuario}`;
+    const [copyAudit] = await db`INSERT INTO log_auditoria (acao, dados_anteriores, dados_posteriores, id_usuario)
+        VALUES ('regressao:copia_legada', ${JSON.stringify(legacyAuditBefore)}, ${JSON.stringify(legacyAuditAfter)}, ${student.id_usuario}) RETURNING id_log`;
     const expectedOrderCount = (await db`SELECT count(*)::int AS n FROM pedido`)[0].n;
     await run('scripts/copy-local-database.mjs', { SOURCE_DATABASE_URL: urls[0], DATABASE_URL: urls[1] });
     assert.equal((await target`SELECT count(*)::int AS n FROM pedido`)[0].n, expectedOrderCount);
     assert.equal((await target`SELECT estoque_total FROM produto WHERE id_produto = ${product.id_produto}`)[0].estoque_total, 3);
     assert.equal((await target`SELECT motivo_recusa FROM pedido WHERE id_pedido = ${submittedOrder.id_pedido}`)[0].motivo_recusa, refusalReason);
     assert.equal((await target`SELECT session_version FROM usuario WHERE id_usuario = ${student.id_usuario}`)[0].session_version, 0);
+    assert.equal((await target`SELECT count(*)::int AS total FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'usuario' AND column_name = 'cpf'`)[0].total, 0);
+    const [copiedAudit] = await target`SELECT dados_anteriores, dados_posteriores FROM log_auditoria WHERE id_log = ${copyAudit.id_log}`;
+    assert.deepEqual(JSON.parse(copiedAudit.dados_anteriores), expectedAuditBefore);
+    assert.deepEqual(JSON.parse(copiedAudit.dados_posteriores), expectedAuditAfter);
+    assert.equal((await db`SELECT cpf FROM usuario WHERE id_usuario = ${student.id_usuario}`)[0].cpf, '12345678909', 'A cópia não deve alterar a origem legada');
+    assert.equal((await db`SELECT dados_anteriores FROM log_auditoria WHERE id_log = ${copyAudit.id_log}`)[0].dados_anteriores, JSON.stringify(legacyAuditBefore));
     await assert.rejects(run('scripts/copy-local-database.mjs', { SOURCE_DATABASE_URL: urls[0], DATABASE_URL: urls[1] }), /Destino não está vazio/);
     await db`UPDATE pedido SET data_aprovacao = NULL WHERE id_pedido = ${order.id_pedido}`;
     await run('scripts/apply-migration.mjs', { DATABASE_URL: urls[0] }, ['database/migrations/pickup_deadline.sql']);
     assert.equal((await db`SELECT data_aprovacao = current_date AS backfilled FROM pedido WHERE id_pedido = ${order.id_pedido}`)[0].backfilled, true);
-    const migrationPaths = ['database/schema.sql', ...['google_login', 'reservations', 'google_only', 'indexes', 'session_version', 'pickup_deadline', 'return_conditions', 'loan_renewals', 'user_management', 'notifications', 'inventory_usage'].map(file => `database/migrations/${file}.sql`)];
+    const migrationPaths = ['database/schema.sql', ...['google_login', 'reservations', 'google_only', 'indexes', 'session_version', 'pickup_deadline', 'return_conditions', 'loan_renewals', 'user_management', 'notifications', 'inventory_usage', 'remove_cpf'].map(file => `database/migrations/${file}.sql`)];
     await run('scripts/apply-migration.mjs', { DATABASE_URL: urls[0] }, migrationPaths);
     assert.equal((await db`SELECT count(*)::int AS n FROM pedido`)[0].n, expectedOrderCount);
     assert.equal((await db`SELECT estoque_total FROM produto WHERE id_produto = ${product.id_produto}`)[0].estoque_total, 3);
     assert.equal((await db`SELECT motivo_recusa FROM pedido WHERE id_pedido = ${submittedOrder.id_pedido}`)[0].motivo_recusa, refusalReason);
     assert.equal((await db`SELECT session_version FROM usuario WHERE id_usuario = ${student.id_usuario}`)[0].session_version, 0);
-    console.log('OK: schema, migrações, vínculo Google, retirada/cancelamento próprio/expiração/estoque, catálogo público, permissões e paths alternativos, termo exibido e versão antiga recusada, nome validado, devoluções parciais/danos/ocorrências sem duplicar estoque, arquivamento com histórico, checkout sem agendamento, prazo de dez dias, expiração concorrente sem duplicar estoque, Kanban por arraste e teclado, negativa com justificativa, privacidade do CPF, cache privado, logout com revogação, cópia de schema antigo.');
+    assert.equal((await db`SELECT count(*)::int AS total FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'usuario' AND column_name = 'cpf'`)[0].total, 0);
+    console.log('OK: schema, migrações, vínculo Google, retirada/cancelamento próprio/expiração/estoque, catálogo público, permissões e paths alternativos, termo exibido e versão antiga recusada, nome validado, devoluções parciais/danos/ocorrências sem duplicar estoque, arquivamento com histórico, checkout sem agendamento, prazo de dez dias, expiração concorrente sem duplicar estoque, Kanban por arraste e teclado, negativa com justificativa, perfil sem documento pessoal, cache privado, logout com revogação, cópia de schema antigo.');
 } finally {
     if (browser) await browser.close();
     if (child && child.exitCode === null) { child.kill(); await once(child, 'exit'); }

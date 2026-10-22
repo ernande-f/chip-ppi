@@ -23,7 +23,7 @@ try {
     const setup = await db.reserve();
     try {
         await setup.unsafe(await readFile(new URL('../database/schema.sql', import.meta.url), 'utf8'));
-        for (const migration of ['google_login', 'reservations', 'google_only', 'indexes', 'session_version', 'pickup_deadline', 'return_conditions', 'loan_renewals', 'user_management', 'notifications', 'inventory_usage']) {
+        for (const migration of ['google_login', 'reservations', 'google_only', 'indexes', 'session_version', 'pickup_deadline', 'return_conditions', 'loan_renewals', 'user_management', 'notifications', 'inventory_usage', 'remove_cpf']) {
             await setup.unsafe(await readFile(new URL(`../database/migrations/${migration}.sql`, import.meta.url), 'utf8'));
         }
     } finally { setup.release(); }
@@ -56,6 +56,8 @@ try {
     const data = await listed.json();
     assert.equal(data.usuarios.length, 2);
     assert.equal(data.totalPages, 2);
+    const publicFields = ['id_usuario', 'nome', 'email', 'nivel_acesso', 'status_conta', 'motivo_bloqueio', 'data_bloqueio', 'bloqueio_automatico_ate', 'bloqueio_automatico_ativo'].sort();
+    for (const user of data.usuarios) assert.deepEqual(Object.keys(user).sort(), publicFields);
     assert.ok(!/cpf|google_sub|auth_user_id|session_version|senha/.test(JSON.stringify(data)));
     assert.equal((await listManagedUsers({ search: 'accounts3@' })).total, 1);
     await assert.rejects(listManagedUsers({ page: 0 }), /Página inválida/);

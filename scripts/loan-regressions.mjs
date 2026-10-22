@@ -21,7 +21,7 @@ try {
     const setup = await db.reserve();
     try {
         await setup.unsafe(await readFile(new URL('../database/schema.sql', import.meta.url), 'utf8'));
-        for (const migration of ['google_login', 'reservations', 'google_only', 'indexes', 'session_version', 'pickup_deadline', 'return_conditions', 'loan_renewals', 'user_management', 'notifications', 'inventory_usage']) {
+        for (const migration of ['google_login', 'reservations', 'google_only', 'indexes', 'session_version', 'pickup_deadline', 'return_conditions', 'loan_renewals', 'user_management', 'notifications', 'inventory_usage', 'remove_cpf']) {
             await setup.unsafe(await readFile(new URL(`../database/migrations/${migration}.sql`, import.meta.url), 'utf8'));
         }
     } finally { setup.release(); }

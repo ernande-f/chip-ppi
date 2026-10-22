@@ -27,6 +27,22 @@ try {
                 const rows = await read`SELECT * FROM ${read(table)}`;
                 // ponytail: cópia em memória por tabela; usar pg_dump/COPY quando o acervo crescer.
                 for (const row of rows) {
+                    if (table === 'usuario') delete row.cpf;
+                    if (table === 'log_auditoria') {
+                        for (const field of ['dados_anteriores', 'dados_posteriores']) {
+                            try {
+                                let removed = false;
+                                const cleaned = JSON.parse(row[field], (key, value) => {
+                                    if (key.toLowerCase() !== 'cpf') return value;
+                                    removed = true;
+                                    return undefined;
+                                });
+                                if (removed) row[field] = JSON.stringify(cleaned);
+                            } catch (error) {
+                                if (!(error instanceof SyntaxError)) throw error;
+                            }
+                        }
+                    }
                     const columns = Object.keys(row);
                     const names = columns.map(column => `"${column.replaceAll('"', '""')}"`).join(', ');
                     const placeholders = columns.map((_, index) => `$${index + 1}`).join(', ');

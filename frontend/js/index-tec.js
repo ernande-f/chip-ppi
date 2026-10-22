@@ -43,7 +43,7 @@ function createItemCard(product, onEdit) {
 
     const editButton = createElement('button', 'btn-edit-item', 'Alterar');
     editButton.type = 'button';
-    editButton.addEventListener('click', () => onEdit(product.id_produto));
+    editButton.addEventListener('click', () => onEdit(product.id_produto, editButton));
     details.appendChild(editButton);
     card.append(visual, details);
     return card;
@@ -74,6 +74,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     let activeCategories = [];
     let selectedPhoto = null;
     let debounce;
+    let modalTrigger = null;
+    let previousOverflow = '';
 
     let currentPage = 1;
     let hasMore = true;
@@ -96,11 +98,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function closeModal() {
         modal.style.display = 'none';
-        document.body.style.overflow = '';
+        document.body.style.overflow = previousOverflow;
         form.reset();
         activeCategories = [];
         selectedPhoto = null;
         categoryTags.replaceChildren();
+        if (modalTrigger?.isConnected) modalTrigger.focus({ preventScroll: true });
     }
 
     function renderCategoryTags() {
@@ -194,7 +197,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    async function openEditModal(id) {
+    async function openEditModal(id, trigger) {
         try {
             const product = await getProduto(id);
             document.getElementById('editProductId').value = product.id_produto;
@@ -207,8 +210,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             selectedPhoto = null;
             setImagePreview(product.foto_produto);
             renderCategoryTags();
+            modalTrigger = trigger;
+            previousOverflow = document.body.style.overflow;
             modal.style.display = 'flex';
             document.body.style.overflow = 'hidden';
+            modal.querySelector('.modal-content').scrollTop = 0;
+            document.getElementById('closeEditModal').focus({ preventScroll: true });
         } catch (error) {
             alert(error.message || 'Não foi possível abrir o item.');
         }
@@ -290,6 +297,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     document.getElementById('closeEditModal').addEventListener('click', closeModal);
+    modal.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+            event.preventDefault();
+            closeModal();
+        } else if (event.key === 'Tab') {
+            const focusable = [...modal.querySelectorAll('button:not(:disabled), input:not(:disabled), textarea:not(:disabled), a[href]')]
+                .filter((element) => element.getClientRects().length);
+            const first = focusable[0];
+            const last = focusable[focusable.length - 1];
+            if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+            else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+        }
+    });
     modal.addEventListener('click', (event) => {
         if (event.target === modal) closeModal();
     });

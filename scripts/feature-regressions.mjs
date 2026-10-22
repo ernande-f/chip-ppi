@@ -23,7 +23,7 @@ try {
     const setup = await db.reserve();
     try {
         await setup.unsafe(await readFile('database/schema.sql', 'utf8'));
-        for (const migration of ['google_login', 'reservations', 'google_only', 'indexes', 'session_version', 'pickup_deadline', 'return_conditions', 'loan_renewals', 'user_management', 'notifications', 'inventory_usage']) await setup.unsafe(await readFile(`database/migrations/${migration}.sql`, 'utf8'));
+        for (const migration of ['google_login', 'reservations', 'google_only', 'indexes', 'session_version', 'pickup_deadline', 'return_conditions', 'loan_renewals', 'user_management', 'notifications', 'inventory_usage', 'remove_cpf']) await setup.unsafe(await readFile(`database/migrations/${migration}.sql`, 'utf8'));
     } finally { setup.release(); }
     const { upsertGoogleUserProfile } = await import('../backend/services/userProfile.js');
     const { createSessionToken } = await import('../backend/services/sessionAuth.js');
@@ -88,13 +88,14 @@ try {
         await page.setViewportSize({ width, height: 900 });
         for (const file of ['usuarios.html', 'relatorios.html', 'notificacoes.html']) {
             await page.goto(`${base}/${file}`);
-            await page.locator('#contrastToggle').waitFor();
+            await page.locator('#contrastToggle').waitFor({ state: 'attached' });
             if (file === 'relatorios.html') await page.locator('#reportContent:not([hidden])').waitFor();
             if (file === 'usuarios.html') await page.locator('#usersList button').first().waitFor();
             if (file === 'notificacoes.html') await page.getByRole('heading', { name: 'Envio de e-mails' }).waitFor();
             assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${file} em ${width}px`);
         }
     }
+    await page.locator('.chip-menu > summary').click();
     await page.locator('#contrastToggle').click();
     assert.equal(await page.locator('html').getAttribute('data-contrast'), 'high');
     await page.goto(`${base}/relatorios.html`);
@@ -102,6 +103,7 @@ try {
     assert.equal(await page.locator('#contrastToggle').getAttribute('aria-pressed'), 'true');
     assert.equal(await page.locator('body').evaluate(node => getComputedStyle(node).backgroundColor), 'rgb(0, 0, 0)');
     await page.screenshot({ path: join(artifacts, 'reports-high-contrast.png'), fullPage: true });
+    await page.locator('.chip-menu > summary').click();
     await page.locator('#contrastToggle').click();
     await page.screenshot({ path: join(artifacts, 'reports.png'), fullPage: true });
     await context.addCookies([cookie(student)]);

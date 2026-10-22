@@ -66,17 +66,13 @@
                         </div>
                         <div class="form-group">
                             <label for="profileEmailInput">E-mail:</label>
-                            <input type="email" id="profileEmailInput" readonly tabindex="-1" class="readonly-input">
-                        </div>
-                        <div class="form-group">
-                            <label for="profileCpfInput">CPF:</label>
-                            <input type="text" id="profileCpfInput" readonly tabindex="-1" class="readonly-input">
+                            <input type="email" id="profileEmailInput" readonly class="readonly-input" aria-describedby="profileEmailNote">
                         </div>
                         <div class="form-buttons">
                             <button type="submit" class="btn-save">Salvar alterações</button>
                             <button type="button" class="btn-cancel" id="cancelEdit">Cancelar</button>
                         </div>
-                        <p class="form-footer-note">Para alterar e-mail ou CPF, fale com o administrador do sistema.</p>
+                        <p class="form-footer-note" id="profileEmailNote">O e-mail é vinculado à sua conta Google institucional.</p>
                     </form>
                 </div>
             </div>

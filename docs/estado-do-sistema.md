@@ -38,6 +38,12 @@ Os indicadores de utilização consideram a **data da retirada efetiva**, indepe
 
 Os detalhes dos pedidos consideram a **data da solicitação**, inclusive para pedidos do histórico, e mostram a situação/quantidades atuais. A taxa de danos usa unidades danificadas divididas pelas recebidas, incluindo devoluções parciais; a média usa a diferença entre retirada e devolução completa dos pedidos concluídos com ambas as datas válidas. Ausência de dados aparece como “Sem dados”, sem inventar médias ou taxas iguais a zero. Danos antigos que não foram registrados não podem ser reconstruídos.
 
+## Identificação sem CPF
+
+Por decisão expressa do usuário em 22/10/2026, CPF foi retirado do sistema. Não há campo nas telas, máscara, coleta, validação ou retorno nas APIs. O schema novo não possui a coluna; `remove_cpf.sql` remove a coluna e seus dados das instalações anteriores, além de campos de mesmo nome em objetos e arrays JSON de auditoria. Registros sem esse campo, textos de auditoria não estruturados, pedidos e permissões são preservados. O importador de bancos antigos descarta esses campos sem modificar a origem. Backups externos anteriores não foram regravados; sua restauração exige aplicar as migrações antes de usar o sistema. A decisão prevalece sobre documentos e modelos antigos e está registrada em `AGENTS.md`.
+
+A migração foi aplicada ao banco local em 22/10/2026; a coluna não existe e a verificação de saúde do servidor retornou HTTP 200. Validação: 64 testes unitários, fluxo local com PostgreSQL temporário e gestão de contas passaram. Foram conferidos a reaplicação idempotente da migração, auditoria com campos aninhados, importação legada e ausência do campo nas respostas de sessão, consulta e edição do perfil.
+
 ## Pendências reais para conclusão
 
 | Entrega | Critério de conclusão | Fonte e situação da planilha | Limite atual |
@@ -54,7 +60,7 @@ Os detalhes dos pedidos consideram a **data da solicitação**, inclusive para p
 - **Fotos:** §7 RF11–12 pede WebP, 800×800 e entrada JPG/PNG/WebP até 5 MB. O código atual limita 2 MB, aceita também GIF/URL e não converte nem redimensiona. É necessário adequar o processamento ou revisar formalmente o requisito.
 - **Identificação de professores corrigida:** §7 RF20 distingue estudante/professor pelo domínio institucional. O perfil de nível 0 com domínio `@iffarroupilha.edu.br` recebe o rótulo Professor; o nível de solicitante permanece 0. Técnico e administrador têm precedência sobre o domínio, com verificação unitária da identificação e da ausência de acesso técnico para Professor.
 - **Caracteres no cadastro:** §5 RNF02 proíbe emojis/símbolos especiais; o validador atual não aplica essa proibição. A definição precisa preservar nomes técnicos válidos antes de impor uma lista de caracteres.
-- **Materiais antigos:** Supabase nas células C5:H6, C11:H11, D15:D18, D23:D26 e D33 é referência obsoleta. Recuperação de senha C17:H17 pertence ao Google. Modelos e protótipos antigos não justificam restaurar CPF, senha local ou agendamento de datas futuras. `PROBLEMAS_E_MELHORIAS.md` se declara histórico e contém lacunas que já foram resolvidas.
+- **Materiais antigos:** Supabase nas células C5:H6, C11:H11, D15:D18, D23:D26 e D33 é referência obsoleta. Recuperação de senha C17:H17 pertence ao Google. Modelos e protótipos antigos não justificam restaurar dados pessoais retirados do escopo, senha local ou agendamento de datas futuras. `PROBLEMAS_E_MELHORIAS.md` se declara histórico e contém lacunas que já foram resolvidas.
 
 ## Etapas até dezembro de 2026
 
@@ -77,6 +83,14 @@ Celular e acessibilidade são critérios de conclusão de cada nova tela e corre
 A implementação inclui foco com `:focus-visible`, controles com rótulos, regiões de status, semântica de diálogo e navegação principal acessível. O menu permite acessar gestão, relatórios e notificações conforme a permissão. As páginas incluem viewport; formulários, tabelas, modais e navegação foram conferidos em 320, 390 e 1280 pixels.
 
 A opção de alto contraste foi implementada, persiste a escolha e considera as preferências de acessibilidade do sistema. O Kanban respeita `prefers-reduced-motion`. Os modais de termo, pedido do solicitante e gestão têm foco inicial, navegação por Tab, fechamento com Escape, retorno do foco e bloqueio de rolagem do fundo. Estados do pedido são apresentados também por texto. Os testes locais de teclado e contraste passaram; contraste efetivo, ampliação e operação completa por leitor de tela ainda exigem homologação assistiva e em aparelho real.
+
+## Correção da responsividade do catálogo
+
+A revisão de 22/10/2026 reproduziu o catálogo técnico em 400×833 pixels: cabeçalho de 281 pixels e conteúdo de 618 pixels de largura, com colunas do rodapé cortadas. Os estilos específicos do catálogo não usavam a base compartilhada, mantinham uma grade mínima de 350 pixels e não reorganizavam o rodapé. As verificações anteriores de outras telas não detectavam esse caso.
+
+O catálogo técnico, o público e o cadastro agora usam a base comum; o rodapé passa de quatro para duas e uma coluna conforme a largura. Cabeçalho agrupa atalhos e alto contraste no Menu, com busca abaixo; cartões, título, ações e formulários se ajustam à tela. O editor é rolável dentro da área visível, mantém o fundo parado, limita a navegação por Tab e fecha com Escape devolvendo o foco ao botão Alterar.
+
+`npm run test:catalog:ui` cobre administrador, estudante e visitante em 320/360/390/400/600/720/768/900/1280 pixels. Verifica as posições reais dos elementos e linhas de texto do rodapé, sem aceitar ocultar o excesso como correção; também valida busca, filtros, menu, contraste, toque de 44 pixels nos controles principais, fonte de 16 pixels nos campos e editor sem gravar dados. Chromium passou; WebKit não está instalado. Cadastro foi conferido em 320/400/768/1280 pixels. Os 64 testes unitários, a interface de pedidos/termos/perfil e a integração completa passaram. Celular físico, teclado virtual, Safari e tecnologias assistivas permanecem na homologação.
 
 ## Ordem de conclusão
 

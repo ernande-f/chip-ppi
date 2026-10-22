@@ -6,14 +6,16 @@ globalStyle.rel = 'stylesheet';
 globalStyle.href = '/css/global-ui.css';
 document.head.append(globalStyle);
 
-function createNavigation(profile, tools) {
+function createNavigation(profile, tools, signedIn) {
     const menu = document.createElement('details');
     menu.className = 'chip-menu';
     const summary = document.createElement('summary');
     summary.textContent = 'Menu';
     const nav = document.createElement('nav');
     nav.setAttribute('aria-label', 'Navegação do CHIP');
-    const links = [['/', 'Catálogo'], ['/pedidos', 'Pedidos'], ['/notificacoes.html', 'Notificações'], ['/perfil', 'Meu perfil']];
+    const links = signedIn
+        ? [['/', 'Catálogo'], ['/pedidos', 'Pedidos'], ['/notificacoes.html', 'Notificações'], ['/perfil', 'Meu perfil']]
+        : [['/', 'Catálogo'], ['/login', 'Entrar']];
     if (isUserTechnical(profile)) links.splice(2, 0, ['/usuarios.html', 'Usuários'], ['/relatorios.html', 'Relatórios']);
     for (const [href, label] of links) {
         const link = document.createElement('a');
@@ -21,8 +23,23 @@ function createNavigation(profile, tools) {
         link.textContent = label;
         nav.append(link);
     }
+    nav.append(createContrastButton());
     menu.append(summary, nav);
     tools.prepend(menu);
+    menu.addEventListener('keydown', (event) => {
+        if (event.key !== 'Escape' || !menu.open) return;
+        event.preventDefault();
+        menu.open = false;
+        summary.focus();
+    });
+    document.addEventListener('click', (event) => {
+        if (!menu.contains(event.target)) menu.open = false;
+    });
+    menu.addEventListener('focusout', (event) => {
+        if (event.relatedTarget && !menu.contains(event.relatedTarget)) menu.open = false;
+    });
+
+    if (!signedIn) return;
 
     const notifications = document.createElement('a');
     notifications.id = 'notificationsLink';
@@ -79,20 +96,32 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (inactiveSearch) {
         const catalogLink = document.createElement('a');
         catalogLink.href = '/';
-        catalogLink.className = 'nav-link-item nav-text-bold';
+        catalogLink.className = 'nav-link-item nav-text-bold chip-catalog-link';
         catalogLink.textContent = 'Explorar catálogo';
         inactiveSearch.parentElement.replaceWith(catalogLink);
     }
     document.querySelectorAll('.navbar .icon-notification, .navbar .sino-img').forEach((icon) => icon.remove());
-    document.querySelector('.navbar a[href="/perfil"]')?.setAttribute('aria-label', 'Seu perfil');
+    const profileLink = document.querySelector('.navbar .profile-pic')?.closest('a')
+        || document.querySelector('.navbar .nav-links > a[href="/perfil"], .navbar .nav-links > a[href="/perfil-tec.html"]');
+    if (profileLink && !profileLink.querySelector('.profile-pic')) {
+        const avatar = document.createElement('div');
+        avatar.className = 'profile-pic';
+        profileLink.replaceChildren(avatar);
+    }
+    profileLink?.classList.add('chip-profile-link');
+    profileLink?.setAttribute('aria-label', 'Seu perfil');
     const nav = document.querySelector('.navbar .nav-links');
     const tools = document.createElement('div');
     tools.className = 'chip-tools';
-    tools.append(createContrastButton());
     nav?.append(tools);
 
     try {
         const { profile, user } = await getSession();
+        profileLink?.setAttribute('aria-label', user ? 'Seu perfil' : 'Entrar');
+        if (nav) {
+            createNavigation(profile, tools, Boolean(user));
+            nav.closest('.navbar').classList.add('chip-header-ready');
+        }
         if (!user) return;
         const headerAvatar = ensureHeaderAvatarElement();
 
@@ -102,7 +131,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         updateNavbarForRole(profile);
-        if (nav) createNavigation(profile, tools);
     } catch (error) {
         console.error('Erro ao validar sessão:', error);
         window.location.href = '/login';

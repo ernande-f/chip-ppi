@@ -16,6 +16,9 @@ export async function checkDatabase() {
                 SELECT 1 FROM required LEFT JOIN information_schema.columns actual
                 ON actual.table_schema = 'public' AND actual.table_name = required.table_name AND actual.column_name = required.column_name
                 WHERE actual.column_name IS NULL
+            ) AND NOT EXISTS (
+                SELECT 1 FROM information_schema.columns
+                WHERE table_schema = 'public' AND table_name = 'usuario' AND column_name = 'cpf'
             ) AS schema_ready
     `;
     if (!status.schema_ready) throw new Error('Schema incompleto. Execute npm run db:setup antes de iniciar o CHIP.');

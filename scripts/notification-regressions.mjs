@@ -23,7 +23,7 @@ try {
     try {
         await setup.unsafe(await readFile('database/schema.sql', 'utf8'));
         await setup`INSERT INTO notificacao (mensagem,data_notificacao) VALUES ('Notificação legada',current_date - 5)`;
-        for (const migration of ['google_login', 'reservations', 'google_only', 'indexes', 'session_version', 'pickup_deadline', 'return_conditions', 'loan_renewals', 'user_management', 'notifications', 'inventory_usage']) {
+        for (const migration of ['google_login', 'reservations', 'google_only', 'indexes', 'session_version', 'pickup_deadline', 'return_conditions', 'loan_renewals', 'user_management', 'notifications', 'inventory_usage', 'remove_cpf']) {
             await setup.unsafe(await readFile(`database/migrations/${migration}.sql`, 'utf8'));
         }
     } finally { setup.release(); }

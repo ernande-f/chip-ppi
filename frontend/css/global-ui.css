@@ -1,21 +1,36 @@
-.chip-tools { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.chip-tools { display: flex; align-items: center; gap: 12px; }
+.chip-tools, .chip-tools * { box-sizing: border-box; }
 .chip-menu { position: relative; font-size: 0.95rem; color: #54320f; }
-.chip-menu summary { cursor: pointer; padding: 12px; min-height: 44px; border: 1px solid #b9b9b9; border-radius: 8px; font-weight: 600; }
-.chip-menu nav { position: absolute; right: 0; z-index: 900; width: 240px; max-width: 85vw; background: #fff; border: 1px solid #bbb; border-radius: 8px; padding: 8px; box-shadow: 0 6px 24px #0002; }
+.chip-menu summary { cursor: pointer; padding: 10px 12px; min-height: 44px; line-height: 22px; white-space: nowrap; border: 1px solid #b9b9b9; border-radius: 8px; font-weight: 600; touch-action: manipulation; }
+.chip-menu nav { position: absolute; top: calc(100% + 8px); right: 0; z-index: 900; width: 240px; max-width: calc(100vw - 32px); max-height: calc(100dvh - 100px); overflow-y: auto; overscroll-behavior: contain; background: #fff; border: 1px solid #bbb; border-radius: 8px; padding: 8px; box-shadow: 0 6px 24px #0002; }
 .chip-menu nav a { display: block; padding: 12px; min-height: 44px; border-radius: 4px; text-decoration: none; color: #54320f; }
-.chip-menu nav a:hover, .chip-menu nav a:focus-visible { background: #fff3dc; }
+.chip-menu nav a:focus-visible { background: #fff3dc; }
 .chip-contrast { min-height: 44px; padding: 8px 12px; border-radius: 8px; border: 1px solid #999; background: #fff; color: #333; cursor: pointer; font: inherit; font-size: 0.85rem; }
-.chip-notification-link { display: inline-flex; align-items: center; gap: 4px; min-width: 44px; min-height: 44px; color: #54320f; text-decoration: none; }
+.chip-menu .chip-contrast { width: 100%; margin-top: 8px; text-align: left; }
+.chip-menu summary:active, .chip-notification-link:active { background: #fff3dc; }
+.chip-menu summary:focus-visible, .chip-notification-link:focus-visible, .chip-contrast:focus-visible { outline: 3px solid #7b4b0e; outline-offset: 3px; }
+.chip-notification-link { position: relative; display: inline-flex; align-items: center; justify-content: center; flex: 0 0 44px; width: 44px; min-height: 44px; color: #54320f; text-decoration: none; }
 .chip-notification-link svg { width: 24px; height: 24px; }
-.chip-notification-count { background: #54320f; color: #fff; border-radius: 999px; padding: 2px 6px; font-size: 0.8rem; }
+.chip-notification-count { position: absolute; top: -2px; right: -2px; background: #54320f; color: #fff; border-radius: 999px; padding: 2px 5px; font-size: 0.7rem; line-height: 1.25; }
 .chip-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .nav-links { flex-wrap: wrap; }
 .navbar { min-width: 0; }
-@media (max-width: 720px) {
-    .navbar { flex-wrap: wrap; gap: 12px; }
-    .navbar .nav-links { gap: 12px; max-width: 100%; justify-content: center; }
-    .chip-tools { gap: 8px; }
-    .chip-menu nav { right: 0; }
+.navbar .nav-link-item { min-width: 44px; min-height: 44px; }
+@media (hover: hover) and (pointer: fine) {
+    .chip-menu nav a:hover, .chip-menu summary:hover, .chip-notification-link:hover { background: #fff3dc; }
+}
+@media (max-width: 920px) {
+    .navbar.chip-header-ready { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; justify-content: space-between; gap: 12px; }
+    .navbar.chip-header-ready > .logo-container, .navbar.chip-header-ready > a:first-child { grid-column: 1; grid-row: 1; }
+    .navbar.chip-header-ready .logo-container a, .navbar.chip-header-ready > a:first-child { display: flex; align-items: center; min-height: 44px; }
+    .navbar.chip-header-ready .logo-img { height: 40px; width: auto; }
+    .navbar.chip-header-ready > .nav-links { grid-column: 2; grid-row: 1; flex-wrap: nowrap; min-width: 0; max-width: 100%; gap: 8px; justify-content: flex-end; }
+    .navbar.chip-header-ready .nav-links > a:not(.chip-profile-link), .navbar.chip-header-ready > .chip-catalog-link { display: none; }
+    .navbar.chip-header-ready .chip-tools { gap: 4px; order: 1; }
+    .navbar.chip-header-ready .chip-profile-link { order: 2; flex-shrink: 0; }
+    .navbar.chip-header-ready .profile-pic { width: 44px; height: 44px; box-sizing: border-box; }
+    .navbar.chip-header-ready > .search-bar { grid-column: 1 / -1; grid-row: 2; width: 100%; max-width: none; min-width: 0; }
+    .navbar.chip-header-ready .search-bar input { width: 100%; min-width: 0; min-height: 44px; box-sizing: border-box; font-size: 16px; }
 }
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; transition: none !important; }

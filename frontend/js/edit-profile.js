@@ -2,7 +2,6 @@ import {
     getInitials,
     getProfile,
     isUserTechnical,
-    maskCpf,
     updateNavbarForRole,
     updateProfile
 } from './api.js';
@@ -34,12 +33,10 @@ async function loadProfile() {
 
     const nameInput = document.getElementById('profileNameInput');
     const emailInput = document.getElementById('profileEmailInput');
-    const cpfInput = document.getElementById('profileCpfInput');
     const roleSpan = document.getElementById('profileRole');
 
     if (nameInput) nameInput.value = profile.nome || '';
     if (emailInput) emailInput.value = profile.email || '';
-    if (cpfInput) cpfInput.value = maskCpf(profile.cpf);
     if (roleSpan) roleSpan.textContent = roleLabel;
 
     applyAvatar(profile.nome);

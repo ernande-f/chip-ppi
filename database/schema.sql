@@ -47,7 +47,6 @@ create table if not exists usuario (
   auth_user_id uuid unique,
   google_sub text unique,
   nome varchar(60) not null,
-  cpf text unique,
   email varchar(320) unique,
   auth_provider varchar(20) not null default 'google',
   session_version integer not null default 0 check (session_version >= 0),

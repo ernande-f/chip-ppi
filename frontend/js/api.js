@@ -175,16 +175,6 @@ export async function apiRequest(url, options = {}) {
     return data;
 }
 
-export function maskCpf(cpf) {
-    const digits = (cpf || '').replace(/\D/g, '').slice(0, 11);
-
-    if (digits.length !== 11) {
-        return cpf || '';
-    }
-
-    return digits.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-}
-
 export function getInitials(name) {
     return (name || '')
         .trim()

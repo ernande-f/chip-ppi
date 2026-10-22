@@ -28,11 +28,11 @@ O login por e-mail não verifica `status_conta`. Além disso, o middleware valid
 
 ### 2. Cadastro pode associar perfis existentes antes da confirmação do e-mail
 
-Após o cadastro, o sistema procura um perfil pelo e-mail e pode associar o novo `auth_user_id` antes da confirmação. A resposta também devolve o perfil, incluindo CPF.
+Após o cadastro, o sistema procura um perfil pelo e-mail e pode associar o novo `auth_user_id` antes da confirmação. A resposta também devolve dados pessoais do perfil.
 
 - Arquivos: `backend/routes/api.js`, `backend/services/userProfile.js`
 - Impacto: vínculo incorreto, possível negação de serviço e exposição de dados pessoais.
-- Melhoria: confirmar o e-mail antes de vincular perfis; não retornar CPF no cadastro; exigir validação explícita para vinculação.
+- Melhoria: confirmar o e-mail antes de vincular perfis; retornar somente os dados necessários no cadastro; exigir validação explícita para vinculação.
 
 ### 3. Fluxo de pedidos e empréstimos não está implementado
 
@@ -77,7 +77,7 @@ RLS e políticas foram configurados apenas para `usuario`. As tabelas de produto
 
 ### 6. Perfil técnico é apenas um protótipo
 
-A tela contém nome, e-mail e CPF fixos. O formulário não salva nome e a redefinição de senha apenas fecha o modal. A própria rota possui comentário indicando que a tela está bugada.
+A tela contém nome e e-mail fixos. O formulário não salva nome e a redefinição de senha apenas fecha o modal. A própria rota possui comentário indicando que a tela está bugada.
 
 - Arquivos: `backend/routes/pages.js`, `frontend/pages/editar-perfil-tec.html`
 - Melhoria: reutilizar a implementação real de `editar-perfil.html`, carregar dados pela API e persistir alterações.
@@ -101,12 +101,12 @@ A API retorna somente os cinco pedidos mais recentes, enquanto o requisito prev�
 - Arquivo: `backend/services/userProfile.js`
 - Melhoria: criar endpoint paginado de histórico e tela baseada em dados reais.
 
-### 9. Validação de e-mail e CPF insuficiente
+### 9. Validação de e-mail insuficiente
 
-O backend não valida domínio institucional nem CPF por algoritmo de dígito verificador. O CPF apenas é normalizado e armazenado.
+O backend não valida o domínio institucional permitido.
 
 - Arquivos: `backend/routes/api.js`, `backend/services/userProfile.js`
-- Melhoria: validar domínio permitido, CPF válido e mensagens consistentes antes de chamar o Supabase ou banco.
+- Melhoria: validar domínio permitido e mensagens consistentes antes de chamar o Supabase ou banco.
 
 ### 10. Política de senha não atende aos requisitos
 

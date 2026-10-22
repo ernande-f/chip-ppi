@@ -19,7 +19,7 @@
         </div>
 
         <div class="search-bar">
-            <input id="managementSearch" type="search" placeholder="Pesquisar por nome, categoria ou cor..." autocomplete="off">
+            <input id="managementSearch" type="search" aria-label="Pesquisar itens" placeholder="Pesquisar por nome, categoria ou cor..." autocomplete="off" enterkeyhint="search">
         </div>
 
         <div class="nav-links">
@@ -95,7 +95,7 @@
                     <div class="form-group">
                         <label for="editStock">Quantidade em estoque:</label>
                         <div class="input-with-unit">
-                            <input id="editStock" type="number" min="0" required>
+                            <input id="editStock" type="number" min="0" inputmode="numeric" required>
                             <span class="unit-text">un.</span>
                         </div>
                     </div>

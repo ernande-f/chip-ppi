@@ -12,6 +12,7 @@
 :focus-visible { outline: 3px solid #8a5200; outline-offset: 3px; }
 
 button, input, select, textarea { font: inherit; }
+button, a, summary { touch-action: manipulation; }
 
 body {
     font-family: 'Inter', sans-serif;
@@ -21,6 +22,7 @@ body {
     display: flex;
     flex-direction: column;
     min-height: 100vh; /* Garante que o rodapé fique embaixo se a página tiver pouco conteúdo */
+    min-height: 100dvh;
 }
 
 /* --- ESTRUTURA --- */
@@ -84,8 +86,8 @@ body {
     transition: opacity 0.2s;
 }
 
-.nav-link-item:hover {
-    opacity: 0.85;
+@media (hover: hover) and (pointer: fine) {
+    .nav-link-item:hover { opacity: 0.85; }
 }
 
 .nav-cart-icon {
@@ -125,29 +127,30 @@ body {
     font-weight: 700;
 }
 
-.profile-pic:hover {
-    transform: scale(1.05);
+@media (hover: hover) and (pointer: fine) {
+    .profile-pic:hover { transform: scale(1.05); }
 }
 
 /* --- FOOTER --- */
 .main-footer {
     background-color: #fff;
-    padding: 60px 5%;
+    padding: 40px 5%;
     border-top: 1px solid #e0e0e0;
-    margin-top: 50px;
+    margin-top: 48px;
 }
 
 .footer-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 40px;
+    display: grid;
+    grid-template-columns: minmax(80px, 120px) repeat(3, minmax(0, 1fr));
+    align-items: start;
+    gap: 32px;
     max-width: 1300px;
     margin: 0 auto;
 }
 
 .footer-col-icon {
-    flex: 0 0 220px;
+    max-width: 120px;
+    min-width: 0;
 }
 
 .processor-img {
@@ -157,7 +160,8 @@ body {
 }
 
 .footer-col {
-    flex: 1;
+    min-width: 0;
+    overflow-wrap: anywhere;
     color: #666;
     font-size: 0.85rem;
     line-height: 1.6;
@@ -167,11 +171,15 @@ body {
 
 .iff-logo {
     height: 55px;
+    max-width: 100%;
+    object-fit: contain;
     margin-top: 15px;
     display: block;
 }
 
 @media (max-width: 900px) {
+    .footer-container { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+    .footer-col-icon { max-width: 96px; }
     .navbar {
         gap: 16px;
     }
@@ -198,8 +206,10 @@ body {
     }
 
     .nav-links { gap: 16px; }
-    .footer-container { flex-wrap: wrap; align-items: flex-start; gap: 24px; }
-    .footer-col-icon { flex: 0 0 96px; }
-    .footer-col { flex: 1 1 180px; min-width: 0; }
-    .processor-img { max-width: 100%; }
+}
+
+@media (max-width: 600px) {
+    .main-footer { margin-top: 32px; padding: 28px 5%; }
+    .footer-container { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+    .footer-col-icon { max-width: 80px; }
 }
