@@ -97,12 +97,12 @@
     </footer>
 
     <div class="modal-overlay" id="logoutModal">
-        <div class="modal-card">
+        <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="logoutTitle" aria-describedby="logoutDescription">
             <div class="modal-header">
                 <i class="fa-solid fa-arrow-right-from-bracket"></i>
-                <h2>Sair</h2>
+                <h2 id="logoutTitle">Sair</h2>
             </div>
-            <p>Você tem certeza que deseja encerrar sua sessão?</p>
+            <p id="logoutDescription">Você tem certeza que deseja encerrar sua sessão?</p>
             <div class="modal-buttons">
                 <button type="button" class="confirm-btn" id="confirmLogout">Confirmar</button>
                 <button type="button" class="modal-cancel-btn" id="cancelLogout">Cancelar</button>

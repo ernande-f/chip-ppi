@@ -1,0 +1,96 @@
+import assert from 'node:assert/strict';
+import { once } from 'node:events';
+import express from 'express';
+import { chromium } from 'playwright';
+
+const product = { id_produto: 7, nome: 'Placa de desenvolvimento com conexões adicionais', descricao_produto: 'Placa para prototipagem.', estoque_total: 5, categorias: ['Componentes'] };
+let signedIn = true;
+let pending;
+const requests = [];
+const app = express();
+app.use(express.json());
+app.get('/api/session', (_req, res) => res.json({ user: signedIn ? { email: 'test@example.invalid' } : null, profile: signedIn ? { nome: 'Pessoa Teste', nivel_acesso: 0, recentOrders: [] } : null }));
+app.get('/api/categorias', (_req, res) => res.json({ categorias: [] }));
+app.get('/api/notificacoes', (_req, res) => res.json({ notificacoes: [], nao_lidas: 0 }));
+app.get('/api/produtos', (_req, res) => res.json({ produtos: [product], hasMore: false }));
+app.post('/api/carrinho/itens', (req, res) => {
+    requests.push(req.body);
+    pending = res;
+    app.emit('cart-request');
+});
+app.get('/pedidos', (_req, res) => res.send('<h1>Carrinho de teste</h1>'));
+app.get('/login', (_req, res) => res.send('<h1>Login de teste</h1>'));
+app.use(express.static('frontend'));
+const server = app.listen(0, '127.0.0.1');
+await once(server, 'listening');
+const base = `http://127.0.0.1:${server.address().port}`;
+let browser;
+try {
+    browser = await chromium.launch({ headless: true });
+    const page = await browser.newPage();
+    const errors = [];
+    page.on('pageerror', error => errors.push(error.message));
+    page.on('dialog', () => assert.fail('O feedback do carrinho deve ser comunicado na própria tela.'));
+    for (const width of [320, 390, 1280]) {
+        await page.setViewportSize({ width, height: 844 });
+        await page.goto(`${base}/pages/pagina-inicial.html`);
+        const card = page.locator('#catalogGrid .item-card');
+        const add = card.locator('.add-btn');
+        const feedback = card.locator('.product-cart-feedback');
+        await add.waitFor();
+        assert.equal(await add.getAttribute('aria-label'), `Adicionar ao carrinho: ${product.nome}`);
+        assert.equal(await feedback.getAttribute('role'), 'status');
+        assert.equal(await feedback.getAttribute('aria-live'), 'polite');
+        assert.equal(await card.getByRole('link', { name: 'Ver carrinho' }).count(), 0);
+        const before = requests.length;
+        const sent = once(app, 'cart-request');
+        await add.focus();
+        await page.keyboard.press('Enter');
+        await sent;
+        assert.equal(await add.isDisabled(), true);
+        assert.equal(await add.getAttribute('aria-label'), `Adicionando ao carrinho: ${product.nome}`);
+        assert.match(await feedback.innerText(), /Adicionando 1 unidade/);
+        await add.evaluate(node => node.click());
+        assert.equal(requests.length, before + 1, 'Controle desabilitado não pode reenviar.');
+        pending.json({ success: true });
+        await feedback.getByText(`1 unidade de ${product.nome} adicionada ao carrinho.`, { exact: false }).waitFor();
+        await page.waitForFunction(() => !document.querySelector('.add-btn').disabled);
+        assert.equal(await add.evaluate(node => node === document.activeElement), true);
+        assert.deepEqual(requests.at(-1), { productId: product.id_produto, quantity: 1 });
+        const cart = feedback.getByRole('link', { name: 'Ver carrinho' });
+        assert.equal(await cart.getAttribute('href'), '/pedidos');
+        assert.ok(await cart.evaluate(node => node.getBoundingClientRect().height >= 44));
+        assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+        await page.keyboard.press('Tab');
+        assert.equal(await cart.evaluate(node => node === document.activeElement), true);
+        await page.keyboard.press('Enter');
+        await page.waitForURL(`${base}/pedidos`);
+
+        await page.goto(`${base}/pages/pagina-inicial.html`);
+        await add.waitFor();
+        const failed = once(app, 'cart-request');
+        await add.click();
+        await failed;
+        pending.status(409).json({ message: 'Estoque insuficiente. Tente uma quantidade menor.' });
+        await feedback.getByText('Estoque insuficiente. Tente uma quantidade menor.', { exact: true }).waitFor();
+        assert.equal(await add.isEnabled(), true);
+        assert.equal(await feedback.getByRole('link').count(), 0);
+        const retried = once(app, 'cart-request');
+        await add.click();
+        await retried;
+        pending.json({ success: true });
+        await cart.waitFor();
+    }
+    signedIn = false;
+    const beforeVisitor = requests.length;
+    await page.goto(`${base}/pages/pagina-inicial.html`);
+    const visitor = page.getByRole('button', { name: `Entre para solicitar este item: ${product.nome}`, exact: true });
+    await visitor.click();
+    await page.waitForURL(`${base}/login`);
+    assert.equal(requests.length, beforeVisitor, 'Visitantes devem entrar antes de solicitar.');
+    assert.deepEqual(errors, []);
+    console.log('OK: confirmação persistente com produto/quantidade, link de carrinho, aria-live, estado ocupado, erro/retry, teclado e visitante em 320/390/1280px.');
+} finally {
+    await browser?.close();
+    await new Promise(resolve => server.close(resolve));
+}

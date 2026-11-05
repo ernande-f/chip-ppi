@@ -80,6 +80,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     let currentPage = 1;
     let hasMore = true;
     let isLoading = false;
+    let reloadRequested = false;
     const PAGE_LIMIT = 20;
 
     const sentinel = document.createElement('div');
@@ -137,7 +138,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const visible = status ? products.filter((product) => product.status_produto === status) : products;
         grid.replaceChildren();
 
-        if (visible.length === 0 && !isLoading) {
+        if (visible.length === 0 && !hasMore) {
             grid.appendChild(createElement('p', 'catalog-empty', 'Nenhum item encontrado.'));
             return;
         }
@@ -146,15 +147,22 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (hasMore) {
             grid.appendChild(sentinel);
-            observer.observe(sentinel);
         }
     }
 
     async function loadProducts(reset = true) {
-        if (isLoading) return;
+        if (isLoading) {
+            if (reset) reloadRequested = true;
+            return;
+        }
         if (!reset && !hasMore) return;
 
         isLoading = true;
+        reloadRequested = false;
+        observer.unobserve(sentinel);
+        const search = searchInput.value.trim();
+        const status = statusFilter.value;
+        const changed = () => reloadRequested || search !== searchInput.value.trim() || status !== statusFilter.value;
 
         if (reset) {
             currentPage = 1;
@@ -168,11 +176,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         try {
             const newProducts = await getProdutos({
-                search: searchInput.value.trim(),
+                search,
+                status,
                 includeArchived: true,
                 page: currentPage,
                 limit: PAGE_LIMIT
             });
+            if (changed()) return;
 
             sentinel.remove();
 
@@ -187,6 +197,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             renderProducts();
         } catch (error) {
+            if (changed()) return;
             console.error('Erro ao carregar itens:', error);
             sentinel.remove();
             if (reset) {
@@ -194,6 +205,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         } finally {
             isLoading = false;
+            if (changed()) {
+                clearTimeout(debounce);
+                void loadProducts(true);
+            } else if (hasMore && sentinel.isConnected) {
+                observer.observe(sentinel);
+            }
         }
     }
 
@@ -317,7 +334,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         clearTimeout(debounce);
         debounce = setTimeout(loadProducts, 250);
     });
-    statusFilter.addEventListener('change', renderProducts);
+    statusFilter.addEventListener('change', () => loadProducts());
 
     try {
         categories = await getCategorias();

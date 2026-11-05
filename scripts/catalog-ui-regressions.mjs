@@ -37,6 +37,7 @@ app.get('/api/produtos', (req, res) => {
         result = result.filter(product => [product.nome, product.cor, ...product.categorias].join(' ').toLocaleLowerCase('pt-BR').includes(search));
     }
     if (req.query.category) result = result.filter(product => product.categorias.includes(req.query.category));
+    if (req.query.status) result = result.filter(product => product.status_produto === req.query.status);
     res.json({ produtos: result, hasMore: false, isCatalogManager: req.get('x-catalog-profile') === 'admin' });
 });
 app.get('/api/produtos/:id', (req, res) => res.json({ produto: products.find(product => product.id_produto === Number(req.params.id)) }));
@@ -202,9 +203,11 @@ try {
                 await page.getByRole('heading', { name: products[0].nome, exact: true }).waitFor();
                 if (role === 'admin') {
                     await page.locator('#managementStatus').selectOption('Arquivado');
+                    await page.getByRole('heading', { name: products[3].nome, exact: true }).waitFor();
                     assert.equal(await page.locator(cardSelector).count(), 1);
                     assert.match(await page.locator(cardSelector).innerText(), /Adaptador arquivado/);
                     await page.locator('#managementStatus').selectOption('');
+                    await page.getByRole('heading', { name: products[0].nome, exact: true }).waitFor();
                     await checkEditor(page);
                 } else {
                     await page.locator('#catalogCategory').selectOption(categories[0]);

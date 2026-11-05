@@ -12,12 +12,21 @@ function redirectToLogin() {
     window.location.href = '/login';
 }
 
+let previousFocus = null;
+let previousOverflow = '';
+
 function openModal(modal) {
+    previousFocus = document.activeElement;
+    previousOverflow = document.body.style.overflow;
     modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    document.getElementById('cancelLogout').focus();
 }
 
 function closeModal(modal) {
     modal.classList.remove('active');
+    document.body.style.overflow = previousOverflow;
+    if (previousFocus?.isConnected) previousFocus.focus({ preventScroll: true });
 }
 
 function renderOrders(orders) {
@@ -100,6 +109,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     logoutModal.addEventListener('click', (event) => {
         if (event.target === logoutModal) {
             closeModal(logoutModal);
+        }
+    });
+    logoutModal.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+            event.preventDefault();
+            closeModal(logoutModal);
+        } else if (event.key === 'Tab') {
+            if (event.shiftKey && document.activeElement === confirmLogout) {
+                event.preventDefault();
+                cancelLogout.focus();
+            } else if (!event.shiftKey && document.activeElement === cancelLogout) {
+                event.preventDefault();
+                confirmLogout.focus();
+            }
         }
     });
 

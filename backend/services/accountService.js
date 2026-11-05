@@ -111,7 +111,7 @@ export async function applyLateReturnPenalty(db, { userId, orderId, dueDate, act
     await db`INSERT INTO log_auditoria (acao, tabela_afetada, dados_anteriores, dados_posteriores, ip, id_usuario)
         VALUES ('usuario:bloqueio_atraso', 'usuario', ${JSON.stringify({ id_usuario: userId, bloqueio_automatico_ate: user.bloqueio_automatico_ate })},
             ${JSON.stringify({ id_usuario: userId, id_pedido: orderId, data_prevista: dueDate, ...penalty })}, ${ip || null}, ${actorId || null})`;
-    await enqueueNotification(db, { userId, eventKey: `pedido:${orderId}:penalidade`, href: '/perfil',
+    await enqueueNotification(db, { userId, eventKey: `pedido:${orderId}:penalidade`, href: `/pedidos?id_pedido=${orderId}`,
         message: `A devolução do pedido #${orderId} teve ${dates.days} dia(s) de atraso. Sua conta está bloqueada por atraso até ${penalty.bloqueio_automatico_ate.split('-').reverse().join('/')}. A liberação é automática nessa data.` });
     return penalty;
 }

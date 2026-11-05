@@ -212,7 +212,12 @@ async function replaceCategories(db, productId, categories) {
 }
 
 function productQueryFilters(filters = {}) {
+    const status = normalizeText(filters.status);
+    if (status && !Object.values(STATUS).includes(status)) {
+        throw new ProductValidationError('Situação de item inválida.');
+    }
     return {
+        status,
         search: normalizeText(filters.search || filters.q).slice(0, 100),
         category: normalizeText(filters.category || filters.categoria).slice(0, 100),
         color: normalizeText(filters.color || filters.cor).slice(0, 20),
@@ -222,7 +227,7 @@ function productQueryFilters(filters = {}) {
 }
 
 export async function listProducts(filters = {}) {
-    const { search, category, color, availableOnly, includeArchived } = productQueryFilters(filters);
+    const { search, category, color, status, availableOnly, includeArchived } = productQueryFilters(filters);
     const limit = Math.min(Math.max(Number.parseInt(filters.limit, 10) || 20, 1), 100);
     const page = Math.max(Number.parseInt(filters.page, 10) || 1, 1);
     const offset = (page - 1) * limit;
@@ -233,6 +238,7 @@ export async function listProducts(filters = {}) {
         INNER JOIN status_produto sp ON sp.id_statusproduto = p.id_statusproduto
         WHERE
             (${includeArchived} OR lower(sp.status_produto) <> lower(${STATUS.ARCHIVED}))
+            AND (${status} = '' OR sp.status_produto = ${status})
             AND (NOT ${availableOnly} OR (lower(sp.status_produto) = lower(${STATUS.AVAILABLE}) AND p.estoque_total > 0))
             AND (
                 ${search} = ''
@@ -286,6 +292,7 @@ export async function listProducts(filters = {}) {
         ) AS categories ON true
         WHERE
             (${includeArchived} OR lower(sp.status_produto) <> lower(${STATUS.ARCHIVED}))
+            AND (${status} = '' OR sp.status_produto = ${status})
             AND (NOT ${availableOnly} OR (lower(sp.status_produto) = lower(${STATUS.AVAILABLE}) AND p.estoque_total > 0))
             AND (
                 ${search} = ''

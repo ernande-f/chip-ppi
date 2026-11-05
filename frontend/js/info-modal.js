@@ -25,6 +25,8 @@ const SLIDES_DATA = [
 
 let currentSlide = 0;
 let modalOverlay = null;
+let previousFocus = null;
+let previousOverflow = '';
 
 function createModalHtml() {
     if (document.getElementById('infoModalOverlay')) return;
@@ -57,7 +59,7 @@ function createModalHtml() {
 
             <div class="info-dots-wrapper" id="infoDotsWrapper">
                 ${SLIDES_DATA.map((_, index) => `
-                    <span class="info-dot ${index === 0 ? 'active' : ''}" data-dot-index="${index}" role="button" aria-label="Ir para slide ${index + 1}"></span>
+                    <button type="button" class="info-dot ${index === 0 ? 'active' : ''}" data-dot-index="${index}" aria-label="Ir para slide ${index + 1}" aria-pressed="${index === 0}"></button>
                 `).join('')}
             </div>
         </div>
@@ -109,20 +111,26 @@ function goToSlide(index) {
 
     dots.forEach((dot, idx) => {
         dot.classList.toggle('active', idx === currentSlide);
+        dot.setAttribute('aria-pressed', String(idx === currentSlide));
     });
 }
 
 export function openInfoModal() {
     createModalHtml();
+    if (!modalOverlay || modalOverlay.style.display === 'flex') return;
+    previousFocus = document.activeElement;
+    previousOverflow = document.body.style.overflow;
     goToSlide(0);
-    if (modalOverlay) {
-        modalOverlay.style.display = 'flex';
-    }
+    modalOverlay.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    document.getElementById('infoModalClose').focus();
 }
 
 export function closeInfoModal() {
-    if (modalOverlay) {
+    if (modalOverlay?.style.display === 'flex') {
         modalOverlay.style.display = 'none';
+        document.body.style.overflow = previousOverflow;
+        if (previousFocus?.isConnected) previousFocus.focus({ preventScroll: true });
     }
 }
 
@@ -131,10 +139,24 @@ document.addEventListener('keydown', (event) => {
     if (!modalOverlay || modalOverlay.style.display !== 'flex') return;
 
     if (event.key === 'Escape') {
+        event.preventDefault();
         closeInfoModal();
+    } else if (event.key === 'Tab') {
+        const buttons = modalOverlay.querySelectorAll('button');
+        const first = buttons[0];
+        const last = buttons[buttons.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+            event.preventDefault();
+            last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+            event.preventDefault();
+            first.focus();
+        }
     } else if (event.key === 'ArrowRight') {
+        event.preventDefault();
         goToSlide((currentSlide + 1) % SLIDES_DATA.length);
     } else if (event.key === 'ArrowLeft') {
+        event.preventDefault();
         goToSlide((currentSlide - 1 + SLIDES_DATA.length) % SLIDES_DATA.length);
     }
 });

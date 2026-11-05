@@ -512,6 +512,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     try {
         await loadOrders();
+        const id = new URLSearchParams(location.search).get('id_pedido');
+        if (id) {
+            const order = /^[1-9]\d*$/.test(id) && Number.isSafeInteger(Number(id))
+                ? orders.find(order => String(order.id_pedido) === id) : null;
+            if (order) openModal(order);
+            else document.getElementById('ordersSummary').textContent = 'O pedido desta notificação não está disponível para sua conta.';
+        }
     } catch (error) {
         console.error('Erro ao carregar gestão de pedidos:', error);
         document.getElementById('ordersSummary').textContent = 'Não foi possível carregar os pedidos.';

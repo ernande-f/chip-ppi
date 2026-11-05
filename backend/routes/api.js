@@ -353,6 +353,7 @@ router.get('/produtos', optionalSessionAuth, async (req, res) => {
             isCatalogManager: Boolean(managerProfile)
         });
     } catch (error) {
+        if (error instanceof ProductValidationError) return sendProductError(res, error);
         console.error('Erro na rota /produtos:', error);
         res.status(500).json({ success: false, message: 'Erro interno ao buscar produtos.' });
     }

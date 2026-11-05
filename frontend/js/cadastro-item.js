@@ -21,7 +21,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const tagContainer = document.getElementById('tag-container');
     const categoryList = document.getElementById('categorias-antigas');
     const photoInput = document.getElementById('foto');
-    const photoLabel = document.getElementById('label-foto');
     const cancelButton = document.getElementById('cancelProductRegistration');
     let categories = [];
     let photo = '';
@@ -79,11 +78,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     photoInput.addEventListener('change', async () => {
         try {
             photo = await readImage(photoInput.files[0]);
-            photoLabel.textContent = photo ? 'Foto selecionada' : 'Selecionar foto';
         } catch (error) {
             photo = '';
             photoInput.value = '';
-            photoLabel.textContent = 'Selecionar foto';
             alert(error.message);
         }
         updateSaveState();

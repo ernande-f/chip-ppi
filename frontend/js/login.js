@@ -1,3 +1,7 @@
+import { createContrastButton } from './accessibility.js';
+
+document.getElementById('loginAccessibility').append(createContrastButton());
+
 const error = new URLSearchParams(location.search).get('error');
 const notice = document.getElementById('loginError');
 notice.hidden = error === null;

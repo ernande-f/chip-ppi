@@ -53,10 +53,13 @@ test('callback distingue falhas de conexão sem expor credenciais no log', async
 });
 
 test('login mostra erro de rede sem refletir texto da URL', async () => {
-    const source = await readFile(new URL('../frontend/js/login.js', import.meta.url), 'utf8');
+    const source = (await readFile(new URL('../frontend/js/login.js', import.meta.url), 'utf8')).replace(/^import .*;\n/gm, '');
     for (const [search, hidden] of [['', true], ['?error=network', false], ['?error=google', false], ['?error=<img onerror=alert(1)>', false]]) {
         const notice = { textContent: 'Erro genérico' };
-        runInNewContext(source, { URLSearchParams, location: { search }, document: { getElementById: () => notice } });
+        runInNewContext(source, {
+            URLSearchParams, location: { search }, createContrastButton: () => ({}),
+            document: { getElementById: id => id === 'loginAccessibility' ? { append() {} } : notice }
+        });
         assert.equal(notice.hidden, hidden);
         assert.equal(notice.textContent, search === '?error=network'
             ? 'Não foi possível conectar ao Google a tempo. Tente entrar novamente em instantes.' : 'Erro genérico');

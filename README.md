@@ -162,3 +162,5 @@ npm run test:accounts:ui
 No PowerShell, configure `$env:TEST_DATABASE_URL` antes de `npm run test:local`. Use uma conta de teste separada da conta da aplicação. O fluxo automatizado valida a integração com sessões locais, devoluções parciais/danos e proteção contra reenvio. `test:ui` verifica os componentes em navegador com dados simulados, sem banco. Confira também o login completo com uma conta Google real no endereço da instalação.
 
 Se Playwright já estiver instalado fora do projeto, informe seu `index.mjs` em `PLAYWRIGHT_MODULE`; `PLAYWRIGHT_EXECUTABLE` permite apontar para um Chromium existente. Capturas ficam na pasta `chip-smoke-artifacts` dentro do diretório temporário do sistema.
+
+`npm run test:ux` reúne as regressões de interface, incluindo foco, processamento, detalhes, contraste, upload, busca, filtros e destinos das notificações. O [relatório de UI/UX e volume](docs/validacao-ui-ux.md) registra os resultados e os comandos da carga destrutiva local com 10 mil produtos e 30 mil pedidos. A [análise PostgreSQL/MySQL](docs/postgresql-ou-mysql.md) descreve a viabilidade e o trabalho de uma eventual migração.

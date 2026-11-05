@@ -170,7 +170,7 @@ try {
     await page.getByRole('heading', { name: 'Arduino de teste' }).waitFor();
     assert.equal(await page.getByText('Item arquivado', { exact: true }).count(), 0);
     assert.equal(await page.locator('.orders-section').isVisible(), false);
-    await page.getByRole('button', { name: 'Entre para solicitar este item' }).click();
+    await page.getByRole('button', { name: /^Entre para solicitar este item:/ }).click();
     await page.waitForURL('**/login');
     await page.getByRole('link', { name: 'Entrar com Google' }).waitFor();
     const cookieFor = profile => ({ name: 'authcookie', value: createSessionToken({ id: profile.auth_user_id, email: profile.email, auth_provider: 'google', session_version: profile.session_version }), url: base });
@@ -221,7 +221,7 @@ try {
     await page.getByText('Após a aprovação, você tem até 10 dias corridos', { exact: false }).waitFor();
     await page.goto(`${base}/pages/pagina-inicial.html`);
     const added = page.waitForResponse(response => response.url().endsWith('/api/carrinho/itens') && response.request().method() === 'POST');
-    await page.getByRole('button', { name: 'Adicionar ao carrinho' }).click();
+    await page.getByRole('button', { name: /^Adicionar ao carrinho:/ }).click();
     const addedResponse = await added;
     assert.equal(addedResponse.status(), 201, await addedResponse.text());
     await page.goto(`${base}/pedidos`);

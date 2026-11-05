@@ -99,6 +99,9 @@ body { font-family: 'Inter', sans-serif; background-color: #fff; min-height: 100
 .btn-cancel { padding: 14px 0; width: 280px; border: none; border-radius: 10px; font-weight: bold; font-size: 16px; cursor: pointer; background: var(--light-orange); }
 
 .form-footer-note { text-align: center; margin-top: 30px; font-size: 13px; color: #888; }
+.profile-message { margin-top: 16px; line-height: 1.5; overflow-wrap: anywhere; }
+.profile-message:empty { display: none; }
+.btn-save:disabled { opacity: .65; cursor: wait; }
 
 /* MODAIS E FOOTER */
 .modal-active { pointer-events: none; user-select: none; }

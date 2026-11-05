@@ -135,5 +135,9 @@ $('clearUserPenalty').addEventListener('click', () => saveUser(true));
 try {
     ({ profile } = await getSession());
     if (![1, 2].includes(profile?.nivel_acesso)) window.location.href = '/';
-    else await loadUsers();
+    else {
+        await loadUsers();
+        const id = new URLSearchParams(location.search).get('id_usuario');
+        if (id && /^[1-9]\d*$/.test(id) && Number.isSafeInteger(Number(id))) await showUser(id);
+    }
 } catch (error) { $('usersMessage').textContent = error.message; }

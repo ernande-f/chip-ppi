@@ -17,6 +17,7 @@
     "test:local": "node scripts/smoke-local.mjs",
     "test:orders": "node scripts/order-regressions.mjs",
     "test:ui": "node scripts/ui-regressions.mjs",
+    "test:ux": "node --test --test-concurrency=3 scripts/*ui-regressions.mjs scripts/catalog-status-regressions.mjs scripts/notification-links-regressions.mjs",
     "test:catalog:ui": "node scripts/catalog-ui-regressions.mjs",
     "test:loans": "node scripts/loan-regressions.mjs",
     "test:loans:ui": "node scripts/loan-ui-regressions.mjs",

@@ -18,11 +18,17 @@ function positiveId(value) {
     return id;
 }
 
+export function isNotificationHref(href) {
+    if (typeof href !== 'string' || !/^\/(?:pedidos(?:\.html)?(?:\?id_pedido=[1-9]\d*)?|perfil|usuarios\.html(?:\?id_usuario=[1-9]\d*)?)$/.test(href)) return false;
+    const id = href.split('=')[1];
+    return !id || Number.isSafeInteger(Number(id));
+}
+
 export async function enqueueNotification(db, { userId, eventKey, message, href = '/pedidos' }) {
     const id = positiveId(userId);
     if (typeof eventKey !== 'string' || !eventKey || eventKey.length > 220
         || typeof message !== 'string' || !message.trim() || message.length > 2000
-        || !['/pedidos', '/pedidos.html', '/perfil', '/usuarios.html'].includes(href)) {
+        || !isNotificationHref(href)) {
         throw new NotificationValidationError('Notificação inválida.');
     }
     const [notification] = await db`INSERT INTO notificacao (mensagem,href,chave_evento)
@@ -84,7 +90,7 @@ export async function enqueueDueReminders() {
             if (![1, 2].includes(date.dias)) return;
             await enqueueNotification(db, {
                 userId: current.id_usuario, eventKey: `lembrete:${order.id_pedido}:${date.prazo}:${date.dias}`,
-                message: `O prazo de devolução do pedido #${order.id_pedido} termina em ${date.dias} dia(s), em ${date.prazo.split('-').reverse().join('/')}.`, href: '/pedidos'
+                message: `O prazo de devolução do pedido #${order.id_pedido} termina em ${date.dias} dia(s), em ${date.prazo.split('-').reverse().join('/')}.`, href: `/pedidos?id_pedido=${order.id_pedido}`
             });
         });
     }

@@ -521,7 +521,7 @@ export async function requestOrderRenewal(userId, orderId, { requestedDate, just
             action: 'request_renewal', previousStatus: order.status, nextStatus: order.status,
             renewal: { id_renovacao: renewal.id_renovacao, data_estendida: date, justificativa: normalizedJustification }, ip });
         await enqueueStaffNotification(db, { eventKey: `renovacao:${renewal.id_renovacao}:requested`,
-            message: `${order.usuario_nome} solicitou renovação do pedido #${normalizedOrderId} até ${date.split('-').reverse().join('/')}.`, href: '/pedidos.html' });
+            message: `${order.usuario_nome} solicitou renovação do pedido #${normalizedOrderId} até ${date.split('-').reverse().join('/')}.`, href: `/pedidos.html?id_pedido=${normalizedOrderId}` });
         return getOrderById(db, normalizedOrderId);
     });
 }
@@ -552,7 +552,7 @@ export async function decideOrderRenewal(actorUserId, orderId, renewalId, { appr
             renewal: { id_renovacao: renewal, status, motivo_recusa: normalizedReason, data_estendida: pending.data_estendida }, ip });
         await enqueueNotification(db, { userId: order.id_usuario, eventKey: `renovacao:${renewal}:decided`,
             message: approved ? `A renovação do pedido #${id} foi aprovada. Devolva até ${pending.data_estendida.split('-').reverse().join('/')}.`
-                : `A renovação do pedido #${id} foi negada. Motivo: ${normalizedReason}`, href: '/pedidos' });
+                : `A renovação do pedido #${id} foi negada. Motivo: ${normalizedReason}`, href: `/pedidos?id_pedido=${id}` });
         return getOrderById(db, id);
     });
 }
@@ -638,7 +638,7 @@ export async function expireUncollectedOrders() {
             });
             await enqueueNotification(db, {
                 userId: order.id_usuario, eventKey: `pedido:${id_pedido}:expire`,
-                message: `O pedido #${id_pedido} expirou porque não foi retirado no prazo de 10 dias.`, href: '/pedidos'
+                message: `O pedido #${id_pedido} expirou porque não foi retirado no prazo de 10 dias.`, href: `/pedidos?id_pedido=${id_pedido}`
             });
         });
     }
@@ -823,7 +823,7 @@ export async function transitionOrder(actorUserId, orderId, action, { reason, ip
                 : `Uma devolução parcial foi registrada no pedido #${normalizedOrderId}. Ainda há unidades pendentes.`
         };
         if (messages[action]) await enqueueNotification(db, { userId: order.id_usuario,
-            eventKey: `pedido:${normalizedOrderId}:${action}:${auditId}`, message: messages[action], href: '/pedidos' });
+            eventKey: `pedido:${normalizedOrderId}:${action}:${auditId}`, message: messages[action], href: `/pedidos?id_pedido=${normalizedOrderId}` });
 
         return getOrderById(db, normalizedOrderId);
     });

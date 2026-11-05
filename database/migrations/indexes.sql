@@ -37,3 +37,8 @@ CREATE INDEX IF NOT EXISTS idx_produto_nome_lower
 
 CREATE INDEX IF NOT EXISTS idx_produto_status_estoque
     ON public.produto (id_statusproduto, estoque_total);
+
+-- Cada pedido consulta suas devoluções; evita reler toda a auditoria para cada cartão.
+CREATE INDEX IF NOT EXISTS idx_log_devolucao_pedido
+    ON public.log_auditoria ((dados_posteriores::jsonb ->> 'id_pedido'))
+    WHERE acao = 'pedido:register_return';

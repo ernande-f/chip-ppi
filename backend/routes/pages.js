@@ -87,10 +87,12 @@ router.get('/editar-perfil', verifySessionAuth, async (req, res) => {
 
 router.get('/pedidos', verifySessionAuth, async (req, res) => {
     try {
+        const id = req.query.id_pedido;
+        const query = typeof id === 'string' && /^[1-9]\d*$/.test(id) && Number.isSafeInteger(Number(id)) ? `?id_pedido=${id}` : '';
         if (hasTechnicalAccess(req.profile?.nivel_acesso)) {
-            return res.redirect('/pedidos.html');
+            return res.redirect(`/pedidos.html${query}`);
         }
-        return res.redirect('/pages/seus-pedidos.html');
+        return res.redirect(`/pages/seus-pedidos.html${query}`);
     } catch (error) {
         console.error('Erro ao carregar pedidos:', error);
         return res.status(500).send('Erro ao carregar a página de pedidos');

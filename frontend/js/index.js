@@ -32,10 +32,12 @@ function createProductCard(product) {
     info.className = 'item-info';
 
     const title = document.createElement('h3');
+    title.id = `product-title-${product.id_produto}`;
     title.textContent = product.nome;
     info.appendChild(title);
 
     const description = document.createElement('p');
+    description.id = `product-description-${product.id_produto}`;
     description.className = 'desc';
     description.textContent = product.descricao_produto;
     info.appendChild(description);
@@ -49,32 +51,59 @@ function createProductCard(product) {
     metadata.textContent = `${categories || 'Sem categoria'}${product.cor ? ` · ${product.cor}` : ''}`;
     info.appendChild(metadata);
 
+    const detailsButton = document.createElement('button');
+    detailsButton.className = 'product-details-toggle';
+    detailsButton.type = 'button';
+    detailsButton.textContent = 'Ver detalhes';
+    detailsButton.setAttribute('aria-label', `Ver detalhes de ${product.nome}`);
+    detailsButton.setAttribute('aria-expanded', 'false');
+    detailsButton.setAttribute('aria-controls', `${title.id} ${description.id}`);
+    detailsButton.addEventListener('click', () => {
+        const expanded = card.classList.toggle('is-expanded');
+        detailsButton.setAttribute('aria-expanded', String(expanded));
+        detailsButton.textContent = expanded ? 'Recolher detalhes' : 'Ver detalhes';
+        detailsButton.setAttribute('aria-label', `${detailsButton.textContent} de ${product.nome}`);
+    });
+    info.appendChild(detailsButton);
+
     const addButton = document.createElement('button');
     addButton.className = 'add-btn';
     addButton.type = 'button';
-    addButton.title = signedIn ? 'Adicionar ao carrinho' : 'Entre para solicitar este item';
+    addButton.title = `${signedIn ? 'Adicionar ao carrinho' : 'Entre para solicitar este item'}: ${product.nome}`;
     addButton.setAttribute('aria-label', addButton.title);
     addButton.textContent = '+';
+    const feedback = document.createElement('p');
+    feedback.className = 'product-cart-feedback';
+    feedback.setAttribute('role', 'status');
+    feedback.setAttribute('aria-live', 'polite');
+    feedback.setAttribute('aria-atomic', 'true');
     addButton.addEventListener('click', async () => {
         if (!signedIn) {
             window.location.href = '/login';
             return;
         }
+        const hadFocus = document.activeElement === addButton;
         addButton.disabled = true;
+        addButton.setAttribute('aria-label', `Adicionando ao carrinho: ${product.nome}`);
+        addButton.textContent = '…';
+        feedback.textContent = `Adicionando 1 unidade de ${product.nome}…`;
 
         try {
             await addItemCarrinho(product.id_produto, 1);
-            addButton.textContent = '✓';
-            setTimeout(() => {
-                addButton.textContent = '+';
-            }, 1200);
+            const cartLink = document.createElement('a');
+            cartLink.href = '/pedidos';
+            cartLink.textContent = 'Ver carrinho';
+            feedback.replaceChildren(document.createTextNode(`1 unidade de ${product.nome} adicionada ao carrinho. `), cartLink);
         } catch (error) {
-            alert(error.message || 'Não foi possível adicionar o item ao carrinho.');
+            feedback.textContent = error.message || 'Não foi possível adicionar o item ao carrinho. Tente novamente.';
         } finally {
             addButton.disabled = false;
+            addButton.setAttribute('aria-label', addButton.title);
+            addButton.textContent = '+';
+            if (hadFocus && document.activeElement === document.body) addButton.focus();
         }
     });
-    info.appendChild(addButton);
+    info.append(addButton, feedback);
 
     card.append(image, info);
     return card;
@@ -125,6 +154,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     let currentPage = 1;
     let hasMore = true;
     let isLoading = false;
+    let reloadRequested = false;
     const PAGE_LIMIT = 20;
 
     const sentinel = document.createElement('div');
@@ -142,10 +172,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     }, { rootMargin: '200px' });
 
     async function loadCatalog(reset = true) {
-        if (isLoading) return;
+        if (isLoading) {
+            if (reset) reloadRequested = true;
+            return;
+        }
         if (!reset && !hasMore) return;
 
         isLoading = true;
+        reloadRequested = false;
+        observer.unobserve(sentinel);
+        const search = searchInput.value.trim();
+        const category = categorySelect.value;
+        const changed = () => reloadRequested || search !== searchInput.value.trim() || category !== categorySelect.value;
 
         if (reset) {
             currentPage = 1;
@@ -158,12 +196,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         try {
             const products = await getProdutos({
-                search: searchInput.value.trim(),
-                category: categorySelect.value,
+                search,
+                category,
                 availableOnly: true,
                 page: currentPage,
                 limit: PAGE_LIMIT
             });
+            if (changed()) return;
 
             sentinel.remove();
 
@@ -183,9 +222,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             if (hasMore) {
                 grid.appendChild(sentinel);
-                observer.observe(sentinel);
             }
         } catch (error) {
+            if (changed()) return;
             console.error('Erro ao carregar catálogo:', error);
             sentinel.remove();
             if (reset) {
@@ -197,6 +236,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         } finally {
             isLoading = false;
+            if (changed()) {
+                clearTimeout(debounce);
+                void loadCatalog(true);
+            } else if (hasMore && sentinel.isConnected) {
+                observer.observe(sentinel);
+            }
         }
     }
 
@@ -216,6 +261,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             recentOrders.appendChild(message);
         }
     }
+
+    searchInput.addEventListener('input', () => {
+        clearTimeout(debounce);
+        debounce = setTimeout(() => loadCatalog(true), 250);
+    });
+    categorySelect.addEventListener('change', () => loadCatalog(true));
 
     try {
         const [{ profile, user }, categories] = await Promise.all([getSession(), getCategorias()]);
@@ -241,10 +292,4 @@ document.addEventListener('DOMContentLoaded', async () => {
         grid.textContent = 'Não foi possível carregar o catálogo. Tente novamente.';
         return;
     }
-
-    searchInput.addEventListener('input', () => {
-        clearTimeout(debounce);
-        debounce = setTimeout(() => loadCatalog(true), 250);
-    });
-    categorySelect.addEventListener('change', () => loadCatalog(true));
 });

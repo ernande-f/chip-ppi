@@ -16,6 +16,7 @@ let orders = [];
 let selectedOrder = null;
 let modalTrigger = null;
 let orderBusy = false;
+let cartBusy = false;
 
 function showModal(modal) {
     modalTrigger = document.activeElement;
@@ -42,20 +43,28 @@ function renderEmpty(container, message) {
     container.replaceChildren(createElement('p', 'empty-state', message));
 }
 
-async function loadCart() {
+async function loadCart(focus = document.activeElement) {
     const container = document.getElementById('cartItems');
     const checkoutButton = document.getElementById('checkoutButton');
+    const focusedRow = container.contains(focus) ? focus.closest('[data-product-id]') : null;
+    const focusedIndex = [...container.children].indexOf(focusedRow);
     const items = await getCarrinho();
+    const restoreFocus = focusedRow && [focus, document.body].includes(document.activeElement);
     container.replaceChildren();
     checkoutButton.disabled = items.length === 0;
 
     if (items.length === 0) {
         renderEmpty(container, 'Seu carrinho está vazio. Adicione itens pelo catálogo.');
+        if (restoreFocus) {
+            container.firstElementChild.tabIndex = -1;
+            container.firstElementChild.focus();
+        }
         return;
     }
 
     items.forEach((item) => {
         const row = createElement('div', 'table-row');
+        row.dataset.productId = item.id_produto;
         const productInfo = createElement('div', 'product-info');
         const image = document.createElement('img');
         image.className = 'product-thumb';
@@ -82,39 +91,67 @@ async function loadCart() {
         const plus = createElement('button', null, '+');
         minus.type = 'button';
         plus.type = 'button';
+        minus.dataset.cartAction = 'minus';
+        plus.dataset.cartAction = 'plus';
         minus.setAttribute('aria-label', `Diminuir quantidade de ${item.nome}`);
         plus.setAttribute('aria-label', `Aumentar quantidade de ${item.nome}`);
         minus.disabled = item.quantidade <= 1;
         plus.disabled = item.quantidade >= item.estoque_total;
 
-        minus.addEventListener('click', () => changeQuantity(item, item.quantidade - 1));
-        plus.addEventListener('click', () => changeQuantity(item, item.quantidade + 1));
+        minus.addEventListener('click', event => changeQuantity(item, item.quantidade - 1, event.currentTarget));
+        plus.addEventListener('click', event => changeQuantity(item, item.quantidade + 1, event.currentTarget));
         quantity.append(minus, value, plus);
 
         const remove = createElement('button', 'delete-btn', 'Remover');
         remove.type = 'button';
-        remove.addEventListener('click', async () => {
-            try {
-                await removeItemCarrinho(item.id_produto);
-                await loadCart();
-            } catch (error) {
-                alert(error.message || 'Não foi possível remover o item.');
-            }
-        });
+        remove.dataset.cartAction = 'remove';
+        remove.addEventListener('click', event => saveCartChange(event.currentTarget, () => removeItemCarrinho(item.id_produto)));
 
         actions.append(quantity, remove);
         row.append(productInfo, actions);
         container.appendChild(row);
     });
+    if (restoreFocus) {
+        const row = [...container.children].find(node => node.dataset.productId === focusedRow.dataset.productId)
+            || container.children[Math.min(focusedIndex, container.children.length - 1)];
+        const action = row.querySelector(`[data-cart-action="${focus.dataset.cartAction}"]:not(:disabled)`)
+            || row.querySelector('button:not(:disabled)');
+        action?.focus();
+    }
 }
 
-async function changeQuantity(item, quantity) {
+async function saveCartChange(focus, save) {
+    if (cartBusy) return;
+    cartBusy = true;
+    const container = document.getElementById('cartItems');
+    const feedback = document.getElementById('cartFeedback');
+    const checkoutButton = document.getElementById('checkoutButton');
+    const checkoutDisabled = checkoutButton.disabled;
+    const controls = [...container.querySelectorAll('button')];
+    const disabled = controls.map(button => button.disabled);
+    controls.forEach(button => { button.disabled = true; });
+    checkoutButton.disabled = true;
+    container.setAttribute('aria-busy', 'true');
+    feedback.textContent = 'Atualizando carrinho…';
     try {
-        await updateItemCarrinho(item.id_produto, quantity);
-        await loadCart();
+        await save();
+        await loadCart(focus);
+        feedback.textContent = 'Carrinho atualizado.';
     } catch (error) {
-        alert(error.message || 'Não foi possível atualizar a quantidade.');
+        feedback.textContent = error.message || 'Não foi possível atualizar o carrinho. Tente novamente.';
+    } finally {
+        cartBusy = false;
+        container.setAttribute('aria-busy', 'false');
+        controls.forEach((button, index) => {
+            if (button.isConnected) button.disabled = disabled[index];
+        });
+        checkoutButton.disabled = checkoutDisabled || !container.querySelector('[data-product-id]');
+        if (focus.isConnected && document.activeElement === document.body) focus.focus();
     }
+}
+
+async function changeQuantity(item, quantity, focus) {
+    await saveCartChange(focus, () => updateItemCarrinho(item.id_produto, quantity));
 }
 
 function getStudentStatusBadge(status) {
@@ -478,6 +515,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     try {
         await Promise.all([loadCart(), loadOrders()]);
+        const id = new URLSearchParams(location.search).get('id_pedido');
+        if (id) {
+            const order = /^[1-9]\d*$/.test(id) && Number.isSafeInteger(Number(id))
+                ? orders.find(order => String(order.id_pedido) === id) : null;
+            if (order) openOrderModal(order);
+            else document.getElementById('cartFeedback').textContent = 'O pedido desta notificação não está disponível para sua conta.';
+        }
     } catch (error) {
         console.error('Erro ao carregar pedidos:', error);
         alert(error.message || 'Não foi possível carregar seus pedidos.');

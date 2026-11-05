@@ -5,9 +5,12 @@ let busy = false;
 const el = id => document.getElementById(id);
 const create = (tag, text) => { const node = document.createElement(tag); node.textContent = text; return node; };
 
-async function loadNotifications() {
+async function loadNotifications(focus = document.activeElement) {
     if (busy) return;
     busy = true;
+    const list = el('notificationsList');
+    const focusedCard = list.contains(focus) ? focus.closest('[data-notification-id]') : null;
+    const focusedIndex = [...list.children].indexOf(focusedCard);
     el('notificationsList').setAttribute('aria-busy', 'true');
     el('readAll').disabled = true;
     el('unreadOnly').disabled = true;
@@ -23,6 +26,7 @@ async function loadNotifications() {
         for (const notification of data.notificacoes) {
             const card = document.createElement('article');
             card.className = `notification-card${notification.lida_em ? '' : ' unread'}`;
+            card.dataset.notificationId = notification.id_notificacao;
             card.append(create('strong', notification.lida_em ? 'Lida' : 'Não lida'));
             const time = create('time', new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short', timeZone: 'America/Sao_Paulo' }).format(new Date(notification.criada_em)));
             time.dateTime = notification.criada_em;
@@ -30,14 +34,18 @@ async function loadNotifications() {
             const actions = document.createElement('div');
             actions.className = 'notification-controls';
             const link = create('a', 'Ver detalhes');
-            link.href = ['/pedidos', '/pedidos.html', '/perfil', '/usuarios.html'].includes(notification.href) ? notification.href : '/pedidos';
+            const href = notification.href;
+            const valid = typeof href === 'string' && /^\/(?:pedidos(?:\.html)?(?:\?id_pedido=[1-9]\d*)?|perfil|usuarios\.html(?:\?id_usuario=[1-9]\d*)?)$/.test(href)
+                && (!href.includes('=') || Number.isSafeInteger(Number(href.split('=')[1])));
+            link.href = valid ? href : '/pedidos';
             actions.append(link);
             if (!notification.lida_em) {
                 const read = create('button', 'Marcar como lida');
                 read.type = 'button';
                 read.addEventListener('click', async () => {
+                    const focus = document.activeElement;
                     read.disabled = true;
-                    try { await lerNotificacao(notification.id_notificacao); await loadNotifications(); }
+                    try { await lerNotificacao(notification.id_notificacao); await loadNotifications(focus); }
                     catch (error) { el('notificationStatus').textContent = error.message; read.disabled = false; }
                 });
                 actions.append(read);
@@ -57,6 +65,25 @@ async function loadNotifications() {
         busy = false;
         el('notificationsList').setAttribute('aria-busy', 'false');
         el('unreadOnly').disabled = false;
+        if ([focus, document.body].includes(document.activeElement)) {
+            if (focusedCard) {
+                const card = [...list.children].find(node => node.dataset.notificationId === focusedCard.dataset.notificationId)
+                    || list.children[Math.min(focusedIndex, list.children.length - 1)];
+                const target = card?.querySelector(focus.tagName === 'BUTTON' ? 'button:not(:disabled)' : 'a')
+                    || card?.querySelector('a');
+                if (target) target.focus();
+                else {
+                    el('notificationStatus').tabIndex = -1;
+                    el('notificationStatus').focus();
+                }
+            } else if (['readAll', 'unreadOnly', 'previousPage', 'nextPage'].includes(focus.id)) {
+                if (!focus.disabled) focus.focus();
+                else {
+                    el('notificationStatus').tabIndex = -1;
+                    el('notificationStatus').focus();
+                }
+            }
+        }
     }
 }
 
@@ -65,8 +92,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     el('previousPage').addEventListener('click', () => { page--; loadNotifications(); });
     el('nextPage').addEventListener('click', () => { page++; loadNotifications(); });
     el('readAll').addEventListener('click', async () => {
+        const focus = document.activeElement;
         el('readAll').disabled = true;
-        try { await lerTodasNotificacoes(); await loadNotifications(); } catch (error) { el('notificationStatus').textContent = error.message; el('readAll').disabled = false; }
+        try { await lerTodasNotificacoes(); await loadNotifications(focus); } catch (error) { el('notificationStatus').textContent = error.message; el('readAll').disabled = false; }
     });
     await loadNotifications();
     const { profile } = await getSession().catch(() => ({ profile: null }));

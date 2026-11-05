@@ -46,6 +46,9 @@ async function loadProfile() {
 document.addEventListener('DOMContentLoaded', async () => {
     const profileForm = document.getElementById('profileForm');
     const cancelEdit = document.getElementById('cancelEdit');
+    const saveButton = profileForm?.querySelector('[type="submit"]');
+    const message = document.getElementById('profileMessage');
+    let saving = false;
 
     if (cancelEdit) {
         cancelEdit.addEventListener('click', () => {
@@ -56,21 +59,35 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (profileForm) {
         profileForm.addEventListener('submit', async (event) => {
             event.preventDefault();
+            if (saving) return;
 
             const name = document.getElementById('profileNameInput')?.value.trim();
             if (!name || name.length < 3 || name.length > 60) {
-                alert('Informe um nome válido entre 3 e 60 caracteres.');
+                message.textContent = 'Informe um nome válido entre 3 e 60 caracteres.';
+                document.getElementById('profileNameInput').focus();
                 return;
             }
 
+            saving = true;
+            const focus = document.activeElement;
+            saveButton.disabled = true;
+            saveButton.textContent = 'Salvando…';
+            profileForm.setAttribute('aria-busy', 'true');
+            message.textContent = 'Salvando alterações…';
             try {
                 await updateProfile({ name });
                 applyAvatar(name);
-                alert('Perfil atualizado com sucesso.');
+                message.textContent = 'Perfil atualizado com sucesso.';
                 window.location.href = '/perfil';
             } catch (error) {
                 console.error('Erro ao atualizar perfil:', error);
-                alert(error.message || 'Não foi possível salvar as alterações.');
+                message.textContent = error.message || 'Não foi possível salvar as alterações. Tente novamente.';
+            } finally {
+                saving = false;
+                saveButton.disabled = false;
+                saveButton.textContent = 'Salvar alterações';
+                profileForm.setAttribute('aria-busy', 'false');
+                if (focus === saveButton && document.activeElement === document.body) saveButton.focus();
             }
         });
     }
